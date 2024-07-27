@@ -4,20 +4,21 @@ import idv.tia201.g1.authentication.filter.AdminLoginInterceptor;
 import idv.tia201.g1.authentication.filter.CompanyLoginInterceptor;
 import idv.tia201.g1.authentication.filter.TokenParsingInterceptor;
 import idv.tia201.g1.authentication.filter.UserLoginInterceptor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.*;
 
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
-    @Autowired
-    private TokenParsingInterceptor tokenParsingInterceptor;
+    private final TokenParsingInterceptor tokenParsingInterceptor;
+    private final UserLoginInterceptor userLoginInterceptor;
+    private final CompanyLoginInterceptor companyLoginInterceptor;
+    private final AdminLoginInterceptor adminLoginInterceptor;
 
-    @Override
-    public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        // 靜態資源配置  之後要修改路徑
-        registry.addResourceHandler("/resources/**")
-                .addResourceLocations("/resources/");
+    public WebConfig(TokenParsingInterceptor tokenParsingInterceptor, UserLoginInterceptor userLoginInterceptor, CompanyLoginInterceptor companyLoginInterceptor, AdminLoginInterceptor adminLoginInterceptor) {
+        this.tokenParsingInterceptor = tokenParsingInterceptor;
+        this.userLoginInterceptor = userLoginInterceptor;
+        this.companyLoginInterceptor = companyLoginInterceptor;
+        this.adminLoginInterceptor = adminLoginInterceptor;
     }
 
     @Override
@@ -34,13 +35,13 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addInterceptor(tokenParsingInterceptor)
                 .addPathPatterns("/**");
 
-        registry.addInterceptor(new UserLoginInterceptor())
+        registry.addInterceptor(userLoginInterceptor)
                 .addPathPatterns("/user/**");   // TODO: 討論後修改
 
-        registry.addInterceptor(new CompanyLoginInterceptor())
+        registry.addInterceptor(companyLoginInterceptor)
                 .addPathPatterns("/company/**");   // TODO: 討論後修改
 
-        registry.addInterceptor(new AdminLoginInterceptor())
+        registry.addInterceptor(adminLoginInterceptor)
                 .addPathPatterns("/admin/**");  // TODO: 討論後修改
     }
 }

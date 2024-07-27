@@ -1,7 +1,6 @@
 package idv.tia201.g1.utils.redis;
 
 import idv.tia201.g1.utils.basic.JSONUtil;
-import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
@@ -242,23 +241,6 @@ public class CacheClient {
 
     // 邏輯過期方案使用的執行緒池
     private static final ExecutorService CACHE_REBUILD_EXECUTOR = Executors.newFixedThreadPool(10);
-
-    @PreDestroy
-    public void shutdownExecutorService() {
-        // 在關閉前, 先結束所有的執行緒工作 (避免jdbc連線未中止的錯誤)
-        CACHE_REBUILD_EXECUTOR.shutdown();
-        try {
-            if (!CACHE_REBUILD_EXECUTOR.awaitTermination(60, TimeUnit.SECONDS)) {
-                CACHE_REBUILD_EXECUTOR.shutdownNow();
-                if (!CACHE_REBUILD_EXECUTOR.awaitTermination(60, TimeUnit.SECONDS)) {
-                    System.err.println("ExecutorService did not terminate");
-                }
-            }
-        } catch (InterruptedException ie) {
-            CACHE_REBUILD_EXECUTOR.shutdownNow();
-            Thread.currentThread().interrupt();
-        }
-    }
 
     /**
      * 利用邏輯過期解決緩存擊穿方案

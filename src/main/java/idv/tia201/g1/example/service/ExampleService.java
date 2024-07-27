@@ -1,6 +1,5 @@
 package idv.tia201.g1.example.service;
 
-import idv.tia201.g1.dto.Result;
 import idv.tia201.g1.entity.ExampleEntity;
 
 import java.util.List;

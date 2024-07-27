@@ -4,15 +4,20 @@ import idv.tia201.g1.authentication.service.TokenService;
 import idv.tia201.g1.authentication.service.UserAuth;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
 
 import static idv.tia201.g1.utils.Constants.ROLE_ADMIN;
 
+@Component
 public class AdminLoginInterceptor implements HandlerInterceptor {
-    @Autowired
-    private TokenService tokenService;
+    private final TokenService tokenService;
+
+    public AdminLoginInterceptor(TokenService tokenService) {
+        this.tokenService = tokenService;
+    }
+
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         String authorizationHeader = request.getHeader("Authorization");

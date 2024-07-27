@@ -6,7 +6,6 @@ import idv.tia201.g1.authentication.service.UserAuth;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -19,8 +18,11 @@ import static idv.tia201.g1.utils.Constants.LOGIN_USER;
 @Service
 public class TokenServiceImplRedis implements TokenService {
     private final Gson gson = new Gson();
-    @Autowired
-    StringRedisTemplate stringRedisTemplate;
+    private final StringRedisTemplate stringRedisTemplate;
+
+    public TokenServiceImplRedis(StringRedisTemplate stringRedisTemplate) {
+        this.stringRedisTemplate = stringRedisTemplate;
+    }
 
     @Override
     public <T extends UserAuth> String setToken(T user) {

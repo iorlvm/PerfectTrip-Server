@@ -4,10 +4,7 @@ import io.lettuce.core.ReadFrom;
 import org.springframework.boot.autoconfigure.data.redis.LettuceClientConfigurationBuilderCustomizer;
 import org.springframework.context.annotation.*;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
@@ -16,7 +13,6 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import javax.sql.DataSource;
-import java.io.Serializable;
 
 @Configuration
 @EnableTransactionManagement
@@ -42,7 +38,13 @@ public class AppConfig {
         return new TransactionTemplate(transactionManager);
     }
 
-    // Redis圖片緩存專用配置
+    // Redis配置
+    @Bean
+    LettuceClientConfigurationBuilderCustomizer clientConfigurationBuilderCustomizer () {
+        // 讀寫分離配置 (優先讀取從節點)
+        return clientConfigurationBuilder -> clientConfigurationBuilder.readFrom(ReadFrom.REPLICA_PREFERRED);
+    }
+
     @Bean
     public RedisTemplate<String, byte[]> redisTemplateForImage(RedisConnectionFactory factory) {
         // for 圖片緩存使用的序列化器
