@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import idv.tia201.g1.constant.Action;
 import idv.tia201.g1.constant.Gender;
 import idv.tia201.g1.constant.UserGroup;
+import idv.tia201.g1.utils.Constants;
 import jakarta.persistence.*;
 
 import java.util.Date;
@@ -46,7 +47,7 @@ public class User {
     @Column(name = "last_modified_date")
     private Date lastModifiedDate;
 
-    private final String ROLE_USER = null;
+    private final String ROLE_USER = Constants.ROLE_USER;
     private String token;
 
     public User() {
