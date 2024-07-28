@@ -10,15 +10,9 @@ import org.springframework.web.servlet.config.annotation.*;
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
     private final TokenParsingInterceptor tokenParsingInterceptor;
-    private final UserLoginInterceptor userLoginInterceptor;
-    private final CompanyLoginInterceptor companyLoginInterceptor;
-    private final AdminLoginInterceptor adminLoginInterceptor;
 
-    public WebConfig(TokenParsingInterceptor tokenParsingInterceptor, UserLoginInterceptor userLoginInterceptor, CompanyLoginInterceptor companyLoginInterceptor, AdminLoginInterceptor adminLoginInterceptor) {
+    public WebConfig(TokenParsingInterceptor tokenParsingInterceptor) {
         this.tokenParsingInterceptor = tokenParsingInterceptor;
-        this.userLoginInterceptor = userLoginInterceptor;
-        this.companyLoginInterceptor = companyLoginInterceptor;
-        this.adminLoginInterceptor = adminLoginInterceptor;
     }
 
     @Override
@@ -35,13 +29,13 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addInterceptor(tokenParsingInterceptor)
                 .addPathPatterns("/**");
 
-        registry.addInterceptor(userLoginInterceptor)
+        registry.addInterceptor(new UserLoginInterceptor())
                 .addPathPatterns("/user/**");   // TODO: 討論後修改
 
-        registry.addInterceptor(companyLoginInterceptor)
+        registry.addInterceptor(new CompanyLoginInterceptor())
                 .addPathPatterns("/company/**");   // TODO: 討論後修改
 
-        registry.addInterceptor(adminLoginInterceptor)
+        registry.addInterceptor(new AdminLoginInterceptor())
                 .addPathPatterns("/admin/**");  // TODO: 討論後修改
     }
 }
