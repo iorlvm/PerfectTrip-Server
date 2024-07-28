@@ -1,17 +1,19 @@
 package idv.tia201.g1.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import idv.tia201.g1.authentication.service.UserAuth;
 import idv.tia201.g1.constant.Action;
 import idv.tia201.g1.constant.Gender;
 import idv.tia201.g1.constant.UserGroup;
-import idv.tia201.g1.utils.Constants;
 import jakarta.persistence.*;
 
 import java.util.Date;
 
+import static idv.tia201.g1.utils.Constants.ROLE_USER;
+
 @Entity
 @Table(name = "user_master")
-public class User {
+public class User implements UserAuth {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY) // auto increment
@@ -47,12 +49,10 @@ public class User {
     @Column(name = "last_modified_date")
     private Date lastModifiedDate;
 
-    private final String ROLE_USER = Constants.ROLE_USER;
+    @Transient
     private String token;
 
-    public User() {
-
-    }
+    public User() {}
 
     public Integer getUserId() {
         return userId;
@@ -64,6 +64,19 @@ public class User {
 
     public String getUsername() {
         return username;
+    }
+
+    @Override
+    public String getRole() {
+        return ROLE_USER;
+    }
+
+    public String getToken() {
+        return token;
+    }
+
+    public void setToken(String token) {
+        this.token = token;
     }
 
     public void setUsername(String username) {

@@ -34,6 +34,7 @@ spring:
 
   jackson:
     default-property-inclusion: non_null
+
   data:
     redis:
       password: ${redis.cluster.password}
@@ -47,13 +48,17 @@ spring:
         master: redis-master
         nodes: ${redis.cluster.node}
         password: ${redis.cluster.password}
+
   mvc:
     view:
       suffix: .jsp
 
 logging:
   level:
+#    root: INFO
     idv.tia201.g1: DEBUG
+#  pattern:
+#    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
 
 server:
   servlet:

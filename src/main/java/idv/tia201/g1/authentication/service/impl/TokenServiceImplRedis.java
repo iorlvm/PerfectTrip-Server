@@ -25,7 +25,7 @@ public class TokenServiceImplRedis implements TokenService {
     }
 
     @Override
-    public <T extends UserAuth> String setToken(T user) {
+    public <T extends UserAuth> String createToken(T user) {
         String token = UUID.randomUUID().toString().replace("-", "");
         String key = LOGIN_USER + token;
 
