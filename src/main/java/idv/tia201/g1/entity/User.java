@@ -5,6 +5,9 @@ import idv.tia201.g1.authentication.service.UserAuth;
 import idv.tia201.g1.constant.Action;
 import idv.tia201.g1.constant.Gender;
 import idv.tia201.g1.constant.UserGroup;
+import idv.tia201.g1.converter.ActionConverter;
+import idv.tia201.g1.converter.GenderConverter;
+import idv.tia201.g1.converter.UserGroupConverter;
 import jakarta.persistence.*;
 
 import java.util.Date;
@@ -32,14 +35,17 @@ public class User implements UserAuth {
     private String nickname;
     @Column(name = "tax_id")
     private String taxId;
+    @Convert(converter = GenderConverter.class)
     @Column(name = "gender")
     private Gender gender;
+    @Convert(converter = UserGroupConverter.class)
     @Column(name = "user_group")
     private UserGroup userGroup;
     @Column(name = "phone_number")
     private String phoneNumber;
     @Column(name = "country")
     private String country;
+    @Convert(converter = ActionConverter.class)
     @Column(name = "action")
     private Action action;
     @Column(name = "change_id")

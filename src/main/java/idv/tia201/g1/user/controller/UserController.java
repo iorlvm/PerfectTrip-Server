@@ -15,34 +15,34 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class UserController {
 
-    @Autowired
-    private UserService userService;
+	@Autowired
+	private UserService userService;
     @Autowired
     private TokenService tokenService;
 
-    @PostMapping("/users/register")
-    public Result register(@RequestBody @Valid UserRegisterRequest userRegisterRequest) {
+	@PostMapping("/users/register")
+	public Result register(@RequestBody @Valid UserRegisterRequest userRegisterRequest) {
 
-        Integer userId = userService.register(userRegisterRequest);
+		Integer userId = userService.register(userRegisterRequest);
 
-        User user = userService.findByUserId(userId);
+		User user = userService.findByUserId(userId);
 
-        return Result.ok(user);
+		return Result.ok(user);
 
-    }
+	}
 
-    @PostMapping("/users/login")
-    public Result login(@RequestBody @Valid UserLoginRequest userLoginRequest) {
+	@PostMapping("/users/login")
+	public Result login(@RequestBody @Valid UserLoginRequest userLoginRequest) {
 
-        User user = userService.login(userLoginRequest);
+		User user = userService.login(userLoginRequest);
 
         if (user != null) {
             String token = tokenService.createToken(user);
             user.setToken(token);
         }
 
-        return Result.ok(user);
+		return Result.ok(user);
 
-    }
+	}
 
 }
