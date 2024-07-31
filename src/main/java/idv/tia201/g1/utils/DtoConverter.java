@@ -1,6 +1,7 @@
 package idv.tia201.g1.utils;
 
 import idv.tia201.g1.dto.ChatRoomDTO;
+import idv.tia201.g1.dto.ParticipantDTO;
 import idv.tia201.g1.entity.ChatParticipant;
 import idv.tia201.g1.entity.ChatRoom;
 
@@ -20,5 +21,20 @@ public class DtoConverter {
         chatRoomDTO.setPinned(chatUser.getPinned());
 
         return chatRoomDTO;
+    }
+
+
+    public static ParticipantDTO toParticipantDTO (ChatParticipant participant) {
+        if (participant == null)
+            throw new IllegalArgumentException("參數異常: participant不得為空");
+
+        ParticipantDTO participantDTO = new ParticipantDTO();
+        participantDTO.setUserId(participant.getUserId());
+        participantDTO.setName(participant.getName());
+        participantDTO.setType(participant.getType());
+        participantDTO.setAvatar(participant.getAvatar());
+        participantDTO.setLastReadingAt(participant.getLastReadingAt());
+
+        return participantDTO;
     }
 }

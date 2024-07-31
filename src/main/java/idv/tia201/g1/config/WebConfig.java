@@ -1,16 +1,11 @@
 package idv.tia201.g1.config;
 
 import idv.tia201.g1.authentication.filter.*;
-import idv.tia201.g1.authentication.service.UserAuth;
-import idv.tia201.g1.utils.UserHolder;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
-import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.config.annotation.*;
 
 @Configuration

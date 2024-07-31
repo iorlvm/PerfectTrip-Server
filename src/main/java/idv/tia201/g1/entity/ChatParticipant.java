@@ -40,6 +40,12 @@ public class ChatParticipant {
     private Timestamp lastModifiedDate;
 
     @Transient
+    private Integer userId;
+
+    @Transient
+    private String name;
+
+    @Transient
     private String avatar;
 
     @Transient
