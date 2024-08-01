@@ -1,9 +1,9 @@
 package idv.tia201.g1.user.service.impl;
 
-import idv.tia201.g1.constant.Gender;
 import idv.tia201.g1.constant.UserGroup;
 import idv.tia201.g1.dto.UserLoginRequest;
 import idv.tia201.g1.dto.UserRegisterRequest;
+import idv.tia201.g1.dto.UserUpdateRequest;
 import idv.tia201.g1.entity.User;
 import idv.tia201.g1.user.dao.UserDao;
 import idv.tia201.g1.user.service.UserService;
@@ -83,7 +83,7 @@ public class UserServiceImpl implements UserService {
 		user.setUserGroup(UserGroup.NORMAL);
 		user.setPhoneNumber(userRegisterRequest.getPhoneNumber());
 		user.setCountry(userRegisterRequest.getCountry());
-		user.setChange_id(0);
+		user.setChangeId(0);
 		user.setCreatedDate(new Date());
 		user.setLastModifiedDate(new Date());
 
@@ -105,5 +105,25 @@ public class UserServiceImpl implements UserService {
 		return userDao.findByUsername(username);
 
 	}
+
+//	@Override
+//	public void updateUser(Integer userId, UserUpdateRequest userUpdateRequest) {
+//
+//		User user = new User();
+//		user.setPassword(userUpdateRequest.getPassword());
+//		user.setFirstName(userUpdateRequest.getFirstName());
+//		user.setLastName(userUpdateRequest.getLastName());
+//		user.setNickname(userUpdateRequest.getNickname());
+//		user.setTaxId(userUpdateRequest.getTaxId());
+//		user.setGender(userUpdateRequest.getGender());
+//		user.setPhoneNumber(userUpdateRequest.getPhoneNumber());
+//		user.setCountry(userUpdateRequest.getCountry());
+//		user.setChangeId(userUpdateRequest.getChangeId());
+//
+//		user.setLastModifiedDate(new Date());
+//
+//		userDao.updateUserInfo(userId, user);
+//
+//	}
 
 }

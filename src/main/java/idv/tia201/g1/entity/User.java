@@ -22,36 +22,50 @@ public class User implements UserAuth {
     @GeneratedValue(strategy = GenerationType.IDENTITY) // auto increment
     @Column(name = "user_id")
     private Integer userId;
+    
     @Column(name = "username")
     private String username;
+    
     @JsonIgnore
     @Column(name = "password")
     private String password;
+    
     @Column(name = "first_name")
     private String firstName;
+    
     @Column(name = "last_name")
     private String lastName;
+    
     @Column(name = "nickname")
     private String nickname;
+    
     @Column(name = "tax_id")
     private String taxId;
+    
     @Convert(converter = GenderConverter.class)
     @Column(name = "gender")
     private Gender gender;
+    
     @Convert(converter = UserGroupConverter.class)
     @Column(name = "user_group")
     private UserGroup userGroup;
+    
     @Column(name = "phone_number")
     private String phoneNumber;
+    
     @Column(name = "country")
     private String country;
+    
     @Convert(converter = ActionConverter.class)
     @Column(name = "action")
     private Action action;
+    
     @Column(name = "change_id")
-    private Integer change_id;
+    private Integer changeId;
+    
     @Column(name = "created_date")
     private Date createdDate;
+    
     @Column(name = "last_modified_date")
     private Date lastModifiedDate;
 
@@ -169,15 +183,15 @@ public class User implements UserAuth {
         this.action = action;
     }
 
-    public Integer getChange_id() {
-        return change_id;
-    }
+    public Integer getChangeId() {
+		return changeId;
+	}
 
-    public void setChange_id(Integer change_id) {
-        this.change_id = change_id;
-    }
+	public void setChangeId(Integer changeId) {
+		this.changeId = changeId;
+	}
 
-    public Date getCreatedDate() {
+	public Date getCreatedDate() {
         return createdDate;
     }
 
