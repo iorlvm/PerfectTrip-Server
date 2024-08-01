@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 
 import java.sql.Timestamp;
+import java.time.Instant;
 
 @Data
 @Entity
@@ -11,7 +12,6 @@ import java.sql.Timestamp;
 public class ChatMessage {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "message_id", nullable = false)
     private Long messageId;
 
@@ -27,9 +27,25 @@ public class ChatMessage {
     @Column(name = "img", length = 255)
     private String img;
 
-    @Column(name = "created_date", nullable = false, updatable = false, insertable = false)
+    @Column(name = "created_date", nullable = false, updatable = false)
     private Timestamp createdDate;
 
-    @Column(name = "last_modified_date", nullable = false, updatable = false, insertable = false)
+    @Column(name = "last_modified_date", nullable = false)
     private Timestamp lastModifiedDate;
+
+
+    @PrePersist
+    protected void onCreate() {
+        if (createdDate == null) {
+            createdDate = Timestamp.from(Instant.now());
+        }
+        lastModifiedDate = createdDate;
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        if (lastModifiedDate == null) {
+            lastModifiedDate = Timestamp.from(Instant.now());
+        }
+    }
 }

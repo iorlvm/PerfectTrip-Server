@@ -24,11 +24,7 @@ public class CustomChatParticipantDaoImpl implements CustomChatParticipantDao {
     @Override
     public List<ChatParticipant> findByChatId(Long chatId) {
         String queryStr = "SELECT " +
-                "    CASE " +
-                "        WHEN m.user_type = '" + ROLE_USER + "' THEN u.user_id " +
-                "        WHEN m.user_type = '" + ROLE_COMPANY + "' THEN c.company_id " +
-                "        WHEN m.user_type = '" + ROLE_ADMIN + "' THEN a.admin_id " +
-                "    END AS user_id, " +
+                "    p.mapping_user_id AS user_id, " +
                 "    CASE " +
                 "        WHEN m.user_type = '" + ROLE_USER + "' THEN u.nickname " +
                 "        WHEN m.user_type = '" + ROLE_COMPANY + "' THEN c.company_name " +
@@ -113,7 +109,7 @@ public class CustomChatParticipantDaoImpl implements CustomChatParticipantDao {
 
     private static ChatParticipant getParticipant(Object[] result) {
         ChatParticipant participant = new ChatParticipant();
-        participant.setUserId((Integer) result[0]);
+        participant.setMappingUserId((Long) result[0]);
         participant.setName((String) result[1]);
         participant.setAvatar((String) result[2]);
         participant.setType((String) result[3]);

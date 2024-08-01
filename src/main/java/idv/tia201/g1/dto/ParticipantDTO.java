@@ -5,7 +5,7 @@ import lombok.Data;
 import java.sql.Timestamp;
 @Data
 public class ParticipantDTO {
-        private Integer userId;
+        private Long userId;
         private String name;
         private String type;
         private String avatar;

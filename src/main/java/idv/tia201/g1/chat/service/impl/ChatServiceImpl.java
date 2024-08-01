@@ -1,20 +1,26 @@
 package idv.tia201.g1.chat.service.impl;
 
+import idv.tia201.g1.chat.dao.ChatMessageDao;
 import idv.tia201.g1.chat.dao.ChatParticipantDao;
 import idv.tia201.g1.chat.dao.ChatRoomDao;
 import idv.tia201.g1.chat.dao.ChatUserMappingDao;
 import idv.tia201.g1.chat.service.ChatService;
 import idv.tia201.g1.dto.ChatRoomDTO;
+import idv.tia201.g1.dto.MessageDTO;
 import idv.tia201.g1.dto.ParticipantDTO;
+import idv.tia201.g1.entity.ChatMessage;
 import idv.tia201.g1.entity.ChatParticipant;
 import idv.tia201.g1.entity.ChatRoom;
 import idv.tia201.g1.entity.ChatUserMapping;
 import idv.tia201.g1.utils.DtoConverter;
 import idv.tia201.g1.utils.UserHolder;
+import idv.tia201.g1.utils.redis.RedisIdWorker;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -27,6 +33,10 @@ public class ChatServiceImpl implements ChatService {
     private ChatParticipantDao chatParticipantDao;
     @Autowired
     private ChatRoomDao chatRoomDao;
+    @Autowired
+    private ChatMessageDao chatMessageDao;
+    @Autowired
+    RedisIdWorker idWorker;
 
     @Override
     public Page<ChatRoomDTO> getChatRooms(int page, int size) {
@@ -44,7 +54,7 @@ public class ChatServiceImpl implements ChatService {
         ChatUserMapping userMapping = chatUserMappingDao.findByUserTypeAndRefId(type, id);
         if (userMapping == null) {
             // 用戶映射關係不存在, 創造一個映射關係
-            createUserMapping(type, id); // TODO: 應該可以優化成開新執行緒去執行 (但意義好像不大)
+            createUserMapping(type, id);
             // 映射關係不存在, 表示之前完全沒使用過聊天室(不可能存在聊天列表), 回傳一個長度為0的page
             return new PageImpl<>(Collections.emptyList(), pageable, 0);
         }
@@ -72,7 +82,9 @@ public class ChatServiceImpl implements ChatService {
             ChatParticipant loginChatUser = null;
             for (ChatParticipant chatParticipant : chatParticipants) {
                 // 將chatParticipant 轉換成 participantDTO物件
-                if (loginChatUser == null && type.equals(chatParticipant.getType()) && id.equals(chatParticipant.getUserId())) {
+                System.out.println(userMapping.getMappingUserId());
+                System.out.println(chatParticipant.getMappingUserId());
+                if (loginChatUser == null && userMapping.getMappingUserId().equals(chatParticipant.getMappingUserId())) {
                     // 搜尋當下登入的使用者
                     loginChatUser = chatParticipant;
                 }
@@ -87,6 +99,62 @@ public class ChatServiceImpl implements ChatService {
         }
         // 回傳
         return new PageImpl<>(chatRoomDTOS, pageable, result.getTotalElements());
+    }
+
+    @Override
+    public MessageDTO sendMessage(Long chatId, MessageDTO messageDTO) {
+        // 檢查是否有發送任何訊息
+        if (messageDTO.getContent() == null && isImageEmpty(messageDTO.getImg())) {
+            throw new IllegalArgumentException("請求異常：沒有發送任何內容");
+        }
+
+        // 檢查聊天室是否存在 (不存在 訪回異常狀態)
+        ChatRoom chatRoom = chatRoomDao.findById(chatId).orElse(null);
+        if (chatRoom == null) {
+            throw new IllegalArgumentException("參數異常: 聊天室不存在");
+        }
+
+        // 利用登入使用者id以及type, 獲取senderId
+        Integer id = UserHolder.getId();
+        String type = UserHolder.getRole();
+        ChatUserMapping userMapping = chatUserMappingDao.findByUserTypeAndRefId(type, id);
+        if (userMapping == null) {
+            // 用戶映射關係不存在, 創造一個映射關係
+            userMapping = createUserMapping(type, id);
+        }
+        Long senderId = userMapping.getMappingUserId();
+        Long messageId = idWorker.nextId("message");
+        Timestamp now = Timestamp.from(Instant.now());
+
+        // 將資料寫入chatMessage(Entity物件)
+        ChatMessage chatMessage = new ChatMessage();
+        chatMessage.setMessageId(messageId);
+        chatMessage.setMappingUserId(senderId);
+        chatMessage.setChatId(chatId);
+        chatMessage.setContent(messageDTO.getContent());
+
+        MessageDTO.ImageDTO img = messageDTO.getImg();
+        if (!isImageEmpty(img)) {
+            chatMessage.setImg(img.getSrc());
+        }
+
+        chatMessage.setCreatedDate(now);
+        chatMessage.setLastModifiedDate(now);
+
+        // 將chatMessage存入資料庫
+        // TODO: 先將chatMessage存入Redis, 後續實現消息對列異步存入資料庫
+        chatMessageDao.save(chatMessage);
+
+        // 將資料寫入messageDTO(DTO物件)
+        messageDTO.setMessageId(messageId);
+        messageDTO.setSenderId(senderId);
+        messageDTO.setTimestamp(now.toString());
+
+        return messageDTO;
+    }
+
+    public static boolean isImageEmpty(MessageDTO.ImageDTO img) {
+        return img == null || img.getSrc() == null || img.getSrc().trim().isEmpty();
     }
 
     private ChatUserMapping createUserMapping(String type, Integer id) {

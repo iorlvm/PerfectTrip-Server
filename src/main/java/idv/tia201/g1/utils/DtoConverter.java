@@ -29,7 +29,7 @@ public class DtoConverter {
             throw new IllegalArgumentException("參數異常: participant不得為空");
 
         ParticipantDTO participantDTO = new ParticipantDTO();
-        participantDTO.setUserId(participant.getUserId());
+        participantDTO.setUserId(participant.getMappingUserId());
         participantDTO.setName(participant.getName());
         participantDTO.setType(participant.getType());
         participantDTO.setAvatar(participant.getAvatar());
