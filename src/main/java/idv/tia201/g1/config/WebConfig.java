@@ -1,32 +1,38 @@
 package idv.tia201.g1.config;
 
-import idv.tia201.g1.authentication.filter.AdminLoginInterceptor;
-import idv.tia201.g1.authentication.filter.CompanyLoginInterceptor;
-import idv.tia201.g1.authentication.filter.TokenParsingInterceptor;
-import idv.tia201.g1.authentication.filter.UserLoginInterceptor;
+import idv.tia201.g1.authentication.filter.*;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.filter.CorsFilter;
 import org.springframework.web.servlet.config.annotation.*;
 
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
     private final TokenParsingInterceptor tokenParsingInterceptor;
-    private final UserLoginInterceptor userLoginInterceptor;
-    private final CompanyLoginInterceptor companyLoginInterceptor;
-    private final AdminLoginInterceptor adminLoginInterceptor;
 
-    public WebConfig(TokenParsingInterceptor tokenParsingInterceptor, UserLoginInterceptor userLoginInterceptor, CompanyLoginInterceptor companyLoginInterceptor, AdminLoginInterceptor adminLoginInterceptor) {
+    public WebConfig(TokenParsingInterceptor tokenParsingInterceptor) {
         this.tokenParsingInterceptor = tokenParsingInterceptor;
-        this.userLoginInterceptor = userLoginInterceptor;
-        this.companyLoginInterceptor = companyLoginInterceptor;
-        this.adminLoginInterceptor = adminLoginInterceptor;
     }
 
-    @Override
-    public void addCorsMappings(CorsRegistry registry) {
+    private CorsConfiguration corsConfig() {
         // 跨域請求設定 未來確定規格後要修正
-        registry.addMapping("/**")
-                .allowedMethods("GET", "POST", "PUT", "DELETE")
-                .allowedHeaders("*");
+        CorsConfiguration corsConfiguration = new CorsConfiguration();
+
+        corsConfiguration.addAllowedOrigin("http://localhost:5173");  // TODO: 上線後要修改
+        corsConfiguration.addAllowedHeader("*");
+        corsConfiguration.addAllowedMethod("*");
+        corsConfiguration.setAllowCredentials(true);
+        corsConfiguration.setMaxAge(3600L);
+        return corsConfiguration;
+    }
+    @Bean
+    public CorsFilter corsFilter() {
+        // Spring Boot的跨域請求 (寫法不一樣)
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", corsConfig());
+        return new CorsFilter(source);
     }
 
     @Override
@@ -35,13 +41,16 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addInterceptor(tokenParsingInterceptor)
                 .addPathPatterns("/**");
 
-        registry.addInterceptor(userLoginInterceptor)
+        registry.addInterceptor(new LoginInterceptor())
+                .addPathPatterns("/chat/**");
+
+        registry.addInterceptor(new UserLoginInterceptor())
                 .addPathPatterns("/user/**");   // TODO: 討論後修改
 
-        registry.addInterceptor(companyLoginInterceptor)
+        registry.addInterceptor(new CompanyLoginInterceptor())
                 .addPathPatterns("/company/**");   // TODO: 討論後修改
 
-        registry.addInterceptor(adminLoginInterceptor)
+        registry.addInterceptor(new AdminLoginInterceptor())
                 .addPathPatterns("/admin/**");  // TODO: 討論後修改
     }
 }
