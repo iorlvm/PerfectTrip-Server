@@ -19,7 +19,18 @@ public class ChatController {
 
         Page<ChatRoomDTO> chatRooms = chatService.getChatRooms(page, size);
 
-        return Result.ok(chatRooms.getContent(),chatRooms.getTotalElements());
+        return Result.ok(chatRooms.getContent(), chatRooms.getTotalElements());
+    }
+
+    @GetMapping("/rooms/{chatId}/messages")
+    public Result getMessages(@PathVariable Long chatId, @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "20") int size) {
+        try {
+            Page<MessageDTO> messages = chatService.getMessages(chatId, page, size);
+            return Result.ok(messages.getContent(), messages.getTotalElements());
+        } catch (Exception e) {
+            // TODO: 也許需要log紀錄
+            return Result.fail(e.getMessage());
+        }
     }
 
     @PostMapping("/rooms/{chatId}/messages")
