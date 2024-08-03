@@ -6,6 +6,9 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
@@ -13,6 +16,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import idv.tia201.g1.constant.UserGroup;
 import idv.tia201.g1.dto.UserLoginRequest;
+import idv.tia201.g1.dto.UserQueryParams;
 import idv.tia201.g1.dto.UserRegisterRequest;
 import idv.tia201.g1.dto.UserUpdateRequest;
 import idv.tia201.g1.entity.User;
@@ -95,10 +99,13 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
-	public List<User> findAll() {
-		
-		return userDao.findAll();
-		
+	public List<User> findAll(UserQueryParams userQueryParams) {
+
+		Pageable pageable = PageRequest.of(userQueryParams.getOffset(), userQueryParams.getLimit(),
+				Sort.by("createdDate").ascending());
+
+		return userDao.findAll(pageable).getContent();
+
 	}
 
 	@Override
@@ -112,6 +119,13 @@ public class UserServiceImpl implements UserService {
 	public User findByUsername(String username) {
 
 		return userDao.findByUsername(username);
+
+	}
+	
+	@Override
+	public Integer countUser() {
+
+		return userDao.countUser();
 
 	}
 
