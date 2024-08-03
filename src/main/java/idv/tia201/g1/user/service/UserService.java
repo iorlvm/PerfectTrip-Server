@@ -1,5 +1,7 @@
 package idv.tia201.g1.user.service;
 
+import java.util.List;
+
 import idv.tia201.g1.dto.UserLoginRequest;
 import idv.tia201.g1.dto.UserRegisterRequest;
 import idv.tia201.g1.dto.UserUpdateRequest;
@@ -12,11 +14,15 @@ public interface UserService {
 	public User login(UserLoginRequest userLoginRequest);
 
 	public Integer createUser(UserRegisterRequest userRegisterRequest);
+	
+	public List<User> findAll();
 
 	public User findByUserId(Integer userId);
 
 	public User findByUsername(String username);
 
-//	public void updateUser(Integer userId, UserUpdateRequest userUpdateRequest);
+	public User updateUser(Integer userId, UserUpdateRequest userUpdateRequest);
+	
+	public void deleteUser(Integer userId);
 
 }

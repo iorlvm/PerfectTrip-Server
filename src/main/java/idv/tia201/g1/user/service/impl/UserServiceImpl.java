@@ -1,12 +1,8 @@
 package idv.tia201.g1.user.service.impl;
 
-import idv.tia201.g1.constant.UserGroup;
-import idv.tia201.g1.dto.UserLoginRequest;
-import idv.tia201.g1.dto.UserRegisterRequest;
-import idv.tia201.g1.dto.UserUpdateRequest;
-import idv.tia201.g1.entity.User;
-import idv.tia201.g1.user.dao.UserDao;
-import idv.tia201.g1.user.service.UserService;
+import java.util.Date;
+import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +11,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.Date;
+import idv.tia201.g1.constant.UserGroup;
+import idv.tia201.g1.dto.UserLoginRequest;
+import idv.tia201.g1.dto.UserRegisterRequest;
+import idv.tia201.g1.dto.UserUpdateRequest;
+import idv.tia201.g1.entity.User;
+import idv.tia201.g1.user.dao.UserDao;
+import idv.tia201.g1.user.service.UserService;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -93,6 +95,13 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
+	public List<User> findAll() {
+		
+		return userDao.findAll();
+		
+	}
+
+	@Override
 	public User findByUserId(Integer userId) {
 
 		return userDao.findByUserId(userId);
@@ -106,24 +115,66 @@ public class UserServiceImpl implements UserService {
 
 	}
 
-//	@Override
-//	public void updateUser(Integer userId, UserUpdateRequest userUpdateRequest) {
-//
-//		User user = new User();
-//		user.setPassword(userUpdateRequest.getPassword());
-//		user.setFirstName(userUpdateRequest.getFirstName());
-//		user.setLastName(userUpdateRequest.getLastName());
-//		user.setNickname(userUpdateRequest.getNickname());
-//		user.setTaxId(userUpdateRequest.getTaxId());
-//		user.setGender(userUpdateRequest.getGender());
-//		user.setPhoneNumber(userUpdateRequest.getPhoneNumber());
-//		user.setCountry(userUpdateRequest.getCountry());
-//		user.setChangeId(userUpdateRequest.getChangeId());
-//
-//		user.setLastModifiedDate(new Date());
-//
-//		userDao.updateUserInfo(userId, user);
-//
-//	}
+	@Override
+	public User updateUser(Integer userId, UserUpdateRequest userUpdateRequest) {
+
+		User user = userDao.findByUserId(userId);
+		
+		if (user == null) {
+			log.warn("該 userId {} 不存在", userId);
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+		}
+		
+		if (userUpdateRequest.getPassword() != null) {
+			String hashedPassword = DigestUtils.md5DigestAsHex(userUpdateRequest.getPassword().getBytes());
+			user.setPassword(hashedPassword);
+		}
+		
+		if (userUpdateRequest.getFirstName() != null) {
+			user.setFirstName(userUpdateRequest.getFirstName());
+		}
+		
+		if (userUpdateRequest.getLastName() != null) {
+			user.setLastName(userUpdateRequest.getLastName());
+		}
+		
+		if (userUpdateRequest.getNickname() != null) {
+			user.setNickname(userUpdateRequest.getNickname());
+		}
+		
+		if (userUpdateRequest.getTaxId() != null) {
+			user.setTaxId(userUpdateRequest.getTaxId());
+		}
+		
+		if (userUpdateRequest.getGender() != null) {
+			user.setGender(userUpdateRequest.getGender());
+		}
+		
+		if (userUpdateRequest.getPhoneNumber() != null) {
+			user.setPhoneNumber(userUpdateRequest.getPhoneNumber());
+		}
+		
+		if (userUpdateRequest.getCountry() != null) {
+			user.setCountry(userUpdateRequest.getCountry());
+		}
+		
+		if (userUpdateRequest.getChangeId() != null) {
+			user.setChangeId(userUpdateRequest.getChangeId());
+		}
+		
+		user.setLastModifiedDate(new Date());
+		
+		User userSaved = userDao.save(user);
+		
+		return userSaved;
+
+	}
+
+	@Override
+	public void deleteUser(Integer userId) {
+		
+		userDao.deleteById(userId);
+		
+	}
 
 }
