@@ -5,6 +5,7 @@ import idv.tia201.g1.entity.ChatParticipant;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
+import jakarta.persistence.TypedQuery;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -12,7 +13,10 @@ import org.springframework.stereotype.Repository;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static idv.tia201.g1.utils.Constants.*;
 
@@ -105,6 +109,25 @@ public class CustomChatParticipantDaoImpl implements CustomChatParticipantDao {
         long total = resultList.isEmpty() ? 0L : ((Number) resultList.get(0)[1]).longValue();
 
         return new PageImpl<>(chatIds, pageable, total);
+    }
+
+    @Override
+    public Set<Long> findChatIdByTypeAndRefId(String type, Integer refId) {
+        String queryStr = "SELECT p.chat_id " +
+                "FROM chat_participants p " +
+                "JOIN chat_user_mappings m ON p.mapping_user_id = m.mapping_user_id " +
+                "WHERE m.ref_id = :refId AND m.user_type = :type ";
+
+        Query query = entityManager.createNativeQuery(queryStr);
+        query.setParameter("refId", refId);
+        query.setParameter("type", type);
+
+        @SuppressWarnings("unchecked")
+        List<Object[]> resultList = query.getResultList();
+
+        return resultList.stream()
+                .map(row -> ((Number) row[0]).longValue())
+                .collect(Collectors.toSet());
     }
 
     private static ChatParticipant getParticipant(Object[] result) {
