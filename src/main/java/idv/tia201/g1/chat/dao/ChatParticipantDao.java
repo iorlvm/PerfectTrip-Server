@@ -24,4 +24,26 @@ public interface ChatParticipantDao extends JpaRepository<ChatParticipant, Long>
             @Param("userMappingId") Long userMappingId,
             @Param("timestamp") Timestamp timestamp
     );
+
+    @Modifying
+    @Transactional
+    @Query("UPDATE ChatParticipant cp " +
+            "SET cp.notify = :notify " +
+            "WHERE cp.chatId = :chatId AND cp.mappingUserId = :userMappingId")
+    void updateNotifyByChatIdAndMappingUserId(
+            @Param("chatId") Long chatId,
+            @Param("userMappingId") Long userMappingId,
+            @Param("notify") String notify
+    );
+
+    @Modifying
+    @Transactional
+    @Query("UPDATE ChatParticipant cp " +
+            "SET cp.pinned = :pinned " +
+            "WHERE cp.chatId = :chatId AND cp.mappingUserId = :userMappingId")
+    void updatePinnedByChatIdAndMappingUserId(
+            @Param("chatId") Long chatId,
+            @Param("userMappingId") Long userMappingId,
+            @Param("pinned") boolean pinned
+    );
 }

@@ -1,7 +1,6 @@
 package idv.tia201.g1.authentication.filter;
 import idv.tia201.g1.authentication.service.TokenService;
 import idv.tia201.g1.authentication.service.UserAuth;
-import idv.tia201.g1.utils.UserHolder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;

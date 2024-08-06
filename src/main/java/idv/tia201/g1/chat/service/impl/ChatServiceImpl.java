@@ -289,6 +289,7 @@ public class ChatServiceImpl implements ChatService {
         // TODO: 先將chatMessage存入Redis, 後續實現消息對列異步存入資料庫
         chatMessageDao.save(chatMessage);
         // TODO: 對所有的其他參與者增加未讀數量 (未實現)
+        // TODO: 更新聊天室的最後訊息以及, 最後訊息時間
 
         // 將資料寫入messageDTO(DTO物件)
         messageDTO.setMessageId(messageId);
@@ -370,13 +371,13 @@ public class ChatServiceImpl implements ChatService {
                 processPayloadToReadMessage(payloadDTO);
                 break;
             case CHAT_ACTION_UPDATE_ROOM_INFO:
-                // 對聊天室改名之類的行為
+                processPayloadToUpdateRoomInfo(payloadDTO);
                 break;
             case CHAT_ACTION_UPDATE_NOTIFY:
-                // 調整自己的通知設定
+                processPayloadToUpdateNotify(payloadDTO);
                 break;
             case CHAT_ACTION_UPDATE_PINNED:
-                // 調整自己的釘選設定
+                processPayloadToUpdatePinned(payloadDTO);
                 break;
         }
 
@@ -399,9 +400,47 @@ public class ChatServiceImpl implements ChatService {
 
     private void processPayloadToReadMessage(PayloadDTO payloadDTO) {
         Timestamp now = Timestamp.from(Instant.now());
+        payloadDTO.setTimestamp(now.toString());
         Long chatId = payloadDTO.getChatId();
         Long authorId = payloadDTO.getAuthorId();
         chatParticipantDao.updateLastReadingAtByChatIdAndMappingUserId(chatId, authorId, now);
+    }
+
+    private void processPayloadToUpdateNotify(PayloadDTO payloadDTO) {
+        Timestamp now = Timestamp.from(Instant.now());
+        payloadDTO.setTimestamp(now.toString());
+        Long chatId = payloadDTO.getChatId();
+        Long authorId = payloadDTO.getAuthorId();
+        String content = payloadDTO.getContent();
+        switch (content) {
+            case "on":
+            case "off":
+                break;
+            default:
+                content = "off";
+        }
+        chatParticipantDao.updateNotifyByChatIdAndMappingUserId(chatId, authorId, content);
+    }
+
+    private void processPayloadToUpdatePinned(PayloadDTO payloadDTO) {
+        Timestamp now = Timestamp.from(Instant.now());
+        payloadDTO.setTimestamp(now.toString());
+        Long chatId = payloadDTO.getChatId();
+        Long authorId = payloadDTO.getAuthorId();
+        String content = payloadDTO.getContent();
+        boolean pinned = "true".equals(content);
+
+        chatParticipantDao.updatePinnedByChatIdAndMappingUserId(chatId, authorId, pinned);
+    }
+
+    private void processPayloadToUpdateRoomInfo(PayloadDTO payloadDTO) {
+        Timestamp now = Timestamp.from(Instant.now());
+        Long chatId = payloadDTO.getChatId();
+        String content = payloadDTO.getContent();
+
+        PayloadDTO.RoomInfo roomInfo = gson.fromJson(content, PayloadDTO.RoomInfo.class);
+        chatRoomDao.updateChatInfoByChatId(chatId, roomInfo.getChatName(), roomInfo.getPhoto());
+        payloadDTO.setTimestamp(now.toString());
     }
 
     private boolean isParticipantNotFound(Long senderId, Long chatId) {

@@ -15,4 +15,10 @@ public class PayloadDTO {
         private String name;
         private String avatar;
     }
+
+    @Data
+    public static class RoomInfo {
+        private String chatName;
+        private String photo;
+    }
 }

@@ -13,9 +13,7 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 
@@ -26,7 +24,7 @@ public class ChatEndpoint extends TextWebSocketHandler {
     @Autowired
     private ChatService chatService;
     private static final Map<Long, Set<WebSocketSession>> SESSIONS_MAP = new HashMap<>();
-    private static final Set<WebSocketSession> SESSIONS_BROADCAST = new CopyOnWriteArraySet<>();
+    private static final Set<WebSocketSession> SESSIONS_BROADCAST = Collections.synchronizedSet(new HashSet<>());
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
@@ -42,7 +40,7 @@ public class ChatEndpoint extends TextWebSocketHandler {
             // 在所有參予中的聊天室建立連線
             Set<WebSocketSession> webSocketSessions = SESSIONS_MAP.get(chatId);
             if (webSocketSessions == null) {
-                webSocketSessions = new CopyOnWriteArraySet<>();
+                webSocketSessions = Collections.synchronizedSet(new HashSet<>());
             }
             webSocketSessions.add(session);
             SESSIONS_MAP.put(chatId, webSocketSessions);
@@ -108,8 +106,6 @@ public class ChatEndpoint extends TextWebSocketHandler {
     public void handleUserUpdateEvent(UserUpdateEvent event) {
         PayloadDTO payloadDTO = event.getPayloadDTO();
 
-        synchronized (SESSIONS_BROADCAST) {
-            broadcast(payloadDTO, SESSIONS_BROADCAST);
-        }
+        broadcast(payloadDTO, SESSIONS_BROADCAST);
     }
 }
