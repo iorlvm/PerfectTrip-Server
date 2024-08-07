@@ -31,94 +31,103 @@ import jakarta.validation.constraints.Min;
 @RestController
 public class UserController {
 
-	@Autowired
-	private UserService userService;
+    @Autowired
+    private UserService userService;
 
-	@Autowired
-	private TokenService tokenService;
+    @Autowired
+    private TokenService tokenService;
 
-	@PostMapping("/users/register")
-	public Result register(@RequestBody @Valid UserRegisterRequest userRegisterRequest) {
+    /**
+     * Handles the POST request to register a new user.
+     *
+     * @param userRegisterRequest The registration details submitted by the user, validated before processing.
+     * @return A {@link Result} containing the registered user's data if successful.
+     */
+    @PostMapping("/users/register")
+    public Result register(@RequestBody @Valid UserRegisterRequest userRegisterRequest) {
 
-		Integer userId = userService.register(userRegisterRequest);
+        // Register the user and obtain the generated user ID.
+        Integer userId = userService.register(userRegisterRequest);
 
-		User user = userService.findByUserId(userId);
+        // Retrieve the registered user details using the obtained user ID.
+        User user = userService.findByUserId(userId);
 
-		return Result.ok(user);
+        // Return a successful result including the user details.
+        return Result.ok(user);
 
-	}
+    }
 
-	@PostMapping("/users/login")
-	public Result login(@RequestBody @Valid UserLoginRequest userLoginRequest) {
+    @PostMapping("/users/login")
+    public Result login(@RequestBody @Valid UserLoginRequest userLoginRequest) {
 
-		User user = userService.login(userLoginRequest);
+        User user = userService.login(userLoginRequest);
 
-		if (user != null) {
-			String token = tokenService.createToken(user);
-			user.setToken(token);
-		}
+        if (user != null) {
+            String token = tokenService.createToken(user);
+            user.setToken(token);
+        }
 
-		return Result.ok(user);
+        return Result.ok(user);
 
-	}
-	
-	@GetMapping("/users/{userId}")
-	public Result getUser(@PathVariable Integer userId) {
-		
-		User user = userService.findByUserId(userId);
-		
-		return Result.ok(user);
-		
-	}
-	
-	@GetMapping("/users")
-	public ResponseEntity<Page<User>> getUsers(
-			// Sorting
-			@RequestParam(defaultValue = "created_date") String orderBy,
-			@RequestParam(defaultValue = "desc") String sort,
-			// Pagination
-			@RequestParam(defaultValue = "10") @Max(1000) @Min(0) Integer limit,
-			@RequestParam(defaultValue = "0") @Min(0) Integer offset) {
+    }
 
-		UserQueryParams userQueryParams = new UserQueryParams();
-		userQueryParams.setOrderBy(orderBy);
-		userQueryParams.setSort(sort);
-		userQueryParams.setLimit(limit);
-		userQueryParams.setOffset(offset);
+    @GetMapping("/users/{userId}")
+    public Result getUser(@PathVariable Integer userId) {
 
-		// 取得 user list
-		List<User> userList = userService.findAll(userQueryParams);
+        User user = userService.findByUserId(userId);
 
-		// 取得 user 總筆數
-		Integer total = userService.countUser();
+        return Result.ok(user);
 
-		// 分頁
-		Page<User> page = new Page<>();
-		page.setLimit(limit);
-		page.setOffset(offset);
-		page.setResult(userList);
-		page.setTotal(total);
+    }
 
-		return ResponseEntity.status(HttpStatus.OK).body(page);
+    @GetMapping("/users")
+    public ResponseEntity<Page<User>> getUsers(
+            // Sorting
+            @RequestParam(defaultValue = "created_date") String orderBy,
+            @RequestParam(defaultValue = "desc") String sort,
+            // Pagination
+            @RequestParam(defaultValue = "10") @Max(1000) @Min(0) Integer limit,
+            @RequestParam(defaultValue = "0") @Min(0) Integer offset) {
 
-	}
+        UserQueryParams userQueryParams = new UserQueryParams();
+        userQueryParams.setOrderBy(orderBy);
+        userQueryParams.setSort(sort);
+        userQueryParams.setLimit(limit);
+        userQueryParams.setOffset(offset);
 
-	@PutMapping("/users/{userId}")
-	public Result updateUser(@PathVariable Integer userId, @RequestBody @Valid UserUpdateRequest userUpdateRequest) {
+        // 取得 user list
+        List<User> userList = userService.findAll(userQueryParams);
 
-		User user = userService.updateUser(userId, userUpdateRequest);
+        // 取得 user 總筆數
+        Integer total = userService.countUser();
 
-		return Result.ok(user);
+        // 分頁
+        Page<User> page = new Page<>();
+        page.setLimit(limit);
+        page.setOffset(offset);
+        page.setResult(userList);
+        page.setTotal(total);
 
-	}
-	
-	@DeleteMapping("/users/{userId}")
-	public Result deleteUser(@PathVariable Integer userId) {
-		
-		userService.deleteUser(userId);
-		
-		return Result.ok();
-		
-	}
+        return ResponseEntity.status(HttpStatus.OK).body(page);
+
+    }
+
+    @PutMapping("/users/{userId}")
+    public Result updateUser(@PathVariable Integer userId, @RequestBody @Valid UserUpdateRequest userUpdateRequest) {
+
+        User user = userService.updateUser(userId, userUpdateRequest);
+
+        return Result.ok(user);
+
+    }
+
+    @DeleteMapping("/users/{userId}")
+    public Result deleteUser(@PathVariable Integer userId) {
+
+        userService.deleteUser(userId);
+
+        return Result.ok();
+
+    }
 
 }
