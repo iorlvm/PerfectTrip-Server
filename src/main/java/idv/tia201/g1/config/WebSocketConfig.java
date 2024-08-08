@@ -25,10 +25,4 @@ public class WebSocketConfig implements WebSocketConfigurer {
                 .addInterceptors(chatHandshakeInterceptor)
                 .setAllowedOrigins("*");
     }
-
-
-    @Bean
-    public ServerEndpointExporter serverEndpointExporter() {
-        return new ServerEndpointExporter();
-    }
 }
