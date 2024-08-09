@@ -3,8 +3,6 @@ package idv.tia201.g1.user.controller;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -81,7 +79,7 @@ public class UserController {
     }
 
     @GetMapping("/users")
-    public ResponseEntity<Page<User>> getUsers(
+    public Result getUsers(
             // Sorting
             @RequestParam(defaultValue = "created_date") String orderBy,
             @RequestParam(defaultValue = "desc") String sort,
@@ -108,7 +106,7 @@ public class UserController {
         page.setResult(userList);
         page.setTotal(total);
 
-        return ResponseEntity.status(HttpStatus.OK).body(page);
+        return Result.ok(page);
 
     }
 
