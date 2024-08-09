@@ -7,11 +7,13 @@ import idv.tia201.g1.dto.MessageDTO;
 import idv.tia201.g1.dto.UserIdentifier;
 import idv.tia201.g1.utils.UserHolder;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
 
+import java.sql.Timestamp;
 import java.util.List;
 import java.util.Set;
+
+import static idv.tia201.g1.utils.Constants.TIMESTAMP_MAX_STRING;
 
 @RestController
 @RequestMapping("/chat")
@@ -22,7 +24,7 @@ public class ChatController {
     @GetMapping("/uid")
     public Result getChatUserId() {
         try {
-            return Result.ok(chatService.getOrCreateMappingUserId(UserHolder.getRole(), UserHolder.getId()));
+            return Result.ok(chatService.getOrCreateMappingUserId(UserHolder.getRole(), UserHolder.getId()).toString());
         } catch (Exception e) {
             // TODO: 也許需要log紀錄
             return Result.fail(e.getMessage());
@@ -30,10 +32,14 @@ public class ChatController {
     }
 
     @GetMapping("/rooms")
-    public Result getChatRoomList(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "20") int size) {
+    public Result getChatRoomList(
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = TIMESTAMP_MAX_STRING) String earliest
+    ) {
         try {
-            Page<ChatRoomDTO> chatRooms = chatService.getChatRooms(page, size);
-            return Result.ok(chatRooms.getContent(), chatRooms.getTotalElements());
+            Timestamp timestamp = Timestamp.valueOf(earliest);
+            List<ChatRoomDTO> chatRooms = chatService.getChatRooms(size, timestamp);
+            return Result.ok(chatRooms, (long) chatRooms.size());
         } catch (Exception e) {
             // TODO: 也許需要log紀錄
             return Result.fail(e.getMessage());
@@ -64,16 +70,15 @@ public class ChatController {
 
     @GetMapping("/rooms/{chatId}/messages")
     public Result getMessages(@PathVariable Long chatId, @RequestParam(required = false) Long messageId, @RequestParam(defaultValue = "20") int size) {
-        // TODO: 邏輯跟參數錯誤  不應該使用分頁的概念  應該要使用時間去判斷搜尋
         try {
-            // 利用messageId的自增以及唯一性, 可以準確地往上抓取一定數量的資料
+            // 利用messageId只會往上增加以及唯一性, 可以準確地往前抓取一定數量的資料
             if (messageId == null) messageId = Long.MAX_VALUE;              // 沒傳入值時, 給予最大值作為預設值 (從頭抓取)
 
             if (messageId <= 0) return Result.fail("沒有更多訊息");   // 傳入的值已經是0的時候, 不可能有資料
-
+            
             List<MessageDTO> messages = chatService.getMessages(chatId, messageId, size);
 
-            if (messages.isEmpty()) {
+            if (messages.isEmpty() && messageId < Long.MAX_VALUE) {
                 return Result.fail("沒有更多訊息");   // 回傳值是空list, 沒有資料
             } else {
                 return Result.ok(messages, (long) messages.size());

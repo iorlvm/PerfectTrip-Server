@@ -1,6 +1,7 @@
 package idv.tia201.g1.chat.service.impl;
 
-import com.google.gson.Gson;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import idv.tia201.g1.authentication.service.UserAuth;
 import idv.tia201.g1.chat.dao.ChatMessageDao;
 import idv.tia201.g1.chat.dao.ChatParticipantDao;
@@ -32,8 +33,8 @@ import static idv.tia201.g1.utils.Constants.*;
 
 @Service
 public class ChatServiceImpl implements ChatService {
-    private final static Gson gson = new Gson();
-
+    @Autowired
+    private ObjectMapper objectMapper;
     @Autowired
     private ChatUserMappingDao chatUserMappingDao;
     @Autowired
@@ -67,7 +68,11 @@ public class ChatServiceImpl implements ChatService {
 
         // 轉寫userAuth為dto物件, 並轉成json格式放入內容中
         PayloadDTO.UserInfo userInfoDTO = DtoConverter.toUserInfoDTO(userAuth);
-        payloadDTO.setContent(gson.toJson(userInfoDTO));
+        try {
+            payloadDTO.setContent(objectMapper.writeValueAsString(userInfoDTO));
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
 
         eventPublisher.publishEvent(new UserUpdateEvent(this, payloadDTO));
     }
@@ -174,7 +179,7 @@ public class ChatServiceImpl implements ChatService {
     }
 
     @Override
-    public Page<ChatRoomDTO> getChatRooms(int page, int size) {
+    public List<ChatRoomDTO> getChatRooms(int size, Timestamp earliestTimestamp) {
         // 取得登入用戶資料
         String type = UserHolder.getRole();
         Integer id = UserHolder.getId();
@@ -183,18 +188,16 @@ public class ChatServiceImpl implements ChatService {
             throw new IllegalStateException("不合法的訪問: 請檢查您的登入狀態");
 
         // 分頁設定
-        Pageable pageable = PageRequest.of(page, size);
 
         // 根據登入用戶取得映射id
         Long userMappingId = findMappingUserId(type, id);
         if (userMappingId == null) {
             // 映射關係不存在, 表示之前完全沒使用過聊天室(不可能存在聊天列表), 回傳一個長度為0的page
-            return new PageImpl<>(Collections.emptyList(), pageable, 0);
+            return Collections.emptyList();
         }
 
         // 取得聊天室列表
-        Page<Long> result = chatParticipantDao.findChatIdByTypeAndRefId(type, id, pageable);
-        List<Long> chatIdsForUser = result.getContent();
+        List<Long> chatIdsForUser = chatParticipantDao.findChatIdByTypeAndRefId(type, id, size, earliestTimestamp);
         List<ChatRoomDTO> chatRoomDTOS = new ArrayList<>(chatIdsForUser.size());
 
         // 根據列表中的聊天室id取得各個聊天室的參與者
@@ -204,7 +207,7 @@ public class ChatServiceImpl implements ChatService {
             chatRoomDTOS.add(chatRoomDTO);
         }
         // 回傳
-        return new PageImpl<>(chatRoomDTOS, pageable, result.getTotalElements());
+        return chatRoomDTOS;
     }
 
     private ChatRoomDTO createChatRoomDTO(Long chatId, Long userMappingId) {
@@ -305,8 +308,8 @@ public class ChatServiceImpl implements ChatService {
         if (isChatRoomValid(chatId)) {
             throw new IllegalArgumentException("參數異常: 聊天室不存在");
         }
-        // 分頁設定
-        Pageable pageable = PageRequest.of(0, size);
+
+        Pageable pageable = PageRequest.of(0, size, Sort.by(Sort.Direction.DESC, "messageId"));
 
         // TODO: 未來調整成訊息異步寫入的話, 這裡也要增加相應的調整
         List<ChatMessage> messages = chatMessageDao.findByChatIdAndMessageIdLessThan(chatId, messageId, pageable);
@@ -386,7 +389,12 @@ public class ChatServiceImpl implements ChatService {
 
     private void processPayloadToSendMessage(PayloadDTO payloadDTO) {
         String content = payloadDTO.getContent();
-        MessageDTO messageDTO = gson.fromJson(content, MessageDTO.class);
+        MessageDTO messageDTO = null;
+        try {
+            messageDTO = objectMapper.readValue(content, MessageDTO.class);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
 
         // 檢查是否有發送任何訊息
         if (messageDTO.getContent() == null && isImageEmpty(messageDTO.getImg())) {
@@ -394,7 +402,11 @@ public class ChatServiceImpl implements ChatService {
         }
 
         saveMessage(payloadDTO.getAuthorId(), payloadDTO.getChatId(), messageDTO);
-        payloadDTO.setContent(gson.toJson(messageDTO));
+        try {
+            payloadDTO.setContent(objectMapper.writeValueAsString(messageDTO));
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
         payloadDTO.setTimestamp(messageDTO.getTimestamp());
     }
 
@@ -438,7 +450,12 @@ public class ChatServiceImpl implements ChatService {
         Long chatId = payloadDTO.getChatId();
         String content = payloadDTO.getContent();
 
-        PayloadDTO.RoomInfo roomInfo = gson.fromJson(content, PayloadDTO.RoomInfo.class);
+        PayloadDTO.RoomInfo roomInfo = null;
+        try {
+            roomInfo = objectMapper.readValue(content, PayloadDTO.RoomInfo.class);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
         chatRoomDao.updateChatInfoByChatId(chatId, roomInfo.getChatName(), roomInfo.getPhoto());
         payloadDTO.setTimestamp(now.toString());
     }

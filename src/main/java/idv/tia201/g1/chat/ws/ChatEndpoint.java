@@ -14,6 +14,7 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 
@@ -23,8 +24,8 @@ public class ChatEndpoint extends TextWebSocketHandler {
 
     @Autowired
     private ChatService chatService;
-    private static final Map<Long, Set<WebSocketSession>> SESSIONS_MAP = new HashMap<>();
-    private static final Set<WebSocketSession> SESSIONS_BROADCAST = Collections.synchronizedSet(new HashSet<>());
+    private static final Map<Long, Set<WebSocketSession>> SESSIONS_MAP = new ConcurrentHashMap<>();
+    private static final Set<WebSocketSession> SESSIONS_BROADCAST = new CopyOnWriteArraySet<>();
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {

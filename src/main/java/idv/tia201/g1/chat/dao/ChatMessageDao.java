@@ -14,10 +14,11 @@ import java.util.List;
 public interface ChatMessageDao extends JpaRepository<ChatMessage, Long> {
     Page<ChatMessage> findByChatId(Long chatId, Pageable pageable);
 
-    @Query(value = "SELECT cm FROM ChatMessage cm WHERE cm.chatId = :chatId AND cm.messageId < :messageId ORDER BY cm.messageId DESC")
+    @Query(value = "SELECT cm " +
+            "FROM ChatMessage cm " +
+            "WHERE cm.chatId = :chatId AND cm.messageId < :messageId ")
     List<ChatMessage> findByChatIdAndMessageIdLessThan(
             @Param("chatId") Long chatId,
             @Param("messageId") Long messageId,
-            Pageable pageable
-    );
+            Pageable pageable);
 }
