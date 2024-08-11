@@ -779,3 +779,6 @@ com.mysql.cj.exceptions.NumberOutOfRange: Value 'Male' is outside of valid range
 2024-08-11T22:09:26.833+08:00  INFO 32253 --- [perfecttrip-server] [http-nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 2 ms
 2024-08-11T22:09:39.448+08:00  WARN 32253 --- [perfecttrip-server] [http-nio-8080-exec-3] i.t.g.user.service.impl.UserServiceImpl  : 該 username test20 已經被註冊
 2024-08-11T22:09:39.457+08:00  WARN 32253 --- [perfecttrip-server] [http-nio-8080-exec-3] .w.s.m.a.ResponseStatusExceptionResolver : Resolved [org.springframework.web.server.ResponseStatusException: 400 BAD_REQUEST "Username already registered."]
+2024-08-11T22:10:26.689+08:00  INFO 32253 --- [perfecttrip-server] [SpringApplicationShutdownHook] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2024-08-11T22:10:26.692+08:00  INFO 32253 --- [perfecttrip-server] [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2024-08-11T22:10:26.728+08:00  INFO 32253 --- [perfecttrip-server] [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
