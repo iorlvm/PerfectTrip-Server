@@ -1,8 +1,6 @@
 package idv.tia201.g1.user.service.impl;
 
-import java.lang.reflect.Field;
 import java.util.*;
-import java.util.function.Consumer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,7 +11,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
-import org.springframework.util.ReflectionUtils;
 import org.springframework.web.server.ResponseStatusException;
 
 import idv.tia201.g1.constant.UserGroup;
