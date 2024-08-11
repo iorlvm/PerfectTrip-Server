@@ -6,9 +6,6 @@ import idv.tia201.g1.authentication.service.UserAuth;
 import idv.tia201.g1.constant.Action;
 import idv.tia201.g1.constant.Gender;
 import idv.tia201.g1.constant.UserGroup;
-import idv.tia201.g1.converter.ActionConverter;
-import idv.tia201.g1.converter.GenderConverter;
-import idv.tia201.g1.converter.UserGroupConverter;
 import jakarta.persistence.*;
 
 import java.util.Date;
@@ -43,13 +40,11 @@ public class User implements UserAuth {
     @Column(name = "tax_id")
     private String taxId;
 
-    @Convert(converter = GenderConverter.class)
-    //@Enumerated(EnumType.STRING)
+    @Enumerated(EnumType.STRING)
     @Column(name = "gender")
     private Gender gender;
 
-    @Convert(converter = UserGroupConverter.class)
-    //@Enumerated(EnumType.STRING)
+    @Enumerated(EnumType.STRING)
     @Column(name = "user_group")
     private UserGroup userGroup;
 
