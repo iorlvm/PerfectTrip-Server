@@ -1,5 +1,6 @@
 package idv.tia201.g1.entity;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import idv.tia201.g1.authentication.service.UserAuth;
 import idv.tia201.g1.constant.Action;
@@ -58,11 +59,6 @@ public class User implements UserAuth {
     @Column(name = "country")
     private String country;
 
-    @Convert(converter = ActionConverter.class)
-    //@Enumerated(EnumType.STRING)
-    @Column(name = "action")
-    private Action action;
-
     @Column(name = "change_id")
     private Integer changeId;
 
@@ -96,7 +92,6 @@ public class User implements UserAuth {
         private UserGroup userGroup;
         private String phoneNumber;
         private String country;
-        private Action action;
         private Integer changeId;
         private Date createdDate;
         private Date lastModifiedDate;
@@ -156,11 +151,6 @@ public class User implements UserAuth {
             return this;
         }
 
-        public Builder action(Action action) {
-            this.action = action;
-            return this;
-        }
-
         public Builder changeId(Integer changeId) {
             this.changeId = changeId;
             return this;
@@ -189,7 +179,6 @@ public class User implements UserAuth {
             user.userGroup = this.userGroup;
             user.phoneNumber = this.phoneNumber;
             user.country = this.country;
-            user.action = this.action;
             user.changeId = this.changeId;
             user.createdDate = this.createdDate;
             user.lastModifiedDate = this.lastModifiedDate;
@@ -284,14 +273,6 @@ public class User implements UserAuth {
 
     public void setCountry(String country) {
         this.country = country;
-    }
-
-    public Action getAction() {
-        return action;
-    }
-
-    public void setAction(Action action) {
-        this.action = action;
     }
 
     public Integer getChangeId() {

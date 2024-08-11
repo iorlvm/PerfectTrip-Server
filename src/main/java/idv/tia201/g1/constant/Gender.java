@@ -1,5 +1,7 @@
 package idv.tia201.g1.constant;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+
 public enum Gender {
 
     MALE(0),

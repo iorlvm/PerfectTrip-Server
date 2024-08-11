@@ -2,6 +2,7 @@ package idv.tia201.g1.user.controller;
 
 import java.util.List;
 
+import idv.tia201.g1.constant.Gender;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -44,6 +45,8 @@ public class UserController {
     // UserRegisterRequest userRegisterRequest 參考 refactoring 的 preserve whole object (保留整個物件)
     @PostMapping("/users/register")
     public Result register(@RequestBody @Valid UserRegisterRequest userRegisterRequest) {
+
+        userRegisterRequest.setGender(Gender.valueOf(userRegisterRequest.getGender().toString().toUpperCase()));
 
         // Register the user and obtain the generated user ID.
         Integer userId = userService.register(userRegisterRequest);
