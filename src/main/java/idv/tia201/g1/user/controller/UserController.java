@@ -41,6 +41,7 @@ public class UserController {
      * @param userRegisterRequest The registration details submitted by the user, validated before processing.
      * @return A {@link Result} containing the registered user's data if successful.
      */
+    // UserRegisterRequest userRegisterRequest 參考 refactoring 的 preserve whole object (保留整個物件)
     @PostMapping("/users/register")
     public Result register(@RequestBody @Valid UserRegisterRequest userRegisterRequest) {
 
