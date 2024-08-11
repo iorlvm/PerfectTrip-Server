@@ -43,10 +43,12 @@ public class User implements UserAuth {
     private String taxId;
 
     @Convert(converter = GenderConverter.class)
+    //@Enumerated(EnumType.STRING)
     @Column(name = "gender")
     private Gender gender;
 
     @Convert(converter = UserGroupConverter.class)
+    //@Enumerated(EnumType.STRING)
     @Column(name = "user_group")
     private UserGroup userGroup;
 
@@ -57,6 +59,7 @@ public class User implements UserAuth {
     private String country;
 
     @Convert(converter = ActionConverter.class)
+    //@Enumerated(EnumType.STRING)
     @Column(name = "action")
     private Action action;
 
