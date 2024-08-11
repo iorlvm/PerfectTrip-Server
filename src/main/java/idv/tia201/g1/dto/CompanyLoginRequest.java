@@ -1,7 +1,9 @@
 package idv.tia201.g1.dto;
 
 import jakarta.validation.constraints.NotBlank;
+import org.springframework.validation.annotation.Validated;
 
+@Validated
 public class CompanyLoginRequest {
     @NotBlank  //NotBlank只用於string,不能為null且trim()之後size>0
     private String username;

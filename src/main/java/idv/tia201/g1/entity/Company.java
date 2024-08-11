@@ -43,9 +43,6 @@ public class Company implements Serializable, UserAuth {
     @Column(name = "score", nullable = false)
     private float score;
 
-    @Column(name = "action")
-    private String action;
-
     @Column(name = "change_id", nullable = false)
     private int changeId;
 
