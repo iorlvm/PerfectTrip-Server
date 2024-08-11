@@ -54,6 +54,8 @@ spring:
       suffix: .jsp
 
 logging:
+  file:
+    name: logs/my.log
   level:
 #    root: INFO
     idv.tia201.g1: DEBUG
