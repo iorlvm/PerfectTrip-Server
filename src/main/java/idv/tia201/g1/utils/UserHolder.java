@@ -1,9 +1,6 @@
 package idv.tia201.g1.utils;
 
 import idv.tia201.g1.authentication.service.UserAuth;
-import idv.tia201.g1.entity.User;
-
-import static idv.tia201.g1.utils.Constants.*;
 
 public class UserHolder {
     private static final ThreadLocal<UserAuth> threadLocal = new ThreadLocal<>();
@@ -31,17 +28,8 @@ public class UserHolder {
     }
 
     public static Integer getId() {
-        String role = getRole();
-        if (role == null) return null;
-
-        switch (role) {
-            case ROLE_USER:
-                return getUser(User.class).getUserId();
-            case ROLE_COMPANY:
-            case ROLE_ADMIN:
-            default:
-                return null;
-        }
+        UserAuth userAuth = getUser();
+        return userAuth == null? null : userAuth.getId();
     }
 
     public static void removeUser(){

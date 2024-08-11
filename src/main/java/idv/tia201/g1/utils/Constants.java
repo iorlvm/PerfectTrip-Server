@@ -12,5 +12,11 @@ public class Constants {
     public static final Long CACHE_IMG_DATA_TTL = 60L;
     public static final Long CACHE_IMG_STATUS_TTL = 30L;
     public static final Long CACHE_IMG_NATURAL_TTL = 1800L;
+    public static final String CHAT_ACTION_SEND_MESSAGE = "send-message";
+    public static final String CHAT_ACTION_READ_MESSAGE = "read-message";
+    public static final String CHAT_ACTION_UPDATE_USER_INFO = "update-user-info";
+    public static final String CHAT_ACTION_UPDATE_ROOM_INFO = "update-room-info";
+    public static final String CHAT_ACTION_UPDATE_NOTIFY = "update-notify";
+    public static final String CHAT_ACTION_UPDATE_PINNED = "update-pinned";
 
 }

@@ -50,7 +50,7 @@ public class ExampleController {
 
     @PostMapping
     public Result createUser(@RequestBody ExampleEntity user) {
-        if (user == null || StringUtils.isEmpty(user.getPhone())) {
+        if (user == null || user.getPhone() == null || user.getPhone().trim().isEmpty()) {
             return Result.fail("user或是phone不得為空");
         }
 
