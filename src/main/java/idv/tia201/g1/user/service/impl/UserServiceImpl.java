@@ -33,10 +33,21 @@ public class UserServiceImpl implements UserService {
     @Override
     public Integer register(UserRegisterRequest userRegisterRequest) {
 
-        User user = userDao.findByUsername(userRegisterRequest.getUsername());
-
         // 驗證 username 是否已被註冊
-        validateUsernameExists(user);
+        User existingUserName = userDao.findByUsername(userRegisterRequest.getUsername());
+        validateUsernameExists(existingUserName);
+
+        // 檢查 tax id 是否重複
+        if (userRegisterRequest.getTaxId() != null) {
+            User existingTaxId = userDao.findByTaxId(userRegisterRequest.getTaxId());
+            validateTaxIdExists(existingTaxId);
+        }
+
+        // 檢查 phone number 是否重複
+        if (userRegisterRequest.getPhoneNumber() != null) {
+            User existingPhoneNumber = userDao.findByPhoneNumber(userRegisterRequest.getPhoneNumber());
+            validatePhoneNumberExists(existingPhoneNumber);
+        }
 
         // 使用 MD5 生成密碼的雜湊值
         String hashedPassword = getHashPassword(userRegisterRequest.getPassword());
@@ -119,9 +130,19 @@ public class UserServiceImpl implements UserService {
         Optional.ofNullable(userUpdateRequest.getFirstName()).ifPresent(user::setFirstName);
         Optional.ofNullable(userUpdateRequest.getLastName()).ifPresent(user::setLastName);
         Optional.ofNullable(userUpdateRequest.getNickname()).ifPresent(user::setNickname);
-        Optional.ofNullable(userUpdateRequest.getTaxId()).ifPresent(user::setTaxId);
+
+        Optional.ofNullable(userUpdateRequest.getTaxId()).ifPresent(taxId -> {
+            validateTaxIdExists(user);
+            user.setTaxId(taxId);
+        });
+
         Optional.ofNullable(userUpdateRequest.getGender()).ifPresent(user::setGender);
-        Optional.ofNullable(userUpdateRequest.getPhoneNumber()).ifPresent(user::setPhoneNumber);
+
+        Optional.ofNullable(userUpdateRequest.getPhoneNumber()).ifPresent(phoneNumber -> {
+            validatePhoneNumberExists(user);
+            user.setPhoneNumber(phoneNumber);
+        });
+
         Optional.ofNullable(userUpdateRequest.getCountry()).ifPresent(user::setCountry);
         Optional.ofNullable(userUpdateRequest.getChangeId()).ifPresent(user::setChangeId);
 
@@ -183,6 +204,24 @@ public class UserServiceImpl implements UserService {
         if (user == null) {
             log.warn("該 username {} 尚未註冊", user.getUsername());
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Username not registered.");
+        }
+
+    }
+
+    private void validateTaxIdExists(User user) {
+
+        if (user != null) {
+            log.warn("該 tax id {} 已經被註冊", user.getTaxId());
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Tax id already registered.");
+        }
+
+    }
+
+    private void validatePhoneNumberExists(User user) {
+
+        if (user != null) {
+            log.warn("該 phone number {} 已經被註冊", user.getPhoneNumber());
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Phone number already registered.");
         }
 
     }
