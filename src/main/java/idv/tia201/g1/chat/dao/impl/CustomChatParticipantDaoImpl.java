@@ -21,7 +21,7 @@ public class CustomChatParticipantDaoImpl implements CustomChatParticipantDao {
     private EntityManager entityManager;
 
     @Override
-    public List<ChatParticipant> findByChatId(Long chatId) {
+    public List<ChatParticipant> findByChatIdToDTO(Long chatId) {
         String queryStr = "SELECT " +
                 "    p.mapping_user_id AS user_id, " +
                 "    CASE " +

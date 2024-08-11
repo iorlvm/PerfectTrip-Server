@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Set;
 
 public interface CustomChatParticipantDao {
-    List<ChatParticipant> findByChatId(Long chatId);
+    List<ChatParticipant> findByChatIdToDTO(Long chatId);
 
     List<Long> findChatIdByTypeAndRefId(String type, Integer refId, int size, Timestamp earliestTimestamp);
 

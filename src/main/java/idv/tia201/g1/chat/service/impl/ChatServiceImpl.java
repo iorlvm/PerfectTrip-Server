@@ -24,10 +24,7 @@ import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static idv.tia201.g1.utils.Constants.*;
 
@@ -291,8 +288,32 @@ public class ChatServiceImpl implements ChatService {
         // 將chatMessage存入資料庫
         // TODO: 先將chatMessage存入Redis, 後續實現消息對列異步存入資料庫
         chatMessageDao.save(chatMessage);
-        // TODO: 對所有的其他參與者增加未讀數量 (未實現)
-        // TODO: 更新聊天室的最後訊息以及, 最後訊息時間
+
+        // 對所有的其他參與者增加未讀數量
+        List<ChatParticipant> chatParticipants = chatParticipantDao.findByChatId(chatId);
+        for (ChatParticipant chatParticipant : chatParticipants) {
+            if (!Objects.equals(chatParticipant.getMappingUserId(), senderId)) {
+                chatParticipant.setUnreadMessages(chatParticipant.getUnreadMessages() + 1);
+                chatParticipant.setChatId(chatId);
+                chatParticipantDao.save(chatParticipant);
+            }
+        }
+        // 更新聊天室的最後訊息以及, 最後訊息時間
+        ChatRoom chatRoom = chatRoomDao.findById(chatId).orElse(null);
+        if (chatRoom == null) {
+            // 不太可能存在這個情況, 但還是檢查一遍比較安全
+            throw new IllegalArgumentException("聊天室不存在");
+        }
+
+        if (messageDTO.getContent() != null) {
+            chatRoom.setLastMessage(messageDTO.getContent());
+        } else {
+            // 沒有文字內容的情況只會是圖片 (如果有其他擴充在對這邊做修正)
+            chatRoom.setLastMessage("圖片");
+        }
+
+        chatRoom.setLastMessageAt(now);
+        chatRoomDao.save(chatRoom);
 
         // 將資料寫入messageDTO(DTO物件)
         messageDTO.setMessageId(messageId);
@@ -326,7 +347,7 @@ public class ChatServiceImpl implements ChatService {
     @Override
     public List<ChatParticipant> getChatParticipantsByChatId(Long chatId) {
         // TODO: 優化為緩存的形式
-        return chatParticipantDao.findByChatId(chatId);
+        return chatParticipantDao.findByChatIdToDTO(chatId);
     }
 
     @Override
