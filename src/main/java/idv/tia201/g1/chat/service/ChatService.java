@@ -6,8 +6,8 @@ import idv.tia201.g1.dto.MessageDTO;
 import idv.tia201.g1.dto.PayloadDTO;
 import idv.tia201.g1.dto.UserIdentifier;
 import idv.tia201.g1.entity.ChatParticipant;
-import org.springframework.data.domain.Page;
 
+import java.sql.Timestamp;
 import java.util.List;
 import java.util.Set;
 
@@ -18,7 +18,7 @@ public interface ChatService {
 
     ChatRoomDTO getChatRoomById(Long chatId);
 
-    Page<ChatRoomDTO> getChatRooms(int page, int size);
+    List<ChatRoomDTO> getChatRooms(int size, Timestamp earliestTimestamp);
 
     List<MessageDTO> getMessages(long chatId, Long messageId, int size);
 

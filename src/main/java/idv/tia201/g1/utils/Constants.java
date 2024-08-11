@@ -18,5 +18,7 @@ public class Constants {
     public static final String CHAT_ACTION_UPDATE_ROOM_INFO = "update-room-info";
     public static final String CHAT_ACTION_UPDATE_NOTIFY = "update-notify";
     public static final String CHAT_ACTION_UPDATE_PINNED = "update-pinned";
+    public static final String TIMESTAMP_MAX_STRING = "2038-01-19 03:14:07";
+    public static final Long TIMESTAMP_MAX_VALUE = 2147454847000L;
 
 }

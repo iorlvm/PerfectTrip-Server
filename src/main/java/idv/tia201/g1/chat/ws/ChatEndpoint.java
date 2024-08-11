@@ -1,6 +1,7 @@
 package idv.tia201.g1.chat.ws;
 
-import com.google.gson.Gson;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import idv.tia201.g1.chat.event.UserUpdateEvent;
 import idv.tia201.g1.chat.service.ChatService;
 import idv.tia201.g1.dto.PayloadDTO;
@@ -14,17 +15,20 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 
 @Component
 public class ChatEndpoint extends TextWebSocketHandler {
-    private static final Gson gson = new Gson();
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @Autowired
     private ChatService chatService;
-    private static final Map<Long, Set<WebSocketSession>> SESSIONS_MAP = new HashMap<>();
-    private static final Set<WebSocketSession> SESSIONS_BROADCAST = Collections.synchronizedSet(new HashSet<>());
+    private static final Map<Long, Set<WebSocketSession>> SESSIONS_MAP = new ConcurrentHashMap<>();
+    private static final Set<WebSocketSession> SESSIONS_BROADCAST = new CopyOnWriteArraySet<>();
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
@@ -55,7 +59,7 @@ public class ChatEndpoint extends TextWebSocketHandler {
         String role = (String) session.getAttributes().get("role");
 
         String payload = message.getPayload();
-        PayloadDTO payloadDTO = gson.fromJson(payload, PayloadDTO.class);
+        PayloadDTO payloadDTO = objectMapper.readValue(payload, PayloadDTO.class);
 
         // 處理 payload
         payloadDTO = chatService.handlePayload(role, id, payloadDTO);
@@ -92,7 +96,12 @@ public class ChatEndpoint extends TextWebSocketHandler {
     }
 
     private void broadcast(PayloadDTO payloadDTO, Set<WebSocketSession> sessions) {
-        String json = gson.toJson(payloadDTO);
+        String json = null;
+        try {
+            json = objectMapper.writeValueAsString(payloadDTO);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
         for (WebSocketSession session : sessions) {
             try {
                 session.sendMessage(new TextMessage(json));
