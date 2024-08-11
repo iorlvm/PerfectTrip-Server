@@ -1,9 +1,7 @@
 package idv.tia201.g1.entity;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import idv.tia201.g1.authentication.service.UserAuth;
-import idv.tia201.g1.constant.Action;
 import idv.tia201.g1.constant.Gender;
 import idv.tia201.g1.constant.UserGroup;
 import jakarta.persistence.*;
