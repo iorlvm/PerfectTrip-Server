@@ -1,7 +1,7 @@
 # private data
 db.properties
 
-.log
+*.log
 
 HELP.md
 target/
