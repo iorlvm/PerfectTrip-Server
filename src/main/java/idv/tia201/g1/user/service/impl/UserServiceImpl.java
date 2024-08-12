@@ -112,9 +112,9 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Integer countUser() {
+    public Long count() {
 
-        return userDao.countUser();
+        return userDao.count();
 
     }
 

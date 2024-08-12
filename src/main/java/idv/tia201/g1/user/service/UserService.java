@@ -22,7 +22,7 @@ public interface UserService {
 
 	public User findByUsername(String username);
 	
-	public Integer countUser();
+	public Long count();
 
 	public User updateUser(Integer userId, UserUpdateRequest userUpdateRequest);
 	

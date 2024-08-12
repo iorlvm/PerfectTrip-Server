@@ -16,8 +16,7 @@ public interface UserDao extends JpaRepository<User, Integer> {
 	public User findByTaxId(String taxId);
 
 	public User findByPhoneNumber(String phoneNumber);
-	
-	@Query(value = "SELECT count(*) FROM user_master", nativeQuery = true)
-	public Integer countUser();
+
+	public long count();
 	
 }

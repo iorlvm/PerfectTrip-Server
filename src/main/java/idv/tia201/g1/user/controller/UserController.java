@@ -101,7 +101,7 @@ public class UserController {
         List<User> userList = userService.findAll(userQueryParams);
 
         // 取得 user 總筆數
-        Integer total = userService.countUser();
+        Long total = userService.count();
 
         // 分頁
         Page<User> page = new Page<>();
