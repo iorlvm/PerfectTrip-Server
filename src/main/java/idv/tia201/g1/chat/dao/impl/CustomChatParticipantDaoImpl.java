@@ -5,9 +5,6 @@ import idv.tia201.g1.entity.ChatParticipant;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.sql.Timestamp;
@@ -24,7 +21,7 @@ public class CustomChatParticipantDaoImpl implements CustomChatParticipantDao {
     private EntityManager entityManager;
 
     @Override
-    public List<ChatParticipant> findByChatId(Long chatId) {
+    public List<ChatParticipant> findByChatIdToDTO(Long chatId) {
         String queryStr = "SELECT " +
                 "    p.mapping_user_id AS user_id, " +
                 "    CASE " +
@@ -71,42 +68,51 @@ public class CustomChatParticipantDaoImpl implements CustomChatParticipantDao {
     }
 
     @Override
-    public Page<Long> findChatIdByTypeAndRefId(String type, Integer refId, Pageable pageable) {
-        String queryStr = "SELECT " +
-                "    result.chat_id, " +
-                "    result.total_count " +
-                "FROM ( " +
-                "    SELECT " +
-                "        p.chat_id, " +
-                "        p.last_modified_date, " +
-                "        p.pinned, " +
-                "        COUNT(*) OVER() AS total_count " +
-                "    FROM chat_participants p " +
-                "    JOIN chat_user_mappings m ON " +
-                "        p.mapping_user_id = m.mapping_user_id " +
-                "    WHERE m.ref_id = :refId AND m.user_type = :type " +
-                ") AS result " +
-                "ORDER BY " +
-                "    result.pinned DESC, " +
-                "    result.last_modified_date DESC " +
-                "LIMIT :pageSize OFFSET :offset;";
+    public List<Long> findChatIdByTypeAndRefId(String type, Integer refId, int size, Timestamp earliestTimestamp) {
+        String queryStr = "";
+        if (earliestTimestamp.getTime() == TIMESTAMP_MAX_VALUE) {
+            // 表示第一次取得, 將所有釘選中的聊天室傳給前端
+            queryStr += "SELECT pinned.chat_id " +
+                    "FROM (SELECT p.chat_id " +
+                    "      FROM chat_participants p " +
+                    "               JOIN chat_user_mappings m ON " +
+                    "          p.mapping_user_id = m.mapping_user_id " +
+                    "      WHERE m.ref_id = :refId " +
+                    "        AND m.user_type = :type " +
+                    "        AND p.pinned = true " +
+                    "      ORDER BY p.last_modified_date DESC) pinned " +
+                    "UNION ";
+        }
+        queryStr += "SELECT unpinned.chat_id " +
+                "FROM (SELECT p.chat_id " +
+                "      FROM chat_participants p " +
+                "               JOIN chat_user_mappings m ON " +
+                "          p.mapping_user_id = m.mapping_user_id " +
+                "      WHERE m.ref_id = :refId " +
+                "        AND m.user_type = :type " +
+                "        AND p.pinned = false " +
+                "        AND p.last_modified_date <= :earliestTimestamp " +
+                "      ORDER BY p.last_modified_date DESC " +
+                "      LIMIT :size OFFSET 0) unpinned;";
 
         Query query = entityManager.createNativeQuery(queryStr);
         query.setParameter("refId", refId);
         query.setParameter("type", type);
-        query.setParameter("pageSize", pageable.getPageSize());
-        query.setParameter("offset", pageable.getOffset());
+        query.setParameter("earliestTimestamp", earliestTimestamp);
+        query.setParameter("size", size);
 
-        @SuppressWarnings("unchecked")
-        List<Object[]> resultList = query.getResultList();
 
-        List<Long> chatIds = resultList.stream()
-                .map(row -> ((Number) row[0]).longValue())
+        List<?> resultList = query.getResultList();
+
+        return resultList.stream()
+                .map(result -> {
+                    if (result instanceof Number) {
+                        return ((Number) result).longValue();
+                    } else {
+                        throw new RuntimeException("Unexpected result type: " + result.getClass().getName());
+                    }
+                })
                 .toList();
-
-        long total = resultList.isEmpty() ? 0L : ((Number) resultList.get(0)[1]).longValue();
-
-        return new PageImpl<>(chatIds, pageable, total);
     }
 
     @Override
@@ -121,10 +127,10 @@ public class CustomChatParticipantDaoImpl implements CustomChatParticipantDao {
         query.setParameter("type", type);
 
         @SuppressWarnings("unchecked")
-        List<Object[]> resultList = query.getResultList();
+        List<Number> resultList = query.getResultList();
 
         return resultList.stream()
-                .map(row -> ((Number) row[0]).longValue())
+                .map(Number::longValue)
                 .collect(Collectors.toSet());
     }
 

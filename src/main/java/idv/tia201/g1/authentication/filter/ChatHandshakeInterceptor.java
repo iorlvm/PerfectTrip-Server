@@ -22,9 +22,8 @@ public class ChatHandshakeInterceptor implements HandshakeInterceptor {
     @Override
     public boolean beforeHandshake(ServerHttpRequest request, ServerHttpResponse response, WebSocketHandler wsHandler, Map<String, Object> attributes) throws Exception {
         // 握手時進行驗證
-        String authorizationHeader = request.getHeaders().getFirst("Authorization");
-        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
-            String token = authorizationHeader.substring(7);
+        String token = request.getURI().getQuery();
+        if (token != null) {
 
             UserAuth userAuth = tokenService.validateToken(token);
             if (userAuth != null) {

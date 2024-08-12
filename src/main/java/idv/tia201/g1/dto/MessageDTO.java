@@ -1,10 +1,14 @@
 package idv.tia201.g1.dto;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import lombok.Data;
 
 @Data
 public class MessageDTO {
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long messageId;
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long senderId;
     private ImageDTO img;
     private String content;

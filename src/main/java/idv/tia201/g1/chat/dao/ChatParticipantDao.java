@@ -9,10 +9,13 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
+import java.util.List;
 
 //@Repository
 public interface ChatParticipantDao extends JpaRepository<ChatParticipant, Long>, CustomChatParticipantDao {
     ChatParticipant findByMappingUserIdAndChatId(Long mappingUserId, Long chatId);
+
+    List<ChatParticipant> findByChatId(Long chatId);
 
     @Modifying
     @Transactional
