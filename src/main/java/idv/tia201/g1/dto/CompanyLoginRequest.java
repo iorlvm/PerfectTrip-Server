@@ -15,7 +15,7 @@ public class CompanyLoginRequest {
 
     }
 
-    public @NotBlank String getUsername() {
+    public String getUsername() {
         return username;
     }
 

@@ -29,8 +29,8 @@ public class CompanyController {
     public Result register(@RequestBody @Valid CompanyRegisterRequest companyRegisterRequest) {
         try {
             Company company = companyService.register(companyRegisterRequest);
-            return Result.ok(company) ;
-        }catch (Exception e){
+            return Result.ok(company);
+        } catch (Exception e) {
             return Result.fail(e.getMessage());
         }
 
@@ -40,14 +40,14 @@ public class CompanyController {
     @PostMapping("/login")
     public Result login(@RequestBody @Valid CompanyLoginRequest companyLoginRequest) {
 
-        Company company = companyService.login(companyLoginRequest);
-        if (company != null) {
+        try {
+            Company company = companyService.login(companyLoginRequest);
             String token = tokenService.createToken(company);
             company.setToken(token);
             return Result.ok(company);
-
+        } catch (Exception e) {
+            return Result.fail(e.getMessage());
         }
 
-        return null;
     }
 }
