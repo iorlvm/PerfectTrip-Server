@@ -3,6 +3,7 @@ package idv.tia201.g1.user.controller;
 import java.util.List;
 
 import idv.tia201.g1.constant.Gender;
+import idv.tia201.g1.constant.UserGroup;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -84,7 +85,7 @@ public class UserController {
 
     @GetMapping("/users")
     public Result getUsers(
-            // TODO Category 待處理
+            // TODO 查詢條件 Filtering
             // Sorting
             @RequestParam(defaultValue = "created_date") String orderBy,
             @RequestParam(defaultValue = "desc") String sort,

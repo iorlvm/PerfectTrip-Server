@@ -4,9 +4,9 @@ import idv.tia201.g1.constant.Gender;
 import jakarta.validation.constraints.NotNull;
 
 public class UserUpdateRequest {
-	
+
     private String password;
-    
+
     private String firstName;
 
     private String lastName;
@@ -20,84 +20,84 @@ public class UserUpdateRequest {
     private String phoneNumber;
 
     private String country;
-    
+
     @NotNull
     private Integer changeId;
-	
-	public UserUpdateRequest() {
-		
-	}
 
-	public String getPassword() {
-		return password;
-	}
+    public UserUpdateRequest() {
 
-	public void setPassword(String password) {
-		this.password = password;
-	}
+    }
 
-	public String getFirstName() {
-		return firstName;
-	}
+    public String getPassword() {
+        return password;
+    }
 
-	public void setFirstName(String firstName) {
-		this.firstName = firstName;
-	}
+    public void setPassword(String password) {
+        this.password = password;
+    }
 
-	public String getLastName() {
-		return lastName;
-	}
+    public String getFirstName() {
+        return firstName;
+    }
 
-	public void setLastName(String lastName) {
-		this.lastName = lastName;
-	}
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
 
-	public String getNickname() {
-		return nickname;
-	}
+    public String getLastName() {
+        return lastName;
+    }
 
-	public void setNickname(String nickname) {
-		this.nickname = nickname;
-	}
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
 
-	public String getTaxId() {
-		return taxId;
-	}
+    public String getNickname() {
+        return nickname;
+    }
 
-	public void setTaxId(String taxId) {
-		this.taxId = taxId;
-	}
+    public void setNickname(String nickname) {
+        this.nickname = nickname;
+    }
 
-	public Gender getGender() {
-		return gender;
-	}
+    public String getTaxId() {
+        return taxId;
+    }
 
-	public void setGender(Gender gender) {
-		this.gender = gender;
-	}
+    public void setTaxId(String taxId) {
+        this.taxId = taxId;
+    }
 
-	public String getPhoneNumber() {
-		return phoneNumber;
-	}
+    public Gender getGender() {
+        return gender;
+    }
 
-	public void setPhoneNumber(String phoneNumber) {
-		this.phoneNumber = phoneNumber;
-	}
+    public void setGender(Gender gender) {
+        this.gender = gender;
+    }
 
-	public String getCountry() {
-		return country;
-	}
+    public String getPhoneNumber() {
+        return phoneNumber;
+    }
 
-	public void setCountry(String country) {
-		this.country = country;
-	}
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
+    }
 
-	public Integer getChangeId() {
-		return changeId;
-	}
+    public String getCountry() {
+        return country;
+    }
 
-	public void setChangeId(Integer changeId) {
-		this.changeId = changeId;
-	}
+    public void setCountry(String country) {
+        this.country = country;
+    }
+
+    public Integer getChangeId() {
+        return changeId;
+    }
+
+    public void setChangeId(Integer changeId) {
+        this.changeId = changeId;
+    }
 
 }

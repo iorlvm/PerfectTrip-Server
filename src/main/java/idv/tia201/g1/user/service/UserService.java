@@ -10,22 +10,22 @@ import idv.tia201.g1.entity.User;
 
 public interface UserService {
 
-	public Integer register(UserRegisterRequest userRegisterRequest);
+    public Integer register(UserRegisterRequest userRegisterRequest);
 
-	public User login(UserLoginRequest userLoginRequest);
+    public User login(UserLoginRequest userLoginRequest);
 
-	public Integer createUser(UserRegisterRequest userRegisterRequest);
-	
-	public List<User> findAll(UserQueryParams userQueryParams);
+    public Integer createUser(UserRegisterRequest userRegisterRequest);
 
-	public User findByUserId(Integer userId);
+    public List<User> findAll(UserQueryParams userQueryParams);
 
-	public User findByUsername(String username);
-	
-	public Long count();
+    public User findByUserId(Integer userId);
 
-	public User updateUser(Integer userId, UserUpdateRequest userUpdateRequest);
-	
-	public void deleteUser(Integer userId);
+    public User findByUsername(String username);
+
+    public Long count();
+
+    public User updateUser(Integer userId, UserUpdateRequest userUpdateRequest);
+
+    public void deleteUser(Integer userId);
 
 }
