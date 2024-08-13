@@ -74,6 +74,31 @@ public class ChatServiceImpl implements ChatService {
         eventPublisher.publishEvent(new UserUpdateEvent(this, payloadDTO));
     }
 
+    @Override
+    public void updateChatRoomNotify(Long chatId, String state) {
+        switch (state) {
+            case "on":
+            case "off":
+                break;
+            default:
+                throw new IllegalArgumentException("參數異常：只能傳入'on', 'off'");
+        }
+
+        // 取得登入用戶資料
+        Long loginUser = findMappingUserId();
+        if (loginUser == null) {
+            // 映射關係不存在, 表示之前完全沒使用過聊天室 (同時也不可能是這個聊天室的參與者)
+            throw new IllegalStateException("非法的請求: 該用戶不是此聊天室的參與者");
+        }
+
+        ChatParticipant participant = chatParticipantDao.findByMappingUserIdAndChatId(loginUser, chatId);
+        if (participant == null) {
+            throw new IllegalStateException("非法的請求: 該用戶不是此聊天室的參與者");
+        }
+
+        chatParticipantDao.updateNotifyByChatIdAndMappingUserId(chatId, loginUser, state);
+    }
+
 
     @Override
     public ChatRoomDTO initChatRoom(Set<UserIdentifier> users) {
@@ -159,20 +184,13 @@ public class ChatServiceImpl implements ChatService {
     @Override
     public ChatRoomDTO getChatRoomById(Long chatId) {
         // 取得登入用戶資料
-        String type = UserHolder.getRole();
-        Integer id = UserHolder.getId();
-
-        if (type == null || id == null)
-            throw new IllegalStateException("不合法的訪問: 請檢查您的登入狀態");
-
-        // 根據登入用戶取得映射id
-        Long userMappingId = findMappingUserId(type, id);
-        if (userMappingId == null) {
+        Long loginUserId = findMappingUserId();
+        if (loginUserId == null) {
             // 映射關係不存在, 表示之前完全沒使用過聊天室 (同時也不可能是這個聊天室的參與者)
             throw new IllegalStateException("非法的請求: 該用戶不是此聊天室的參與者");
         }
 
-        return createChatRoomDTO(chatId, userMappingId);
+        return createChatRoomDTO(chatId, loginUserId);
     }
 
     @Override
@@ -181,14 +199,9 @@ public class ChatServiceImpl implements ChatService {
         String type = UserHolder.getRole();
         Integer id = UserHolder.getId();
 
-        if (type == null || id == null)
-            throw new IllegalStateException("不合法的訪問: 請檢查您的登入狀態");
-
-        // 分頁設定
-
         // 根據登入用戶取得映射id
-        Long userMappingId = findMappingUserId(type, id);
-        if (userMappingId == null) {
+        Long loginUserId = findMappingUserId();
+        if (loginUserId == null) {
             // 映射關係不存在, 表示之前完全沒使用過聊天室(不可能存在聊天列表), 回傳一個長度為0的page
             return Collections.emptyList();
         }
@@ -200,7 +213,7 @@ public class ChatServiceImpl implements ChatService {
         // 根據列表中的聊天室id取得各個聊天室的參與者
         for (Long chatId : chatIdsForUser) {
             // 利用chatId取得聊天室的詳細資料, 並寫入DTO物件
-            ChatRoomDTO chatRoomDTO = createChatRoomDTO(chatId, userMappingId);
+            ChatRoomDTO chatRoomDTO = createChatRoomDTO(chatId, loginUserId);
             chatRoomDTOS.add(chatRoomDTO);
         }
         // 回傳
@@ -210,8 +223,9 @@ public class ChatServiceImpl implements ChatService {
     private ChatRoomDTO createChatRoomDTO(Long chatId, Long userMappingId) {
         // 利用chatId取得聊天室的詳細資料, 並寫入DTO物件
         ChatRoom chatRoom = chatRoomDao.findById(chatId).orElse(null);
-        // TODO: 查詢結果(DTO)放入redis緩存 (鍵:"cache:chatroom:chatId")
-        //       先查詢redis, 不存在緩存才重建 (使用互斥鎖方案, 過期消失時間20秒?)
+        // TODO: 查詢結果(DTO)放入redis緩存 (鍵:"cache:chatroom:chatId  hash鍵: userMappingId")
+        //       先查詢redis, 不存在緩存才重建 (過期消失時間60分鐘)
+        //       後續所有的操作都要同步更新資料, 加快送出訊息的讀寫效率 (避免異步寫入造成資料不同步)
         if (chatRoom == null) {
             throw new IllegalStateException("狀態異常: 沒有對應的聊天室");
         }
@@ -252,11 +266,8 @@ public class ChatServiceImpl implements ChatService {
             throw new IllegalArgumentException("參數異常: 聊天室不存在");
         }
 
-        // 利用登入使用者id以及type, 獲取senderId
-        Integer id = UserHolder.getId();
-        String type = UserHolder.getRole();
-
-        Long senderId = findMappingUserId(type, id);
+        // 利用登入使用者, 獲取senderId
+        Long senderId = findMappingUserId();
         if (senderId == null || isParticipantNotFound(senderId, chatId)) {
             // 映射關係不存在, 表示之前完全沒使用過聊天室
             // 或經過檢查以後發現不是合法的參與者
@@ -287,16 +298,24 @@ public class ChatServiceImpl implements ChatService {
 
         // 將chatMessage存入資料庫
         // TODO: 先將chatMessage存入Redis, 後續實現消息對列異步存入資料庫
+        //       目前的實現速度有點太慢了, 一個聊天訊息要通訊200~300ms
+        //       看看有沒有辦法用redis優化速度
+        //       如果用redis太過困難的話, 可以考慮直接開執行緒異步寫入
+        //       然後直接回應前端, 讓前端頁面先顯示
+        //       但缺點是可能會在當機後造成訊息丟失, 顯示畫面與資料庫內容不同步
         chatMessageDao.save(chatMessage);
 
-        // 對所有的其他參與者增加未讀數量
         List<ChatParticipant> chatParticipants = chatParticipantDao.findByChatId(chatId);
         for (ChatParticipant chatParticipant : chatParticipants) {
             if (!Objects.equals(chatParticipant.getMappingUserId(), senderId)) {
+                // 對所有的其他參與者增加未讀數量
                 chatParticipant.setUnreadMessages(chatParticipant.getUnreadMessages() + 1);
-                chatParticipant.setChatId(chatId);
-                chatParticipantDao.save(chatParticipant);
+            } else {
+                // 對自己更新最後讀取時間, 並設定未讀數量為0
+                chatParticipant.setUnreadMessages(0);
+                chatParticipant.setLastReadingAt(now);
             }
+            chatParticipantDao.save(chatParticipant);
         }
         // 更新聊天室的最後訊息以及, 最後訊息時間
         ChatRoom chatRoom = chatRoomDao.findById(chatId).orElse(null);
@@ -333,6 +352,7 @@ public class ChatServiceImpl implements ChatService {
         Pageable pageable = PageRequest.of(0, size, Sort.by(Sort.Direction.DESC, "messageId"));
 
         // TODO: 未來調整成訊息異步寫入的話, 這裡也要增加相應的調整
+        //  可能選擇的策略, 把rides中的資料一次吐給前端(如果是空的, 再去撈資料庫)
         List<ChatMessage> messages = chatMessageDao.findByChatIdAndMessageIdLessThan(chatId, messageId, pageable);
         List<MessageDTO> messageDTOS = new ArrayList<>(messages.size());
 
@@ -363,8 +383,6 @@ public class ChatServiceImpl implements ChatService {
             case CHAT_ACTION_SEND_MESSAGE:
             case CHAT_ACTION_READ_MESSAGE:
             case CHAT_ACTION_UPDATE_ROOM_INFO:
-            case CHAT_ACTION_UPDATE_NOTIFY:
-            case CHAT_ACTION_UPDATE_PINNED:
                 break;
             default:
                 throw new IllegalArgumentException("參數異常: 未定義的操作");
@@ -397,15 +415,24 @@ public class ChatServiceImpl implements ChatService {
             case CHAT_ACTION_UPDATE_ROOM_INFO:
                 processPayloadToUpdateRoomInfo(payloadDTO);
                 break;
-            case CHAT_ACTION_UPDATE_NOTIFY:
-                processPayloadToUpdateNotify(payloadDTO);
-                break;
-            case CHAT_ACTION_UPDATE_PINNED:
-                processPayloadToUpdatePinned(payloadDTO);
-                break;
         }
 
         return payloadDTO;
+    }
+
+    @Override
+    public void updateChatRoomPinned(Long chatId, Boolean pinned) {
+        Long loginUserId = findMappingUserId();
+        if (loginUserId == null) {
+            // 映射關係不存在, 表示之前完全沒使用過聊天室 (同時也不可能是這個聊天室的參與者)
+            throw new IllegalStateException("非法的請求: 該用戶不是此聊天室的參與者");
+        }
+
+        if (pinned == null) {
+            throw new IllegalArgumentException("參數異常：pinned不可為空");
+        }
+
+        chatParticipantDao.updatePinnedByChatIdAndMappingUserId(chatId, loginUserId, pinned);
     }
 
     private void processPayloadToSendMessage(PayloadDTO payloadDTO) {
@@ -439,33 +466,6 @@ public class ChatServiceImpl implements ChatService {
         chatParticipantDao.updateLastReadingAtByChatIdAndMappingUserId(chatId, authorId, now);
     }
 
-    private void processPayloadToUpdateNotify(PayloadDTO payloadDTO) {
-        Timestamp now = Timestamp.from(Instant.now());
-        payloadDTO.setTimestamp(now.toString());
-        Long chatId = payloadDTO.getChatId();
-        Long authorId = payloadDTO.getAuthorId();
-        String content = payloadDTO.getContent();
-        switch (content) {
-            case "on":
-            case "off":
-                break;
-            default:
-                content = "off";
-        }
-        chatParticipantDao.updateNotifyByChatIdAndMappingUserId(chatId, authorId, content);
-    }
-
-    private void processPayloadToUpdatePinned(PayloadDTO payloadDTO) {
-        Timestamp now = Timestamp.from(Instant.now());
-        payloadDTO.setTimestamp(now.toString());
-        Long chatId = payloadDTO.getChatId();
-        Long authorId = payloadDTO.getAuthorId();
-        String content = payloadDTO.getContent();
-        boolean pinned = "true".equals(content);
-
-        chatParticipantDao.updatePinnedByChatIdAndMappingUserId(chatId, authorId, pinned);
-    }
-
     private void processPayloadToUpdateRoomInfo(PayloadDTO payloadDTO) {
         Timestamp now = Timestamp.from(Instant.now());
         Long chatId = payloadDTO.getChatId();
@@ -489,6 +489,17 @@ public class ChatServiceImpl implements ChatService {
     private boolean isChatRoomValid(Long chatId) {
         // TODO: 優化為緩存的形式
         return chatRoomDao.findById(chatId).isEmpty();
+    }
+
+    private Long findMappingUserId() {
+        String type = UserHolder.getRole();
+        Integer id = UserHolder.getId();
+
+        if (type == null || id == null) {
+            throw new IllegalStateException("不合法的訪問: 請檢查您的登入狀態");
+        }
+
+        return findMappingUserId(type, id);
     }
 
     private Long findMappingUserId(String userType, Integer refId) {
