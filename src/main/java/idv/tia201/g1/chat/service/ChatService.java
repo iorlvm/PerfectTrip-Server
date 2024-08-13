@@ -14,6 +14,9 @@ import java.util.Set;
 public interface ChatService {
 
     void updateUserInfo(UserAuth userAuth);
+
+    void updateChatRoomNotify(Long chatId, String state);
+
     ChatRoomDTO initChatRoom(Set<UserIdentifier> users);
 
     ChatRoomDTO getChatRoomById(Long chatId);
@@ -31,4 +34,6 @@ public interface ChatService {
     Long getOrCreateMappingUserId(String type, Integer id);
 
     PayloadDTO handlePayload(String role, Integer id, PayloadDTO payloadDTO);
+
+    void updateChatRoomPinned(Long chatId, Boolean pinned);
 }

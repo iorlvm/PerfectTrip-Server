@@ -68,6 +68,28 @@ public class ChatController {
         }
     }
 
+    @PutMapping("/rooms/{chatId}/notify")
+    public Result updateChatRoomNotify(@PathVariable Long chatId, @RequestBody ChatRoomDTO chatRoomDTO) {
+        try {
+            chatService.updateChatRoomNotify(chatId, chatRoomDTO.getNotifySettings());
+            return Result.ok(chatRoomDTO.getNotifySettings());
+        } catch (Exception e) {
+            // TODO: 也許需要log紀錄
+            return Result.fail(e.getMessage());
+        }
+    }
+
+    @PutMapping("/rooms/{chatId}/pinned")
+    public Result updateChatRoomPinned(@PathVariable Long chatId, @RequestBody ChatRoomDTO chatRoomDTO) {
+        try {
+            chatService.updateChatRoomPinned(chatId, chatRoomDTO.getPinned());
+            return Result.ok(chatRoomDTO.getPinned());
+        } catch (Exception e) {
+            // TODO: 也許需要log紀錄
+            return Result.fail(e.getMessage());
+        }
+    }
+
     @GetMapping("/rooms/{chatId}/messages")
     public Result getMessages(@PathVariable Long chatId, @RequestParam(required = false) Long messageId, @RequestParam(defaultValue = "20") int size) {
         try {
@@ -75,7 +97,7 @@ public class ChatController {
             if (messageId == null) messageId = Long.MAX_VALUE;              // 沒傳入值時, 給予最大值作為預設值 (從頭抓取)
 
             if (messageId <= 0) return Result.fail("沒有更多訊息");   // 傳入的值已經是0的時候, 不可能有資料
-            
+
             List<MessageDTO> messages = chatService.getMessages(chatId, messageId, size);
 
             if (messages.isEmpty() && messageId < Long.MAX_VALUE) {
@@ -91,7 +113,7 @@ public class ChatController {
 
     @PostMapping("/rooms/{chatId}/messages")
     public Result sendMessage(@PathVariable Long chatId, @RequestBody MessageDTO messageDTO) {
-        // 這個控制器在邏輯上好像有點問題
+        // 這個控制器在用途上好像有點問題
         try {
             messageDTO = chatService.sendMessage(chatId, messageDTO);
             return Result.ok(messageDTO);
