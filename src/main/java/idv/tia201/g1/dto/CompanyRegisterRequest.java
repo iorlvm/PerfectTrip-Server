@@ -11,6 +11,18 @@ public class CompanyRegisterRequest {
     private String password;
 
     @NotBlank
+    private String companyName;
+
+    @NotBlank
+    private String vatNumber;
+
+    @NotBlank
+    private String address;
+
+    @NotBlank
+    private  String telephone;
+
+    @NotBlank
     private CompanyRegisterRequest(){
 
     }
@@ -31,5 +43,19 @@ public class CompanyRegisterRequest {
         this.password = password;
     }
 
+    public @NotBlank String getCompanyName() {return companyName;}
 
+    public void setCompanyName(@NotBlank String companyName) {this.companyName = companyName;}
+
+    public @NotBlank String getVatNumber() {return vatNumber;}
+
+    public void setVatNumber(@NotBlank String vatNumber) {this.vatNumber = vatNumber;}
+
+    public @NotBlank String getAddress() {return address;}
+
+    public void setAddress(@NotBlank String address) {this.address = address;}
+
+    public @NotBlank String getTelephone() {return telephone;}
+
+    public void setTelephone(@NotBlank String telephone) {this.telephone = telephone;}
 }
