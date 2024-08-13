@@ -87,6 +87,11 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<User> findAll(UserQueryParams userQueryParams) {
 
+        /*
+         * param 1: offset
+         * param 2: limit
+         * param 3: sort
+         */
         Pageable pageable = PageRequest.of(
                 userQueryParams.getOffset(),
                 userQueryParams.getLimit(),
