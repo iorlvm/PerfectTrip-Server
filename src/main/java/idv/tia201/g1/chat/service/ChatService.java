@@ -15,8 +15,6 @@ public interface ChatService {
 
     void updateUserInfo(UserAuth userAuth);
 
-    void updateChatRoomNotify(Long chatId, String state);
-
     ChatRoomDTO initChatRoom(Set<UserIdentifier> users);
 
     ChatRoomDTO getChatRoomById(Long chatId);
@@ -27,13 +25,9 @@ public interface ChatService {
 
     MessageDTO sendMessage(Long chatId, MessageDTO messageDTO);
 
-    List<ChatParticipant> getChatParticipantsByChatId(Long chatId);
-
-    Set<Long> getChatRoomsIdByRoleAndId(String role, Integer id);
-
     Long getOrCreateMappingUserId(String type, Integer id);
 
-    PayloadDTO handlePayload(String role, Integer id, PayloadDTO payloadDTO);
-
     void updateChatRoomPinned(Long chatId, Boolean pinned);
+
+    void updateChatRoomNotify(Long chatId, String state);
 }

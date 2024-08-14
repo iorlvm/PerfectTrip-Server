@@ -6,14 +6,13 @@ import idv.tia201.g1.authentication.service.UserAuth;
 import idv.tia201.g1.chat.dao.ChatMessageDao;
 import idv.tia201.g1.chat.dao.ChatParticipantDao;
 import idv.tia201.g1.chat.dao.ChatRoomDao;
-import idv.tia201.g1.chat.dao.ChatUserMappingDao;
 import idv.tia201.g1.chat.event.UserUpdateEvent;
+import idv.tia201.g1.chat.service.CacheService;
 import idv.tia201.g1.chat.service.ChatService;
 import idv.tia201.g1.dto.*;
 import idv.tia201.g1.entity.ChatMessage;
 import idv.tia201.g1.entity.ChatParticipant;
 import idv.tia201.g1.entity.ChatRoom;
-import idv.tia201.g1.entity.ChatUserMapping;
 import idv.tia201.g1.utils.DtoConverter;
 import idv.tia201.g1.utils.UserHolder;
 import idv.tia201.g1.utils.redis.RedisIdWorker;
@@ -26,14 +25,13 @@ import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.*;
 
+import static idv.tia201.g1.chat.utils.Utils.isImageEmpty;
 import static idv.tia201.g1.utils.Constants.*;
 
 @Service
 public class ChatServiceImpl implements ChatService {
     @Autowired
     private ObjectMapper objectMapper;
-    @Autowired
-    private ChatUserMappingDao chatUserMappingDao;
     @Autowired
     private ChatParticipantDao chatParticipantDao;
     @Autowired
@@ -44,6 +42,8 @@ public class ChatServiceImpl implements ChatService {
     RedisIdWorker idWorker;
     @Autowired
     private ApplicationEventPublisher eventPublisher;
+    @Autowired
+    private CacheService cacheService;
 
     @Override
     public void updateUserInfo(UserAuth userAuth) {
@@ -52,14 +52,14 @@ public class ChatServiceImpl implements ChatService {
         String role = userAuth.getRole();
         Integer id = userAuth.getId();
 
-        Long loginUser = findMappingUserId(role, id);
-        if (loginUser == null) {
+        Long loginUserId = cacheService.findMappingUserId(role, id);
+        if (loginUserId == null) {
             // 沒使用過聊天室, 不需要做任何事情
             return;
         }
 
         PayloadDTO payloadDTO = new PayloadDTO();
-        payloadDTO.setAuthorId(loginUser);
+        payloadDTO.setAuthorId(loginUserId);
         payloadDTO.setTimestamp(Timestamp.from(Instant.now()).toString());
         payloadDTO.setAction(CHAT_ACTION_UPDATE_USER_INFO);
 
@@ -73,32 +73,6 @@ public class ChatServiceImpl implements ChatService {
 
         eventPublisher.publishEvent(new UserUpdateEvent(this, payloadDTO));
     }
-
-    @Override
-    public void updateChatRoomNotify(Long chatId, String state) {
-        switch (state) {
-            case "on":
-            case "off":
-                break;
-            default:
-                throw new IllegalArgumentException("參數異常：只能傳入'on', 'off'");
-        }
-
-        // 取得登入用戶資料
-        Long loginUser = findMappingUserId();
-        if (loginUser == null) {
-            // 映射關係不存在, 表示之前完全沒使用過聊天室 (同時也不可能是這個聊天室的參與者)
-            throw new IllegalStateException("非法的請求: 該用戶不是此聊天室的參與者");
-        }
-
-        ChatParticipant participant = chatParticipantDao.findByMappingUserIdAndChatId(loginUser, chatId);
-        if (participant == null) {
-            throw new IllegalStateException("非法的請求: 該用戶不是此聊天室的參與者");
-        }
-
-        chatParticipantDao.updateNotifyByChatIdAndMappingUserId(chatId, loginUser, state);
-    }
-
 
     @Override
     public ChatRoomDTO initChatRoom(Set<UserIdentifier> users) {
@@ -127,30 +101,18 @@ public class ChatServiceImpl implements ChatService {
         // 創造聊天室
         ChatRoom chatRoom = createChatRoom();
         Long chatId = chatRoom.getChatId();
-
-        // 創造參與者列表
-        List<ParticipantDTO> participantDTOS = new ArrayList<>(users.size() + 1);
         // 將登入者寫入資料庫
-        ChatParticipant loginUser = addParticipantToChatRoom(chatId, loginUserId);
-        // 登入者同時也是參與者, 也要一起加入列表之中
-        participantDTOS.add(DtoConverter.toParticipantDTO(loginUser));
-
+        addParticipantToChatRoom(chatId, loginUserId);
         // 遍歷傳入的使用者
         for (UserIdentifier user : users) {
             // 取得或建立映射id
             Long mappingUserId = getOrCreateMappingUserId(user.getType(), user.getId());
-
             // 將參與者寫入資料庫
-            ChatParticipant chatParticipant = addParticipantToChatRoom(chatId, mappingUserId);
-            // 將參與者轉寫成DTO格式, 並存入列表
-            participantDTOS.add(DtoConverter.toParticipantDTO(chatParticipant));
+            addParticipantToChatRoom(chatId, mappingUserId);
         }
 
-        // 將聊天室轉寫成DTO格式, 並將參與者列表存入其中
-        ChatRoomDTO chatRoomDTO = DtoConverter.toChatRoomDTO(chatRoom, loginUser);
-        chatRoomDTO.setParticipants(participantDTOS);
-
-        return chatRoomDTO;
+        // 初始化完畢以後, 重新查詢並回傳 (這樣寫不太好, 但因為我DTO物件的查詢有額外欄位所以不能直接使用回傳值)
+        return getChatRoomById(chatId);
     }
 
     @Override
@@ -159,11 +121,11 @@ public class ChatServiceImpl implements ChatService {
             throw new IllegalStateException("不合法的訪問: 請檢查您的登入狀態");
         }
 
-        // TODO: 優化為緩存模式
-        Long userId = findMappingUserId(type, id);
+        Long userId = cacheService.findMappingUserId(type, id);
         if (userId == null) {
-            userId = createUserMapping(type, id).getMappingUserId();
+            userId = cacheService.createUserMapping(type, id).getMappingUserId();
         }
+
         return userId;
     }
 
@@ -174,11 +136,11 @@ public class ChatServiceImpl implements ChatService {
         return chatRoomDao.save(chatRoom);
     }
 
-    private ChatParticipant addParticipantToChatRoom(Long chatId, Long mappingUserId) {
+    private void addParticipantToChatRoom(Long chatId, Long mappingUserId) {
         ChatParticipant chatParticipant = new ChatParticipant();
         chatParticipant.setChatId(chatId);
         chatParticipant.setMappingUserId(mappingUserId);
-        return chatParticipantDao.save(chatParticipant);
+        chatParticipantDao.save(chatParticipant);
     }
 
     @Override
@@ -220,18 +182,106 @@ public class ChatServiceImpl implements ChatService {
         return chatRoomDTOS;
     }
 
+    @Override
+    public MessageDTO sendMessage(Long chatId, MessageDTO messageDTO) {
+        // 檢查是否有發送任何訊息
+        if (messageDTO.getContent() == null && isImageEmpty(messageDTO.getImg())) {
+            throw new IllegalArgumentException("請求異常：沒有發送任何內容");
+        }
+
+        // 檢查聊天室是否存在 (不存在 訪回異常狀態)
+        if (cacheService.isChatRoomInvalid(chatId)) {
+            throw new IllegalArgumentException("參數異常: 聊天室不存在");
+        }
+
+        // 利用登入使用者, 獲取senderId
+        Long senderId = findMappingUserId();
+        if (senderId == null || cacheService.isParticipantNotFound(senderId, chatId)) {
+            // 映射關係不存在, 表示之前完全沒使用過聊天室
+            // 或經過檢查以後發現不是合法的參與者
+            throw new IllegalStateException("非法的請求: 該用戶不是此聊天室的參與者");
+        }
+
+        return cacheService.saveMessage(senderId, chatId, messageDTO);
+    }
+
+    @Override
+    public List<MessageDTO> getMessages(long chatId, Long messageId, int size) {
+        // 利用messageId的自增以及唯一性, 可以準確地往上抓取一定數量的資料
+        if (cacheService.isChatRoomInvalid(chatId)) {
+            throw new IllegalArgumentException("參數異常: 聊天室不存在");
+        }
+
+        Pageable pageable = PageRequest.of(0, size, Sort.by(Sort.Direction.DESC, "messageId"));
+
+        // TODO: 未來調整成訊息異步寫入的話, 這裡也要增加相應的調整
+        //  可能選擇的策略, 把rides中的資料一次吐給前端(如果是空的, 再去撈資料庫)
+        List<ChatMessage> messages = chatMessageDao.findByChatIdAndMessageIdLessThan(chatId, messageId, pageable);
+        List<MessageDTO> messageDTOS = new ArrayList<>(messages.size());
+
+        for (ChatMessage message : messages) {
+            MessageDTO messageDTO = DtoConverter.toMessageDTO(message);
+            messageDTOS.add(messageDTO);
+        }
+
+        return messageDTOS;
+    }
+
+    @Override
+    public void updateChatRoomPinned(Long chatId, Boolean pinned) {
+        if (pinned == null) {
+            throw new IllegalArgumentException("參數異常：pinned不可為空");
+        }
+
+        Long loginUserId = findMappingUserId();
+        if (loginUserId == null || cacheService.isParticipantNotFound(loginUserId, chatId)) {
+            // 映射關係不存在, 表示之前完全沒使用過聊天室 (同時也不可能是這個聊天室的參與者)
+            throw new IllegalStateException("非法的請求: 該用戶不是此聊天室的參與者");
+        }
+
+        chatParticipantDao.updatePinnedByChatIdAndMappingUserId(chatId, loginUserId, pinned);
+    }
+
+    @Override
+    public void updateChatRoomNotify(Long chatId, String state) {
+        switch (state) {
+            case "on":
+            case "off":
+                break;
+            default:
+                throw new IllegalArgumentException("參數異常：只能傳入'on', 'off'");
+        }
+
+        // 取得登入用戶資料
+        Long loginUserId = findMappingUserId();
+        if (loginUserId == null || cacheService.isParticipantNotFound(loginUserId, chatId)) {
+            // 映射關係不存在, 表示之前完全沒使用過聊天室 (同時也不可能是這個聊天室的參與者)
+            throw new IllegalStateException("非法的請求: 該用戶不是此聊天室的參與者");
+        }
+
+        chatParticipantDao.updateNotifyByChatIdAndMappingUserId(chatId, loginUserId, state);
+    }
+
+    private Long findMappingUserId() {
+        String type = UserHolder.getRole();
+        Integer id = UserHolder.getId();
+
+        if (type == null || id == null) {
+            throw new IllegalStateException("不合法的訪問: 請檢查您的登入狀態");
+        }
+
+        return cacheService.findMappingUserId(type, id);
+    }
+
     private ChatRoomDTO createChatRoomDTO(Long chatId, Long userMappingId) {
         // 利用chatId取得聊天室的詳細資料, 並寫入DTO物件
-        ChatRoom chatRoom = chatRoomDao.findById(chatId).orElse(null);
-        // TODO: 查詢結果(DTO)放入redis緩存 (鍵:"cache:chatroom:chatId  hash鍵: userMappingId")
-        //       先查詢redis, 不存在緩存才重建 (過期消失時間60分鐘)
-        //       後續所有的操作都要同步更新資料, 加快送出訊息的讀寫效率 (避免異步寫入造成資料不同步)
+        ChatRoom chatRoom = cacheService.findChatRoomByChatId(chatId);
         if (chatRoom == null) {
             throw new IllegalStateException("狀態異常: 沒有對應的聊天室");
         }
 
         // 取得聊天室中所有的參與者
-        List<ChatParticipant> chatParticipants = getChatParticipantsByChatId(chatId);
+        List<ChatParticipant> chatParticipants = cacheService.getChatParticipantsByChatId(chatId);
         List<ParticipantDTO> participantDTOS = new ArrayList<>(chatParticipants.size());
 
         ChatParticipant loginChatUser = null;
@@ -252,269 +302,5 @@ public class ChatServiceImpl implements ChatService {
         ChatRoomDTO chatRoomDTO = DtoConverter.toChatRoomDTO(chatRoom, loginChatUser);
         chatRoomDTO.setParticipants(participantDTOS);
         return chatRoomDTO;
-    }
-
-    @Override
-    public MessageDTO sendMessage(Long chatId, MessageDTO messageDTO) {
-        // 檢查是否有發送任何訊息
-        if (messageDTO.getContent() == null && isImageEmpty(messageDTO.getImg())) {
-            throw new IllegalArgumentException("請求異常：沒有發送任何內容");
-        }
-
-        // 檢查聊天室是否存在 (不存在 訪回異常狀態)
-        if (isChatRoomValid(chatId)) {
-            throw new IllegalArgumentException("參數異常: 聊天室不存在");
-        }
-
-        // 利用登入使用者, 獲取senderId
-        Long senderId = findMappingUserId();
-        if (senderId == null || isParticipantNotFound(senderId, chatId)) {
-            // 映射關係不存在, 表示之前完全沒使用過聊天室
-            // 或經過檢查以後發現不是合法的參與者
-            throw new IllegalStateException("非法的請求: 該用戶不是此聊天室的參與者");
-        }
-
-        return saveMessage(senderId, chatId, messageDTO);
-    }
-
-    private MessageDTO saveMessage(Long senderId, Long chatId, MessageDTO messageDTO) {
-        Long messageId = idWorker.nextId("message");
-        Timestamp now = Timestamp.from(Instant.now());
-
-        // 將資料寫入chatMessage(Entity物件)
-        ChatMessage chatMessage = new ChatMessage();
-        chatMessage.setMessageId(messageId);
-        chatMessage.setMappingUserId(senderId);
-        chatMessage.setChatId(chatId);
-        chatMessage.setContent(messageDTO.getContent());
-
-        MessageDTO.ImageDTO img = messageDTO.getImg();
-        if (!isImageEmpty(img)) {
-            chatMessage.setImg(img.getSrc());
-        }
-
-        chatMessage.setCreatedDate(now);
-        chatMessage.setLastModifiedDate(now);
-
-        // 將chatMessage存入資料庫
-        // TODO: 先將chatMessage存入Redis, 後續實現消息對列異步存入資料庫
-        //       目前的實現速度有點太慢了, 一個聊天訊息要通訊200~300ms
-        //       看看有沒有辦法用redis優化速度
-        //       如果用redis太過困難的話, 可以考慮直接開執行緒異步寫入
-        //       然後直接回應前端, 讓前端頁面先顯示
-        //       但缺點是可能會在當機後造成訊息丟失, 顯示畫面與資料庫內容不同步
-        chatMessageDao.save(chatMessage);
-
-        List<ChatParticipant> chatParticipants = chatParticipantDao.findByChatId(chatId);
-        for (ChatParticipant chatParticipant : chatParticipants) {
-            if (!Objects.equals(chatParticipant.getMappingUserId(), senderId)) {
-                // 對所有的其他參與者增加未讀數量
-                chatParticipant.setUnreadMessages(chatParticipant.getUnreadMessages() + 1);
-            } else {
-                // 對自己更新最後讀取時間, 並設定未讀數量為0
-                chatParticipant.setUnreadMessages(0);
-                chatParticipant.setLastReadingAt(now);
-            }
-            chatParticipantDao.save(chatParticipant);
-        }
-        // 更新聊天室的最後訊息以及, 最後訊息時間
-        ChatRoom chatRoom = chatRoomDao.findById(chatId).orElse(null);
-        if (chatRoom == null) {
-            // 不太可能存在這個情況, 但還是檢查一遍比較安全
-            throw new IllegalArgumentException("聊天室不存在");
-        }
-
-        if (messageDTO.getContent() != null) {
-            chatRoom.setLastMessage(messageDTO.getContent());
-        } else {
-            // 沒有文字內容的情況只會是圖片 (如果有其他擴充在對這邊做修正)
-            chatRoom.setLastMessage("圖片");
-        }
-
-        chatRoom.setLastMessageAt(now);
-        chatRoomDao.save(chatRoom);
-
-        // 將資料寫入messageDTO(DTO物件)
-        messageDTO.setMessageId(messageId);
-        messageDTO.setSenderId(senderId);
-        messageDTO.setTimestamp(now.toString());
-
-        return messageDTO;
-    }
-
-    @Override
-    public List<MessageDTO> getMessages(long chatId, Long messageId, int size) {
-        // 利用messageId的自增以及唯一性, 可以準確地往上抓取一定數量的資料
-        if (isChatRoomValid(chatId)) {
-            throw new IllegalArgumentException("參數異常: 聊天室不存在");
-        }
-
-        Pageable pageable = PageRequest.of(0, size, Sort.by(Sort.Direction.DESC, "messageId"));
-
-        // TODO: 未來調整成訊息異步寫入的話, 這裡也要增加相應的調整
-        //  可能選擇的策略, 把rides中的資料一次吐給前端(如果是空的, 再去撈資料庫)
-        List<ChatMessage> messages = chatMessageDao.findByChatIdAndMessageIdLessThan(chatId, messageId, pageable);
-        List<MessageDTO> messageDTOS = new ArrayList<>(messages.size());
-
-        for (ChatMessage message : messages) {
-            MessageDTO messageDTO = DtoConverter.toMessageDTO(message);
-            messageDTOS.add(messageDTO);
-        }
-
-        return messageDTOS;
-    }
-
-    @Override
-    public List<ChatParticipant> getChatParticipantsByChatId(Long chatId) {
-        // TODO: 優化為緩存的形式
-        return chatParticipantDao.findByChatIdToDTO(chatId);
-    }
-
-    @Override
-    public Set<Long> getChatRoomsIdByRoleAndId(String role, Integer id) {
-        return chatParticipantDao.findChatIdByTypeAndRefId(role, id);
-    }
-
-    @Override
-    public PayloadDTO handlePayload(String role, Integer id, PayloadDTO payloadDTO) {
-        String action = payloadDTO.getAction();
-        // 驗證action值是否合法
-        switch (action) {
-            case CHAT_ACTION_SEND_MESSAGE:
-            case CHAT_ACTION_READ_MESSAGE:
-            case CHAT_ACTION_UPDATE_ROOM_INFO:
-                break;
-            default:
-                throw new IllegalArgumentException("參數異常: 未定義的操作");
-        }
-
-        Long chatId = payloadDTO.getChatId();
-        // 驗證chatId是否存在
-        if (isChatRoomValid(chatId)) {
-            throw new IllegalArgumentException("參數異常: 聊天室不存在");
-        }
-
-        Long authorId = getOrCreateMappingUserId(role, id);
-        // 驗證authorId是否是這個chatId的參與者
-        if (isParticipantNotFound(authorId, chatId)) {
-            throw new IllegalStateException("非法的請求: 該用戶不是此聊天室的參與者");
-        }
-
-        // 將兇手(?)以及目的地寫入dto中
-        payloadDTO.setAuthorId(authorId);
-        payloadDTO.setChatId(chatId);
-
-        // 根據action執行對應的操作
-        switch (action) {
-            case CHAT_ACTION_SEND_MESSAGE:
-                processPayloadToSendMessage(payloadDTO);
-                break;
-            case CHAT_ACTION_READ_MESSAGE:
-                processPayloadToReadMessage(payloadDTO);
-                break;
-            case CHAT_ACTION_UPDATE_ROOM_INFO:
-                processPayloadToUpdateRoomInfo(payloadDTO);
-                break;
-        }
-
-        return payloadDTO;
-    }
-
-    @Override
-    public void updateChatRoomPinned(Long chatId, Boolean pinned) {
-        Long loginUserId = findMappingUserId();
-        if (loginUserId == null) {
-            // 映射關係不存在, 表示之前完全沒使用過聊天室 (同時也不可能是這個聊天室的參與者)
-            throw new IllegalStateException("非法的請求: 該用戶不是此聊天室的參與者");
-        }
-
-        if (pinned == null) {
-            throw new IllegalArgumentException("參數異常：pinned不可為空");
-        }
-
-        chatParticipantDao.updatePinnedByChatIdAndMappingUserId(chatId, loginUserId, pinned);
-    }
-
-    private void processPayloadToSendMessage(PayloadDTO payloadDTO) {
-        String content = payloadDTO.getContent();
-        MessageDTO messageDTO = null;
-        try {
-            messageDTO = objectMapper.readValue(content, MessageDTO.class);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
-
-        // 檢查是否有發送任何訊息
-        if (messageDTO.getContent() == null && isImageEmpty(messageDTO.getImg())) {
-            throw new IllegalArgumentException("請求異常：沒有發送任何內容");
-        }
-
-        saveMessage(payloadDTO.getAuthorId(), payloadDTO.getChatId(), messageDTO);
-        try {
-            payloadDTO.setContent(objectMapper.writeValueAsString(messageDTO));
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
-        payloadDTO.setTimestamp(messageDTO.getTimestamp());
-    }
-
-    private void processPayloadToReadMessage(PayloadDTO payloadDTO) {
-        Timestamp now = Timestamp.from(Instant.now());
-        payloadDTO.setTimestamp(now.toString());
-        Long chatId = payloadDTO.getChatId();
-        Long authorId = payloadDTO.getAuthorId();
-        chatParticipantDao.updateLastReadingAtByChatIdAndMappingUserId(chatId, authorId, now);
-    }
-
-    private void processPayloadToUpdateRoomInfo(PayloadDTO payloadDTO) {
-        Timestamp now = Timestamp.from(Instant.now());
-        Long chatId = payloadDTO.getChatId();
-        String content = payloadDTO.getContent();
-
-        PayloadDTO.RoomInfo roomInfo = null;
-        try {
-            roomInfo = objectMapper.readValue(content, PayloadDTO.RoomInfo.class);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
-        chatRoomDao.updateChatInfoByChatId(chatId, roomInfo.getChatName(), roomInfo.getPhoto());
-        payloadDTO.setTimestamp(now.toString());
-    }
-
-    private boolean isParticipantNotFound(Long senderId, Long chatId) {
-        // TODO: 優化為緩存的形式
-        return chatParticipantDao.findByMappingUserIdAndChatId(senderId, chatId) == null;
-    }
-
-    private boolean isChatRoomValid(Long chatId) {
-        // TODO: 優化為緩存的形式
-        return chatRoomDao.findById(chatId).isEmpty();
-    }
-
-    private Long findMappingUserId() {
-        String type = UserHolder.getRole();
-        Integer id = UserHolder.getId();
-
-        if (type == null || id == null) {
-            throw new IllegalStateException("不合法的訪問: 請檢查您的登入狀態");
-        }
-
-        return findMappingUserId(type, id);
-    }
-
-    private Long findMappingUserId(String userType, Integer refId) {
-        // TODO: 優化為緩存的形式
-        return chatUserMappingDao.findMappingUserIdByUserTypeAndRefId(userType, refId);
-    }
-
-    private ChatUserMapping createUserMapping(String type, Integer id) {
-        ChatUserMapping userMapping = new ChatUserMapping();
-        userMapping.setUserType(type);
-        userMapping.setRefId(id);
-        return chatUserMappingDao.save(userMapping);
-    }
-
-    private static boolean isImageEmpty(MessageDTO.ImageDTO img) {
-        return img == null || img.getSrc() == null || img.getSrc().trim().isEmpty();
     }
 }

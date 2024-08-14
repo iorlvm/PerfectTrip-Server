@@ -12,6 +12,7 @@ import java.sql.Timestamp;
 
 @Repository
 public interface ChatRoomDao extends JpaRepository<ChatRoom, Long> {
+    ChatRoom findByChatId (Long chatId);
 
     @Modifying
     @Transactional

@@ -3,7 +3,8 @@ package idv.tia201.g1.chat.ws;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import idv.tia201.g1.chat.event.UserUpdateEvent;
-import idv.tia201.g1.chat.service.ChatService;
+import idv.tia201.g1.chat.service.CacheService;
+import idv.tia201.g1.chat.service.WebSocketService;
 import idv.tia201.g1.dto.PayloadDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
@@ -24,9 +25,10 @@ public class ChatEndpoint extends TextWebSocketHandler {
 
     @Autowired
     private ObjectMapper objectMapper;
-
     @Autowired
-    private ChatService chatService;
+    private CacheService cacheService;
+    @Autowired
+    private WebSocketService webSocketService;
     private static final Map<Long, Set<WebSocketSession>> SESSIONS_MAP = new ConcurrentHashMap<>();
     private static final Set<WebSocketSession> SESSIONS_BROADCAST = new CopyOnWriteArraySet<>();
 
@@ -39,7 +41,7 @@ public class ChatEndpoint extends TextWebSocketHandler {
         SESSIONS_BROADCAST.add(session);
 
         // 連線時獲取所有參予中的聊天室
-        Set<Long> chatRoomsIdByRoleAndId = chatService.getChatRoomsIdByRoleAndId(role, id);
+        Set<Long> chatRoomsIdByRoleAndId = cacheService.getChatRoomsIdByRoleAndId(role, id);
         for (Long chatId : chatRoomsIdByRoleAndId) {
             // 在所有參予中的聊天室建立連線
             Set<WebSocketSession> webSocketSessions = SESSIONS_MAP.get(chatId);
@@ -62,7 +64,7 @@ public class ChatEndpoint extends TextWebSocketHandler {
         PayloadDTO payloadDTO = objectMapper.readValue(payload, PayloadDTO.class);
 
         // 處理 payload
-        payloadDTO = chatService.handlePayload(role, id, payloadDTO);
+        payloadDTO = webSocketService.handlePayload(role, id, payloadDTO);
 
         Long chatId = payloadDTO.getChatId();
         Set<WebSocketSession> sessions = SESSIONS_MAP.get(chatId);
@@ -80,7 +82,7 @@ public class ChatEndpoint extends TextWebSocketHandler {
         SESSIONS_BROADCAST.remove(session);
 
         // 獲取所有參予中的聊天室
-        Set<Long> chatRoomsIdByRoleAndId = chatService.getChatRoomsIdByRoleAndId(role, id);
+        Set<Long> chatRoomsIdByRoleAndId = cacheService.getChatRoomsIdByRoleAndId(role, id);
         // 移除所有參予中的聊天室連線
         for (Long chatId : chatRoomsIdByRoleAndId) {
             Set<WebSocketSession> webSocketSessions = SESSIONS_MAP.get(chatId);
@@ -104,7 +106,10 @@ public class ChatEndpoint extends TextWebSocketHandler {
         }
         for (WebSocketSession session : sessions) {
             try {
-                session.sendMessage(new TextMessage(json));
+                // 上鎖避免TEXT_PARTIAL_WRITING錯誤 (因為傳輸訊息後的秒讀操作, 會造成幾乎同時的多筆讀取請求)
+                synchronized (session) {
+                    session.sendMessage(new TextMessage(json));
+                }
             } catch (IOException e) {
                 e.printStackTrace();
             }

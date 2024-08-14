@@ -1,5 +1,6 @@
 package idv.tia201.g1.utils.redis;
 
+import idv.tia201.g1.entity.ChatParticipant;
 import idv.tia201.g1.utils.basic.JSONUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -7,10 +8,14 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 
 @Slf4j
@@ -39,6 +44,11 @@ public class CacheClient {
      */
     public void set(String key, Object value, Long time, TimeUnit unit) {
         stringRedisTemplate.opsForValue().set(key, JSONUtil.toJsonStr(value), time, unit);
+    }
+
+    public void setMap(String key, Map<String, String> valueMap, Long time, TimeUnit unit) {
+        stringRedisTemplate.opsForHash().putAll(key, valueMap);
+        stringRedisTemplate.expire(key, time, unit);
     }
 
     /**
@@ -238,6 +248,71 @@ public class CacheClient {
             unlock(lockKey);
         }
     }
+
+    public List<ChatParticipant> queryWithMutex(String keyPrefix, String lockPrefix, Long id, Long time, TimeUnit unit, Function<Long, List<ChatParticipant>> dbFallback) {
+        String key = keyPrefix + id;
+        String lockKey = lockPrefix + id;
+        try {
+            while (true) {
+                // 從Redis查詢緩存
+                Map<Object, Object> resultMap = stringRedisTemplate.opsForHash().entries(key);
+                if (!resultMap.isEmpty()) {
+                    // 資料存在於Redis中, 將結果直接返回
+                    return convertToList(resultMap);
+                }
+
+                // 緩存重建: 獲取互斥鎖
+                if (!tryLock(lockKey)) {
+                    // 鎖定失敗: 休眠一段時間重試
+                    Thread.sleep(50);
+                    // 原本是使用遞迴  但覺得會可能造成棧溢出  改成while自旋 (感覺後面還可以增加重試上限避免死鎖)
+                } else {
+                    // 成功獲取互斥鎖: 二次確認是否有其他人已經重建完緩存
+                    // 如果有其他人已經重建緩存 回傳重建後緩存並解鎖 (兩段幾乎一樣的程式碼看起來好煩躁)
+                    resultMap = stringRedisTemplate.opsForHash().entries(key);
+                    if (!resultMap.isEmpty()) {
+                        // 資料存在於Redis中, 將結果直接返回
+                        List<ChatParticipant> res = convertToList(resultMap);
+                        unlock(lockKey);  // 手動釋放鎖 (沒解10秒後鎖也會自動失效, 但還是要記得解鎖)
+                        return res;
+                    }
+                    break;
+                }
+            }
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+
+        try {
+            // 鎖獲取成功 且二次確認數據不存在
+            // 執行緩存重建: 去SQL查詢 並寫入Redis
+            List<ChatParticipant> res = dbFallback.apply(id);
+            // 寫入Redis
+            Map<String, String> participantMap = res.stream()
+                    .collect(Collectors.toMap(
+                            chatParticipant -> chatParticipant.getMappingUserId().toString(),
+                            JSONUtil::toJsonStr
+                    ));
+            this.setMap(key, participantMap, time, unit);
+            // 返回查詢結果
+            return res;
+        } finally {
+            // 釋放互斥鎖 (這裡才可以用finally釋放鎖)
+            // 上方用finally釋放的話, 會變成一獲得鎖就直接釋放
+            unlock(lockKey);
+        }
+    }
+
+    private static List<ChatParticipant> convertToList(Map<Object, Object> resultMap) {
+        List<ChatParticipant> res = new ArrayList<>(resultMap.size());
+        for (Map.Entry<Object, Object> entry : resultMap.entrySet()) {
+            String json = (String) entry.getValue();
+            ChatParticipant bean = JSONUtil.toBean(json, ChatParticipant.class);
+            res.add(bean);
+        }
+        return res;
+    }
+
 
     // 邏輯過期方案使用的執行緒池
     private static final ExecutorService CACHE_REBUILD_EXECUTOR = Executors.newFixedThreadPool(10);
