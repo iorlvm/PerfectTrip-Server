@@ -37,25 +37,15 @@ public class UserController {
     @Autowired
     private TokenService tokenService;
 
-    /**
-     * Handles the POST request to register a new user.
-     *
-     * @param userRegisterRequest The registration details submitted by the user, validated before processing.
-     * @return A {@link Result} containing the registered user's data if successful.
-     */
-    // UserRegisterRequest userRegisterRequest 參考 refactoring 的 preserve whole object (保留整個物件)
     @PostMapping("/users/register")
     public Result register(@RequestBody @Valid UserRegisterRequest userRegisterRequest) {
 
         userRegisterRequest.setGender(Gender.valueOf(userRegisterRequest.getGender().toString().toUpperCase()));
 
-        // Register the user and obtain the generated user ID.
         Integer userId = userService.register(userRegisterRequest);
 
-        // Retrieve the registered user details using the obtained user ID.
         User user = userService.findByUserId(userId);
 
-        // Return a successful result including the user details.
         return Result.ok(user);
 
     }
