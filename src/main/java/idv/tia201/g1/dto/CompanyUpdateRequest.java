@@ -30,6 +30,10 @@ public class CompanyUpdateRequest {
     @NotNull
     private Integer changeId;
 
+    public CompanyUpdateRequest() {
+
+    }
+
 }
 
 

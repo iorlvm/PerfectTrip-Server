@@ -19,6 +19,8 @@ public interface CompanyDao extends JpaRepository<Company, Integer> {
     @Query(value = "SELECT count(*) FROM company_master", nativeQuery = true)
     public Integer countCompany();
 
+
+
     //	@Query("UPDATE Company u SET " +
 //         "u.username = :#{#Company.username}, " +
 //	       "u.password = :#{#Company.password}, " +
