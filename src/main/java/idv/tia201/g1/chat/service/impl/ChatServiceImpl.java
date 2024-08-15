@@ -111,7 +111,7 @@ public class ChatServiceImpl implements ChatService {
             addParticipantToChatRoom(chatId, mappingUserId);
         }
 
-        // 初始化完畢以後, 重新查詢並回傳 (這樣寫不太好, 但因為我DTO物件的查詢有額外欄位所以不能直接使用回傳值)
+        // 初始化完畢以後, 重新查詢並回傳 (這樣寫不太好, 但因為我DTO物件查詢有額外欄位所以不能直接使用回傳值)
         return getChatRoomById(chatId);
     }
 
@@ -212,11 +212,33 @@ public class ChatServiceImpl implements ChatService {
             throw new IllegalArgumentException("參數異常: 聊天室不存在");
         }
 
-        Pageable pageable = PageRequest.of(0, size, Sort.by(Sort.Direction.DESC, "messageId"));
+        List<ChatMessage> messages;
+        if (messageId == Long.MAX_VALUE) {
+            // 第一次訪問先從緩存中取資料
+            List<ChatMessage> cacheMessages = cacheService.getMessages(chatId);
+            if (cacheMessages.size() >= size) {
+                messages = cacheMessages;
+            } else {
+                messages = new ArrayList<>(size);
+                messages.addAll(cacheMessages);
+            }
+        } else {
+            messages = new ArrayList<>(size);
+        }
 
-        // TODO: 未來調整成訊息異步寫入的話, 這裡也要增加相應的調整
-        //  可能選擇的策略, 把rides中的資料一次吐給前端(如果是空的, 再去撈資料庫)
-        List<ChatMessage> messages = chatMessageDao.findByChatIdAndMessageIdLessThan(chatId, messageId, pageable);
+        // 取到的資料數量沒超過size
+        if (messages.size() < size) {
+            // 雖然沒超過size, 但還是有取到值
+            if (!messages.isEmpty()) {
+                messageId = messages.get(messages.size() - 1).getMessageId();
+            }
+            Pageable pageable = PageRequest.of(0, size - messages.size(), Sort.by(Sort.Direction.DESC, "messageId"));
+
+            // 從資料庫中撈取補充訊息數量
+            List<ChatMessage> dbMessages = chatMessageDao.findByChatIdAndMessageIdLessThan(chatId, messageId, pageable);
+            if (dbMessages != null) messages.addAll(dbMessages);
+        }
+
         List<MessageDTO> messageDTOS = new ArrayList<>(messages.size());
 
         for (ChatMessage message : messages) {

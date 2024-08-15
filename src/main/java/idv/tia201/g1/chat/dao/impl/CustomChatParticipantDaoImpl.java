@@ -21,8 +21,10 @@ public class CustomChatParticipantDaoImpl implements CustomChatParticipantDao {
     private EntityManager entityManager;
 
     @Override
-    public List<ChatParticipant> findByChatIdToDTO(Long chatId) {
+    public List<ChatParticipant> findByChatId(Long chatId) {
         String queryStr = "SELECT " +
+                "    p.participant_id, " +
+                "    p.chat_id, " +
                 "    p.mapping_user_id AS user_id, " +
                 "    CASE " +
                 "        WHEN m.user_type = '" + ROLE_USER + "' THEN u.nickname " +
@@ -136,14 +138,16 @@ public class CustomChatParticipantDaoImpl implements CustomChatParticipantDao {
 
     private static ChatParticipant getParticipant(Object[] result) {
         ChatParticipant participant = new ChatParticipant();
-        participant.setMappingUserId((Long) result[0]);
-        participant.setName((String) result[1]);
-        participant.setAvatar((String) result[2]);
-        participant.setType((String) result[3]);
-        participant.setPinned((Boolean) result[4]);
-        participant.setNotify((String) result[5]);
-        participant.setUnreadMessages((Integer) result[6]);
-        participant.setLastReadingAt((Timestamp) result[7]);
+        participant.setParticipantId((Long) result[0]);
+        participant.setChatId((Long) result[1]);
+        participant.setMappingUserId((Long) result[2]);
+        participant.setName((String) result[3]);
+        participant.setAvatar((String) result[4]);
+        participant.setType((String) result[5]);
+        participant.setPinned((Boolean) result[6]);
+        participant.setNotify((String) result[7]);
+        participant.setUnreadMessages((Integer) result[8]);
+        participant.setLastReadingAt((Timestamp) result[9]);
         return participant;
     }
 }

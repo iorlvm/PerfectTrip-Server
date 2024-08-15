@@ -18,6 +18,7 @@ public class Constants {
     public static final String CACHE_CHAT_PARTICIPANT = "cache:ptp:";
     public static final String LOCK_CHAT_USER_MAPPING = "lock:mapping:";
     public static final String CACHE_CHAT_USER_MAPPING = "cache:mapping:";
+    public static final String CACHE_CHAT_MESSAGES = "cache:messages:";
     public static final Long CACHE_CHAT_TTL = 3600L;
     public static final String CHAT_ACTION_SEND_MESSAGE = "send-message";
     public static final String CHAT_ACTION_READ_MESSAGE = "read-message";

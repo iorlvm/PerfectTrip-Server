@@ -41,7 +41,7 @@ public class ChatEndpoint extends TextWebSocketHandler {
         SESSIONS_BROADCAST.add(session);
 
         // 連線時獲取所有參予中的聊天室
-        Set<Long> chatRoomsIdByRoleAndId = cacheService.getChatRoomsIdByRoleAndId(role, id);
+        Set<Long> chatRoomsIdByRoleAndId = cacheService.getChatRoomIdsByRoleAndId(role, id);
         for (Long chatId : chatRoomsIdByRoleAndId) {
             // 在所有參予中的聊天室建立連線
             Set<WebSocketSession> webSocketSessions = SESSIONS_MAP.get(chatId);
@@ -82,7 +82,7 @@ public class ChatEndpoint extends TextWebSocketHandler {
         SESSIONS_BROADCAST.remove(session);
 
         // 獲取所有參予中的聊天室
-        Set<Long> chatRoomsIdByRoleAndId = cacheService.getChatRoomsIdByRoleAndId(role, id);
+        Set<Long> chatRoomsIdByRoleAndId = cacheService.getChatRoomIdsByRoleAndId(role, id);
         // 移除所有參予中的聊天室連線
         for (Long chatId : chatRoomsIdByRoleAndId) {
             Set<WebSocketSession> webSocketSessions = SESSIONS_MAP.get(chatId);

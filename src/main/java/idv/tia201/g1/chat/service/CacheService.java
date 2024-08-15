@@ -1,6 +1,7 @@
 package idv.tia201.g1.chat.service;
 
 import idv.tia201.g1.dto.MessageDTO;
+import idv.tia201.g1.entity.ChatMessage;
 import idv.tia201.g1.entity.ChatParticipant;
 import idv.tia201.g1.entity.ChatRoom;
 import idv.tia201.g1.entity.ChatUserMapping;
@@ -13,7 +14,7 @@ public interface CacheService {
 
     Long findMappingUserId(String role, Integer id);
 
-    ChatUserMapping createUserMapping(String type, Integer id);
+    ChatUserMapping createUserMapping(String role, Integer id);
 
     boolean isChatRoomInvalid(Long chatId);
 
@@ -23,11 +24,13 @@ public interface CacheService {
 
     boolean isParticipantNotFound(Long mappingUserId, Long chatId);
 
-    Set<Long> getChatRoomsIdByRoleAndId(String role, Integer id);
+    Set<Long> getChatRoomIdsByRoleAndId(String role, Integer id);
 
     void updateLastReadingAt(Long chatId, Long mappingUserId, Timestamp now);
 
     void updateChatInfo(Long chatId, String chatName, String chatPhoto);
 
     MessageDTO saveMessage(Long senderId, Long chatId, MessageDTO messageDTO);
+
+    List<ChatMessage> getMessages(long chatId);
 }
