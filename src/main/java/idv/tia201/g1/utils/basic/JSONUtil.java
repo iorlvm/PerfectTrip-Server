@@ -7,7 +7,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.*;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
-import idv.tia201.g1.entity.ChatParticipant;
 
 import java.io.IOException;
 import java.sql.Timestamp;
@@ -101,6 +100,15 @@ public class JSONUtil {
         return objectMapper.convertValue(data, type);
     }
 
+
+    /**
+     * 將Json字串轉為List<R>
+     *
+     * @param json Json格式的字串
+     * @param type 指定要轉換的型態
+     * @param <R>  回傳的型態 根據type決定
+     * @return 轉換後的List
+     */
     public static <R> List<R> toList(String json, Class<R> type) {
         try {
             List<?> list = objectMapper.readValue(json, List.class);

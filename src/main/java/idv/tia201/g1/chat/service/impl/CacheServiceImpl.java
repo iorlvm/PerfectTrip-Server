@@ -30,7 +30,6 @@ import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 import static idv.tia201.g1.chat.utils.Utils.isImageEmpty;
 import static idv.tia201.g1.utils.Constants.*;
@@ -92,7 +91,7 @@ public class CacheServiceImpl implements CacheService {
         // 將緩存中的資料更新
         String key = CACHE_CHAT_USER_MAPPING + type + ":" + id;
         Long userId = userMapping.getMappingUserId();
-        stringRedisTemplate.opsForValue().set(key, userId.toString());
+        cacheClient.set(key, userId, CACHE_CHAT_TTL, TimeUnit.SECONDS);
         return userMapping;
     }
 
