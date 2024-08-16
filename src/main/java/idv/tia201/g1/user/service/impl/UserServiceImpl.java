@@ -1,7 +1,13 @@
 package idv.tia201.g1.user.service.impl;
 
-import java.util.*;
-
+import idv.tia201.g1.constant.UserGroup;
+import idv.tia201.g1.dto.UserLoginRequest;
+import idv.tia201.g1.dto.UserQueryParams;
+import idv.tia201.g1.dto.UserRegisterRequest;
+import idv.tia201.g1.dto.UserUpdateRequest;
+import idv.tia201.g1.entity.User;
+import idv.tia201.g1.user.dao.UserDao;
+import idv.tia201.g1.user.service.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,14 +19,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 import org.springframework.web.server.ResponseStatusException;
 
-import idv.tia201.g1.constant.UserGroup;
-import idv.tia201.g1.dto.UserLoginRequest;
-import idv.tia201.g1.dto.UserQueryParams;
-import idv.tia201.g1.dto.UserRegisterRequest;
-import idv.tia201.g1.dto.UserUpdateRequest;
-import idv.tia201.g1.entity.User;
-import idv.tia201.g1.user.dao.UserDao;
-import idv.tia201.g1.user.service.UserService;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -30,68 +31,93 @@ public class UserServiceImpl implements UserService {
     @Autowired
     public UserDao userDao;
 
+    /**
+     * Registers a new user.
+     *
+     * @param userRegisterRequest the request body containing the user's registration details
+     * @return the ID of the newly registered user
+     */
     @Override
     public Integer register(UserRegisterRequest userRegisterRequest) {
 
-        // 驗證 username 是否已被註冊
+        // Check if the username already exists
         User existingUserName = userDao.findByUsername(userRegisterRequest.getUsername());
         validateUsernameExists(existingUserName);
 
-        // 檢查 tax id 是否重複
+        // Check if the tax ID already exists, if provided
         if (userRegisterRequest.getTaxId() != null) {
             User existingTaxId = userDao.findByTaxId(userRegisterRequest.getTaxId());
             validateTaxIdExists(existingTaxId);
         }
 
-        // 檢查 phone number 是否重複
+        // Check if the phone number already exists, if provided
         if (userRegisterRequest.getPhoneNumber() != null) {
             User existingPhoneNumber = userDao.findByPhoneNumber(userRegisterRequest.getPhoneNumber());
             validatePhoneNumberExists(existingPhoneNumber);
         }
 
-        // 使用 MD5 生成密碼的雜湊值
+        // Hash the user's password
         String hashedPassword = getHashPassword(userRegisterRequest.getPassword());
         userRegisterRequest.setPassword(hashedPassword);
 
-        // 創建帳號
+        // Create the user and return the user ID
         return createUser(userRegisterRequest);
 
     }
 
+    /**
+     * Logs in a user.
+     *
+     * @param userLoginRequest the request body containing the user's login credentials
+     * @return the User object if login is successful
+     * @throws ResponseStatusException if the username is not registered or the password is incorrect
+     */
     @Override
     public User login(UserLoginRequest userLoginRequest) {
 
+        // Find the user by their username
         User user = userDao.findByUsername(userLoginRequest.getUsername());
 
-        // 驗證 username 是否未被註冊
+        // Validate that the username exists
         validateUsernameNotExists(user);
 
-        // 驗證密碼是否正確
+        // Validate the user's password
         validateUserPassword(user, userLoginRequest.getPassword());
 
+        // Return the user object if login is successful
         return user;
 
     }
 
+    /**
+     * Creates a new user.
+     *
+     * @param userRegisterRequest the request body containing the user's registration details
+     * @return the ID of the newly created user
+     */
     @Override
     public Integer createUser(UserRegisterRequest userRegisterRequest) {
 
+        // Build a User object from the registration request
         User user = buildUserFromRequest(userRegisterRequest);
 
+        // Save the User object to the database
         User savedUser = userDao.save(user);
 
+        // Return the ID of the newly created user
         return savedUser.getUserId();
 
     }
 
+    /**
+     * Finds all users based on query parameters.
+     *
+     * @param userQueryParams the query parameters for filtering users
+     * @return a list of User objects
+     */
     @Override
     public List<User> findAll(UserQueryParams userQueryParams) {
 
-        /*
-         * param 1: offset
-         * param 2: limit
-         * param 3: sort
-         */
         Pageable pageable = PageRequest.of(
                 userQueryParams.getOffset(),
                 userQueryParams.getLimit(),
@@ -102,6 +128,12 @@ public class UserServiceImpl implements UserService {
 
     }
 
+    /**
+     * Finds a user by their user ID.
+     *
+     * @param userId the ID of the user to find
+     * @return the User object if found
+     */
     @Override
     public User findByUserId(Integer userId) {
 
@@ -109,6 +141,12 @@ public class UserServiceImpl implements UserService {
 
     }
 
+    /**
+     * Finds a user by their username.
+     *
+     * @param username the username of the user to find
+     * @return the User object if found
+     */
     @Override
     public User findByUsername(String username) {
 
@@ -116,6 +154,11 @@ public class UserServiceImpl implements UserService {
 
     }
 
+    /**
+     * Counts the total number of users.
+     *
+     * @return the total number of users
+     */
     @Override
     public Long count() {
 
@@ -123,42 +166,71 @@ public class UserServiceImpl implements UserService {
 
     }
 
+    /**
+     * Updates an existing user.
+     *
+     * @param userId            the ID of the user to update
+     * @param userUpdateRequest the request body containing the user's updated details
+     * @return the updated User object
+     */
     @Override
     public User updateUser(Integer userId, UserUpdateRequest userUpdateRequest) {
 
+        // Find the user by their user ID
         User user = userDao.findByUserId(userId);
 
-        // 驗證 user id 是否存在
+        // Validate that the user ID exists
         validateUserIdNotExists(user);
 
+        // Update the user's password if provided
         Optional.ofNullable(userUpdateRequest.getPassword()).ifPresent(password -> user.setPassword(getHashPassword(password)));
+
+        // Update the user's first name if provided
         Optional.ofNullable(userUpdateRequest.getFirstName()).ifPresent(user::setFirstName);
+
+        // Update the user's last name if provided
         Optional.ofNullable(userUpdateRequest.getLastName()).ifPresent(user::setLastName);
+
+        // Update the user's nickname if provided
         Optional.ofNullable(userUpdateRequest.getNickname()).ifPresent(user::setNickname);
 
+        // Update the user's tax ID if provided and validate it
         Optional.ofNullable(userUpdateRequest.getTaxId()).ifPresent(taxId -> {
             validateTaxIdExists(user);
             user.setTaxId(taxId);
         });
 
+        // Update the user's gender if provided
         Optional.ofNullable(userUpdateRequest.getGender()).ifPresent(user::setGender);
 
+        // Update the user's phone number if provided and validate it
         Optional.ofNullable(userUpdateRequest.getPhoneNumber()).ifPresent(phoneNumber -> {
             validatePhoneNumberExists(user);
             user.setPhoneNumber(phoneNumber);
         });
 
+        // Update the user's country if provided
         Optional.ofNullable(userUpdateRequest.getCountry()).ifPresent(user::setCountry);
+
+        // Update the user's change ID if provided
         Optional.ofNullable(userUpdateRequest.getChangeId()).ifPresent(user::setChangeId);
 
+        // Set the last modified date to the current date
         user.setLastModifiedDate(new Date());
 
+        // Save the updated User object to the database
         User userSaved = userDao.save(user);
 
+        // Return the updated User object
         return userSaved;
 
     }
 
+    /**
+     * Deletes a user by their user ID.
+     *
+     * @param userId the ID of the user to delete
+     */
     @Override
     public void deleteUser(Integer userId) {
 
@@ -166,6 +238,12 @@ public class UserServiceImpl implements UserService {
 
     }
 
+    /**
+     * Builds a User object from the given UserRegisterRequest.
+     *
+     * @param userRegisterRequest the request body containing the user's registration details
+     * @return the built User object
+     */
     private User buildUserFromRequest(UserRegisterRequest userRegisterRequest) {
 
         return User.builder()
@@ -186,6 +264,12 @@ public class UserServiceImpl implements UserService {
 
     }
 
+    /**
+     * Validates that the user ID does not exist.
+     *
+     * @param user the User object to validate
+     * @throws ResponseStatusException if the user ID does not exist
+     */
     private void validateUserIdNotExists(User user) {
 
         if (user == null) {
@@ -195,6 +279,12 @@ public class UserServiceImpl implements UserService {
 
     }
 
+    /**
+     * Validates that the username exists.
+     *
+     * @param user the User object to validate
+     * @throws ResponseStatusException if the username already exists
+     */
     private void validateUsernameExists(User user) {
 
         if (user != null) {
@@ -204,6 +294,12 @@ public class UserServiceImpl implements UserService {
 
     }
 
+    /**
+     * Validates that the username does not exist.
+     *
+     * @param user the User object to validate
+     * @throws ResponseStatusException if the username does not exist
+     */
     private void validateUsernameNotExists(User user) {
 
         if (user == null) {
@@ -213,6 +309,12 @@ public class UserServiceImpl implements UserService {
 
     }
 
+    /**
+     * Validates that the tax ID exists.
+     *
+     * @param user the User object to validate
+     * @throws ResponseStatusException if the tax ID already exists
+     */
     private void validateTaxIdExists(User user) {
 
         if (user != null) {
@@ -222,6 +324,12 @@ public class UserServiceImpl implements UserService {
 
     }
 
+    /**
+     * Validates that the phone number exists.
+     *
+     * @param user the User object to validate
+     * @throws ResponseStatusException if the phone number already exists
+     */
     private void validatePhoneNumberExists(User user) {
 
         if (user != null) {
@@ -231,6 +339,13 @@ public class UserServiceImpl implements UserService {
 
     }
 
+    /**
+     * Validates the user's password.
+     *
+     * @param user     the User object to validate
+     * @param password the password to validate
+     * @throws ResponseStatusException if the password is incorrect
+     */
     private void validateUserPassword(User user, String password) {
 
         String hashedPassword = getHashPassword(password);
@@ -242,6 +357,12 @@ public class UserServiceImpl implements UserService {
 
     }
 
+    /**
+     * Hashes the given password using MD5.
+     *
+     * @param password the password to hash
+     * @return the hashed password
+     */
     private String getHashPassword(String password) {
 
         return DigestUtils.md5DigestAsHex(password.getBytes());
