@@ -37,91 +37,142 @@ public class UserController {
     @Autowired
     private TokenService tokenService;
 
-    @PostMapping("/users/register")
-    public Result register(@RequestBody @Valid UserRegisterRequest userRegisterRequest) {
+/**
+ * Handles HTTP POST requests to register a new user.
+ *
+ * @param userRegisterRequest the request body containing the user's registration details
+ * @return a Result object containing the newly registered User object
+ */
+@PostMapping("/users/register")
+public Result register(@RequestBody @Valid UserRegisterRequest userRegisterRequest) {
 
-        userRegisterRequest.setGender(Gender.valueOf(userRegisterRequest.getGender().toString().toUpperCase()));
+    // Set the gender of the user to uppercase
+    userRegisterRequest.setGender(Gender.valueOf(userRegisterRequest.getGender().toString().toUpperCase()));
 
-        Integer userId = userService.register(userRegisterRequest);
+    // Register the user and get the user ID
+    Integer userId = userService.register(userRegisterRequest);
 
-        User user = userService.findByUserId(userId);
+    // Find the user by their user ID
+    User user = userService.findByUserId(userId);
 
-        return Result.ok(user);
+    // Return the newly registered user wrapped in a Result object
+    return Result.ok(user);
 
+}
+
+/**
+ * Handles HTTP POST requests to log in a user.
+ *
+ * @param userLoginRequest the request body containing the user's login credentials
+ * @return a Result object containing the User object with a generated token if login is successful
+ */
+@PostMapping("/users/login")
+public Result login(@RequestBody @Valid UserLoginRequest userLoginRequest) {
+
+    // Attempt to log in the user with the provided credentials
+    User user = userService.login(userLoginRequest);
+
+    // If the user is found, generate a token and set it in the user object
+    if (user != null) {
+        String token = tokenService.createToken(user);
+        user.setToken(token);
     }
 
-    @PostMapping("/users/login")
-    public Result login(@RequestBody @Valid UserLoginRequest userLoginRequest) {
+    // Return the user wrapped in a Result object
+    return Result.ok(user);
 
-        User user = userService.login(userLoginRequest);
+}
 
-        if (user != null) {
-            String token = tokenService.createToken(user);
-            user.setToken(token);
-        }
+/**
+ * Handles HTTP GET requests to retrieve a user by their user ID.
+ *
+ * @param userId the ID of the user to retrieve
+ * @return a Result object containing the User object
+ */
+@GetMapping("/users/{userId}")
+public Result getUser(@PathVariable Integer userId) {
 
-        return Result.ok(user);
+    // Find the user by their user ID
+    User user = userService.findByUserId(userId);
 
-    }
+    // Return the user wrapped in a Result object
+    return Result.ok(user);
 
-    @GetMapping("/users/{userId}")
-    public Result getUser(@PathVariable Integer userId) {
+}
 
-        User user = userService.findByUserId(userId);
+/**
+ * Handles HTTP GET requests to retrieve a list of users with pagination and sorting options.
+ *
+ * @param orderBy the field by which to order the results, defaults to "created_date"
+ * @param sort the sort direction, either "asc" or "desc", defaults to "desc"
+ * @param limit the maximum number of users to return, defaults to 10, must be between 0 and 1000
+ * @param offset the starting point for the results, defaults to 0, must be 0 or greater
+ * @return a Result object containing a Page of User objects
+ */
+@GetMapping("/users")
+public Result getUsers(
+        @RequestParam(defaultValue = "created_date") String orderBy,
+        @RequestParam(defaultValue = "desc") String sort,
+        @RequestParam(defaultValue = "10") @Max(1000) @Min(0) Integer limit,
+        @RequestParam(defaultValue = "0") @Min(0) Integer offset) {
 
-        return Result.ok(user);
+    // Create a UserQueryParams object and set its properties based on the request parameters
+    UserQueryParams userQueryParams = new UserQueryParams();
+    userQueryParams.setOrderBy(orderBy);
+    userQueryParams.setSort(sort);
+    userQueryParams.setLimit(limit);
+    userQueryParams.setOffset(offset);
 
-    }
+    // Retrieve the list of users based on the query parameters
+    List<User> userList = userService.findAll(userQueryParams);
 
-    @GetMapping("/users")
-    public Result getUsers(
-            // TODO 查詢條件 Filtering
-            // Sorting
-            @RequestParam(defaultValue = "created_date") String orderBy,
-            @RequestParam(defaultValue = "desc") String sort,
-            // Pagination
-            @RequestParam(defaultValue = "10") @Max(1000) @Min(0) Integer limit,
-            @RequestParam(defaultValue = "0") @Min(0) Integer offset) {
+    // Get the total number of users
+    Long total = userService.count();
 
-        UserQueryParams userQueryParams = new UserQueryParams();
-        userQueryParams.setOrderBy(orderBy);
-        userQueryParams.setSort(sort);
-        userQueryParams.setLimit(limit);
-        userQueryParams.setOffset(offset);
+    // Create a Page object to hold the paginated results
+    Page<User> page = new Page<>();
+    page.setLimit(limit);
+    page.setOffset(offset);
+    page.setResult(userList);
+    page.setTotal(total);
 
-        // 取得 user list
-        List<User> userList = userService.findAll(userQueryParams);
+    // Return the paginated results wrapped in a Result object
+    return Result.ok(page);
+}
 
-        // 取得 user 總筆數
-        Long total = userService.count();
+/**
+ * Handles HTTP PUT requests to update an existing user.
+ *
+ * @param userId the ID of the user to update
+ * @param userUpdateRequest the request body containing the user's updated details
+ * @return a Result object containing the updated User object
+ */
+@PutMapping("/users/{userId}")
+public Result updateUser(@PathVariable Integer userId, @RequestBody @Valid UserUpdateRequest userUpdateRequest) {
 
-        // 分頁
-        Page<User> page = new Page<>();
-        page.setLimit(limit);
-        page.setOffset(offset);
-        page.setResult(userList);
-        page.setTotal(total);
+    // Update the user with the provided user ID and details
+    User user = userService.updateUser(userId, userUpdateRequest);
 
-        return Result.ok(page);
+    // Return the updated user wrapped in a Result object
+    return Result.ok(user);
 
-    }
+}
 
-    @PutMapping("/users/{userId}")
-    public Result updateUser(@PathVariable Integer userId, @RequestBody @Valid UserUpdateRequest userUpdateRequest) {
+/**
+ * Handles HTTP DELETE requests to delete a user by their user ID.
+ *
+ * @param userId the ID of the user to delete
+ * @return a Result object indicating the success of the operation
+ */
+@DeleteMapping("/users/{userId}")
+public Result deleteUser(@PathVariable Integer userId) {
 
-        User user = userService.updateUser(userId, userUpdateRequest);
+    // Delete the user with the provided user ID
+    userService.deleteUser(userId);
 
-        return Result.ok(user);
+    // Return a success response
+    return Result.ok();
 
-    }
-
-    @DeleteMapping("/users/{userId}")
-    public Result deleteUser(@PathVariable Integer userId) {
-
-        userService.deleteUser(userId);
-
-        return Result.ok();
-
-    }
+}
 
 }
