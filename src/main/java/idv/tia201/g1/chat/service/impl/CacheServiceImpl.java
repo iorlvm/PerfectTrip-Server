@@ -253,10 +253,14 @@ public class CacheServiceImpl implements CacheService {
     private void manageSendMessage(ChatMessage chatMessage, ChatRoom chatRoom) {
         // chatMessage暫存到redis中, 過期時間 60 分鐘
         // list格式 key: cache:messages:chatId, 讀取時要優先取出所有的暫存訊息
-        String key = CACHE_CHAT_MESSAGES + chatMessage.getChatId();
+        String messagesKey = CACHE_CHAT_MESSAGES + chatMessage.getChatId();
         String messageJson = JSONUtil.toJsonStr(chatMessage);
-        stringRedisTemplate.opsForList().leftPush(key, messageJson);
-        stringRedisTemplate.expire(key, CACHE_CHAT_TTL, TimeUnit.SECONDS);
+        stringRedisTemplate.opsForList().leftPush(messagesKey, messageJson);
+        stringRedisTemplate.expire(messagesKey, CACHE_CHAT_TTL, TimeUnit.SECONDS);
+
+        // 修改緩存中的聊天室資料
+        String chatKey = CACHE_CHAT + chatRoom.getChatId();
+        cacheClient.set(chatKey, chatRoom, CACHE_CHAT_TTL, TimeUnit.SECONDS);
 
         // 對所有的其他參與者增加未讀數量
         List<ChatParticipant> participants = manageUnreadMessages(
