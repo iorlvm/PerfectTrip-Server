@@ -3,7 +3,6 @@ package idv.tia201.g1.user.controller;
 import java.util.List;
 
 import idv.tia201.g1.constant.Gender;
-import idv.tia201.g1.constant.UserGroup;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
