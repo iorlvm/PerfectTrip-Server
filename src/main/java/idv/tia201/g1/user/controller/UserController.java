@@ -162,4 +162,10 @@ public class UserController {
 
     }
 
+    @GetMapping("/users/export")
+    public Result exportAllUsersToExcel() {
+        String path = userService.exportAllUsersToExcel();
+        return Result.ok(path);
+    }
+
 }

@@ -8,6 +8,11 @@ import idv.tia201.g1.dto.UserUpdateRequest;
 import idv.tia201.g1.entity.User;
 import idv.tia201.g1.user.dao.UserDao;
 import idv.tia201.g1.user.service.UserService;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +24,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -235,6 +242,72 @@ public class UserServiceImpl implements UserService {
     public void deleteUser(Integer userId) {
 
         userDao.deleteById(userId);
+
+    }
+
+    @Override
+    public String exportAllUsersToExcel() {
+
+        String filePath = "src/main/resources/users.xlsx";
+
+        List<User> userList = userDao.findAll();
+
+        Workbook workbook = new XSSFWorkbook();
+
+        Sheet sheet = workbook.createSheet("Users");
+
+        Row header = sheet.createRow(0);
+
+        String[] columns = {"User ID",
+                "Username",
+                "Password",
+                "First Name",
+                "Last Name",
+                "Nickname",
+                "Tax ID",
+                "Gender",
+                "User Group",
+                "Phone Number",
+                "Country",
+                "Change ID",
+                "Created Date",
+                "Last Modified Date"};
+
+        for (int i = 0; i < columns.length; i++) {
+            Cell cell = header.createCell(i);
+            cell.setCellValue(columns[i]);
+        }
+
+        int rowNum = 1;
+        for (User user : userList) {
+            Row row = sheet.createRow(rowNum++);
+            row.createCell(0).setCellValue(user.getUserId());
+            row.createCell(1).setCellValue(user.getUsername());
+            row.createCell(2).setCellValue(user.getPassword());
+            row.createCell(3).setCellValue(user.getFirstName());
+            row.createCell(4).setCellValue(user.getLastName());
+            row.createCell(5).setCellValue(user.getNickname());
+            row.createCell(6).setCellValue(user.getTaxId());
+            row.createCell(7).setCellValue(user.getGender().toString());
+            row.createCell(8).setCellValue(user.getUserGroup().toString());
+            row.createCell(9).setCellValue(user.getPhoneNumber());
+            row.createCell(10).setCellValue(user.getCountry());
+            row.createCell(11).setCellValue(user.getChangeId());
+            row.createCell(12).setCellValue(user.getCreatedDate().toString());
+            row.createCell(13).setCellValue(user.getLastModifiedDate().toString());
+        }
+
+        for (int i = 0; i < columns.length; i++) {
+            sheet.autoSizeColumn(i);
+        }
+
+        try (FileOutputStream outputStream = new FileOutputStream(filePath)) {
+            workbook.write(outputStream);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        return filePath;
 
     }
 

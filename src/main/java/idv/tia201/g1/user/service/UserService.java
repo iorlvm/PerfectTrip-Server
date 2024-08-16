@@ -81,4 +81,6 @@ public interface UserService {
      */
     public void deleteUser(Integer userId);
 
+    public String exportAllUsersToExcel();
+
 }
