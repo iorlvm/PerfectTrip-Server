@@ -27,6 +27,7 @@ public class WebConfig implements WebMvcConfigurer {
         corsConfiguration.setMaxAge(3600L);
         return corsConfiguration;
     }
+
     @Bean
     public CorsFilter corsFilter() {
         // Spring Boot的跨域請求 (寫法不一樣)
@@ -48,7 +49,8 @@ public class WebConfig implements WebMvcConfigurer {
                 .addPathPatterns("/user/**");   // TODO: 討論後修改
 
         registry.addInterceptor(new CompanyLoginInterceptor())
-                .addPathPatterns("/company/**");   // TODO: 討論後修改
+                .addPathPatterns("/company/**")
+                .excludePathPatterns("/company/login", "/company/register");    // TODO: 討論後修改
 
         registry.addInterceptor(new AdminLoginInterceptor())
                 .addPathPatterns("/admin/**");  // TODO: 討論後修改

@@ -10,6 +10,4 @@ public interface CustomChatParticipantDao {
     List<ChatParticipant> findByChatId(Long chatId);
 
     List<Long> findChatIdByTypeAndRefId(String type, Integer refId, int size, Timestamp earliestTimestamp);
-
-    Set<Long> findChatIdByTypeAndRefId(String type, Integer refId);
 }
