@@ -12,15 +12,5 @@ import java.sql.Timestamp;
 
 @Repository
 public interface ChatRoomDao extends JpaRepository<ChatRoom, Long> {
-
-    @Modifying
-    @Transactional
-    @Query("UPDATE ChatRoom cr " +
-            "SET cr.chatName = :chatName, cr.photo = :photo " +
-            "WHERE cr.chatId = :chatId")
-    void updateChatInfoByChatId(
-            @Param("chatId") Long chatId,
-            @Param("chatName") String chatName,
-            @Param("photo") String photo
-    );
+    ChatRoom findByChatId (Long chatId);
 }

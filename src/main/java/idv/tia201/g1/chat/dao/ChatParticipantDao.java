@@ -11,22 +11,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.sql.Timestamp;
 import java.util.List;
 
-//@Repository
 public interface ChatParticipantDao extends JpaRepository<ChatParticipant, Long>, CustomChatParticipantDao {
     ChatParticipant findByMappingUserIdAndChatId(Long mappingUserId, Long chatId);
-
-    List<ChatParticipant> findByChatId(Long chatId);
-
-    @Modifying
-    @Transactional
-    @Query("UPDATE ChatParticipant cp " +
-            "SET cp.lastReadingAt = :timestamp, cp.unreadMessages = 0 " +
-            "WHERE cp.chatId = :chatId AND cp.mappingUserId = :userMappingId")
-    void updateLastReadingAtByChatIdAndMappingUserId(
-            @Param("chatId") Long chatId,
-            @Param("userMappingId") Long userMappingId,
-            @Param("timestamp") Timestamp timestamp
-    );
 
     @Modifying
     @Transactional

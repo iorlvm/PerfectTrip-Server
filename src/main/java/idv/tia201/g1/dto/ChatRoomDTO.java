@@ -19,7 +19,7 @@ public class ChatRoomDTO {
     private Timestamp lastMessageAt;
     private String photo;
     private List<ParticipantDTO> participants;
-    private String notifSettings;  // 'on', 'off'
+    private String notifySettings;  // 'on', 'off'
     private Boolean pinned;
     private Timestamp lastModifiedAt;
 }

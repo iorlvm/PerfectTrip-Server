@@ -21,7 +21,7 @@ public class DtoConverter {
         chatRoomDTO.setLastMessage(chatRoom.getLastMessage());
         chatRoomDTO.setLastMessageAt(chatRoom.getLastMessageAt());
         chatRoomDTO.setPhoto(chatRoom.getPhoto());
-        chatRoomDTO.setNotifSettings(chatUser.getNotify());
+        chatRoomDTO.setNotifySettings(chatUser.getNotify());
         chatRoomDTO.setPinned(chatUser.getPinned());
         chatRoomDTO.setLastModifiedAt(chatRoom.getLastModifiedDate());
 

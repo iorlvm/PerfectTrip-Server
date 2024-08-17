@@ -4,12 +4,15 @@ import idv.tia201.g1.dto.ImageUploadRequest;
 import idv.tia201.g1.dto.Result;
 import idv.tia201.g1.entity.Image;
 import idv.tia201.g1.image.service.ImageService;
+import idv.tia201.g1.utils.UserHolder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import static idv.tia201.g1.utils.Constants.ROLE_ADMIN;
 
 @RestController
 @RequestMapping("/image")
@@ -48,6 +51,9 @@ public class ImageController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteImage(@PathVariable Long id) {
+        if (!ROLE_ADMIN.equals(UserHolder.getRole())) {
+            new ResponseEntity<>(HttpStatus.FORBIDDEN);
+        }
         imageService.deleteById(id);
         return ResponseEntity.noContent().build();
     }
