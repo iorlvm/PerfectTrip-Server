@@ -5,6 +5,7 @@ import idv.tia201.g1.authentication.service.UserAuth;
 import idv.tia201.g1.utils.UserHolder;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
@@ -18,8 +19,8 @@ public class TokenParsingInterceptor implements HandlerInterceptor {
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+        // 從請求頭中取出token
         String authorizationHeader = request.getHeader("Authorization");
-
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
             String token = authorizationHeader.substring(7);
 
@@ -28,8 +29,19 @@ public class TokenParsingInterceptor implements HandlerInterceptor {
                 UserHolder.saveUser(userAuth);
                 tokenService.flashLoginExpire(token);
             }
+            return true;
         }
 
+        // 沒有攜帶請求頭的情況, 嘗試從session中取出token
+        HttpSession session = request.getSession(false);
+        if (session != null) {
+            String token = (String) session.getAttribute("token");
+            UserAuth userAuth = tokenService.validateToken(token);
+            if (userAuth != null) {
+                UserHolder.saveUser(userAuth);
+                tokenService.flashLoginExpire(token);
+            }
+        }
         return true;
     }
 
