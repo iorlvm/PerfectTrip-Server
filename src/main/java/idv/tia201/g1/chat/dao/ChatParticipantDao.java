@@ -37,4 +37,8 @@ public interface ChatParticipantDao extends JpaRepository<ChatParticipant, Long>
     Set<Long> findChatIdByTypeAndRefId(
             @Param("type") String type,
             @Param("refId") Integer refId);
+
+
+    @Query("SELECT SUM(cp.unreadMessages) FROM ChatParticipant cp WHERE cp.mappingUserId = :mappingUserId")
+    Long getTotalUnreadMessagesNumberByMappingUserId(@Param("mappingUserId") Long mappingUserId);
 }

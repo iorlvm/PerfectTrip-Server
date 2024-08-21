@@ -127,26 +127,8 @@ public class ImageCacheClient {
         });
     }
 
-    // TODO: 考慮之後變成一個執行緒的service接管所有的執行緒配置
     // 更新圖片使用的執行序池
     private static final ExecutorService CACHE_REBUILD_EXECUTOR = Executors.newFixedThreadPool(10);
-
-//    @PreDestroy
-//    public void shutdownExecutorService() {
-//        // 在關閉前, 先結束所有的執行緒工作 (避免jdbc連線未中止的錯誤)
-//        CACHE_REBUILD_EXECUTOR.shutdown();
-//        try {
-//            if (!CACHE_REBUILD_EXECUTOR.awaitTermination(60, TimeUnit.SECONDS)) {
-//                CACHE_REBUILD_EXECUTOR.shutdownNow();
-//                if (!CACHE_REBUILD_EXECUTOR.awaitTermination(60, TimeUnit.SECONDS)) {
-//                    System.err.println("ExecutorService did not terminate");
-//                }
-//            }
-//        } catch (InterruptedException ie) {
-//            CACHE_REBUILD_EXECUTOR.shutdownNow();
-//            Thread.currentThread().interrupt();
-//        }
-//    }
 
     /**
      * 整合互斥鎖以及邏輯過期方案解決緩存穿透與緩存擊穿, 用於圖片緩存
@@ -257,7 +239,7 @@ public class ImageCacheClient {
                     CACHE_REBUILD_EXECUTOR.submit(() -> {
                         try {
                             // 查詢資料庫
-                            Image image = dbFallback.apply(id);
+                            Image image = transactionTemplate.execute(status -> dbFallback.apply(id));
                             // 根據查詢結果設計對應的處理方式
                             if (image == null) {
                                 // 查詢不到圖片
