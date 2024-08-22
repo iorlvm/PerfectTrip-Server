@@ -18,4 +18,8 @@ public interface RoomService {
                     int roomPrice) throws SQLException, IOException;
 
     List<String> getAllRoomTypes();
+
+    List<Room> getAllRooms();
+
+    byte[] getRoomPhotoByRoomId(Long roomId) throws SQLException;
 }
