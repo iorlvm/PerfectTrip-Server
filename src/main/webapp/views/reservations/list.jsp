@@ -1,48 +1,32 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 
-<style>
-    .sort {
-        text-decoration: none; /* 去除底線 */
-        color: inherit; /* 繼承父元素的顏色 */
-        cursor: pointer; /* 鼠標懸停時顯示為手型 */
-        opacity: 0.8;
-    }
-
-    .sort:hover {
-        color: #007bff;
-    }
-
-    .sort.asc ,.sort.desc {
-        opacity: 1;
-    }
-</style>
-
 <div class="d-flex flex-wrap justify-content-between mb-3">
+    <!-- 搜尋和過濾 -->
+    <div class="d-flex align-items-center me-3 mb-2">
+        <input type="text" id="search" class="form-control me-2" placeholder="搜尋訂單或訂單編號"
+               style="max-width: 250px;">
+        <button class="btn btn-primary" style="white-space: nowrap;">搜尋</button>
+    </div>
+
     <!-- 狀態過濾 -->
     <div class="d-flex align-items-center mb-2">
         <label for="statusFilter" class="form-label me-2 mb-0" style="white-space: nowrap;">狀態:</label>
         <select id="statusFilter" class="form-select" style="max-width: 150px;" onchange="filterTable()">
             <option value="">全部</option>
-            <option value="confirmed">已確認</option>
-            <option value="pending">待確認</option>
-            <option value="cancelled">已取消</option>
+            <option value="completed">已完成</option>
+            <option value="pending">未完成</option>
+            <option value="disputed">爭議處理</option>
         </select>
     </div>
-
-    <!-- 搜索和過濾 -->
-    <div class="d-flex align-items-center me-3 mb-2">
-        <input type="text" id="search" class="form-control me-2" placeholder="搜尋客戶或訂單編號"
-               style="max-width: 250px;">
-        <button class="btn btn-primary" style="white-space: nowrap;">搜尋</button>
-    </div>
 </div>
+
 
 <div class="table-responsive">
     <table class="table table-bordered table-hover">
         <thead class="table-light">
         <tr>
             <th scope="col">
-                <a href="#" class="sort" data-sort="order-number">訂單編號 <i class="bi bi-sort"></i></a>
+                <a href="#" class="sort" data-sort="order-id">訂單編號 <i class="bi bi-sort"></i></a>
             </th>
             <th scope="col">
                 <a href="#" class="sort" data-sort="customer-name">客戶名稱 <i class="bi bi-sort"></i></a>
@@ -62,45 +46,24 @@
             <th scope="col">操作</th>
         </tr>
         </thead>
-        <tbody id="orderTableBody">
-        <!-- Example row -->
-        <tr>
-            <th scope="row">#12345</th>
-            <td>王小明</td>
-            <td>星空旅館</td>
-            <td>2024-08-22</td>
-            <td>NT$ 5,000</td>
-            <td><span class="badge bg-success">已確認</span></td>
-            <td>
-                <button class="btn btn-sm btn-primary">查看</button>
-                <button class="btn btn-sm btn-danger">取消</button>
-            </td>
-        </tr>
-        </tbody>
+        <tbody id="orderTableBody"></tbody>
     </table>
 </div>
 
 <%@ include file="/components/pagination.jsp" %>
-
+<%@ include file="/components/alert.jsp" %>
 
 <script>
     const filterTable = () => {
-        // 簡單的過濾邏輯示例，實際應用可能需要根據需求進行調整
-        const searchValue = document.getElementById('search').value.toLowerCase();
-        const statusValue = document.getElementById('statusFilter').value.toLowerCase();
-        const rows = document.querySelectorAll('#orderTableBody tr');
+        const searchQuery = document.getElementById('search').value.toLowerCase();
+        const statusFilter = document.getElementById('statusFilter').value;
 
-        rows.forEach(row => {
-            const customerName = row.cells[1].textContent.toLowerCase();
-            const orderId = row.cells[0].textContent.toLowerCase();
-            const status = row.cells[5].textContent.toLowerCase();
+        const tbody = document.querySelector('#orderTableBody');
+        const rows = Array.from(tbody.querySelectorAll('tr'));
 
-            const matchSearch = customerName.includes(searchValue) || orderId.includes(searchValue);
-            const matchStatus = statusValue === '' || status.includes(statusValue);
+        // TODO: 去資料庫撈資料
+    };
 
-            row.style.display = (matchSearch && matchStatus) ? '' : 'none';
-        });
-    }
 
     const sortTable = (sortBy, sortOrder) => {
         const tbody = document.querySelector('#orderTableBody');
@@ -118,7 +81,7 @@
 
     const getSortColumnIndex = (sortBy) => {
         switch (sortBy) {
-            case 'order-number':
+            case 'order-id':
                 return 1;
             case 'customer-name':
                 return 2;
@@ -147,9 +110,8 @@
     };
 
     const initTable = () => {
-        // 設置初始排序
-        const defaultSortBy = 'date'; // 默認排序列
-        const defaultSortOrder = 'desc'; // 默認排序方向
+        const defaultSortBy = ''; // 預設排序列
+        const defaultSortOrder = ''; // 預設排序方向
 
         // 初始排序
         sortTable(defaultSortBy, defaultSortOrder);
@@ -170,9 +132,67 @@
                 updateSortIcons(link, sortOrder);
             });
         });
-    }
+    };
+
+    const renderOrders = (orders) => {
+        const tableBody = document.getElementById('orderTableBody');
+        tableBody.innerHTML = ''; // 清空表格內容
+
+        orders.forEach((order) => {
+            const row = `
+            <tr>
+                <th scope="row">\${order.orderId}</th>
+                <td>\${order.customerName}</td>
+                <td>\${order.hotelName}</td>
+                <td>\${order.date}</td>
+                <td>\${order.amount}</td>
+                <td>\${order.status}</td>
+                <td>
+                    <button class="btn btn-sm btn-warning">編輯</button>
+                    <button class="btn btn-sm btn-danger">刪除</button>
+                </td>
+            </tr>
+        `;
+            tableBody.insertAdjacentHTML('beforeend', row);
+        });
+    };
+
+    const getOrdersListAPI = (offset = 0) => {
+        // 範例靜態數據
+        const mockData = {
+            data: {
+                result: [
+                    { orderId: 'O001', customerName: '張三', hotelName: '假日酒店', date: '2024-07-01', amount: '3000', status: '已完成' },
+                    { orderId: 'O002', customerName: '李四', hotelName: '豪華旅館', date: '2024-07-15', amount: '4500', status: '未完成' },
+                    { orderId: 'O003', customerName: '王五', hotelName: '經典飯店', date: '2024-08-05', amount: '2500', status: '爭議處理' }
+                    // 可以添加更多範例數據
+                ],
+                total: 3,
+                limit: 10,
+                offset: offset
+            }
+        };
+
+        // 返回模擬數據的 Promise
+        return new Promise((resolve) => {
+            setTimeout(() => resolve(mockData), 500); // 模擬網絡延遲
+        });
+    };
+
+    const loadOrders = async (offset = 0) => {
+        try {
+            const res = await getOrdersListAPI(offset);
+            const data = res.data;
+            console.log(data);
+            renderOrders(data.result);
+            renderPagination(data.total, data.limit, data.offset);
+        } catch (error) {
+            console.error('加載訂單時出錯:', error);
+        }
+    };
 
     document.addEventListener('DOMContentLoaded', () => {
+        loadOrders();
         initTable();
     });
 </script>

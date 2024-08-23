@@ -62,7 +62,7 @@ public class RouterController {
     public String disputesReservations(Model model) {
         // 歷史訂單
         model.addAttribute("content", "views/reservations/disputes.jsp");
-        model.addAttribute("pageTitle", "訂單爭議");
+        model.addAttribute("pageTitle", "爭議處理");
         return "/layout";
     }
 

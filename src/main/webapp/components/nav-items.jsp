@@ -23,13 +23,13 @@
     <div class="collapse" id="reservationsMenu">
         <ul class="nav flex-column ms-3">
             <li class="nav-item">
-                <a class="nav-link" href="/reservations/disputes">
-                    訂單爭議
+                <a class="nav-link" href="/reservations/list">
+                    訂單列表
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="/reservations/list">
-                    訂單列表
+                <a class="nav-link" href="/reservations/disputes">
+                    爭議處理
                 </a>
             </li>
         </ul>

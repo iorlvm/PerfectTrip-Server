@@ -2,14 +2,15 @@
 
 <script src="https://code.highcharts.com/highcharts.js"></script>
 
-<div class="row" style="--bs-gutter-x: 0.75rem;">
+<div class="row g-3">
     <!-- 今日訂單卡片 -->
     <div class="col-md-4">
         <a href="todayOrders.jsp" class="text-decoration-none">
-            <div class="card custom-card bg-primary-light mb-3">
+            <div class="card custom-card bg-primary-light text-dark mb-3 shadow-sm rounded">
                 <div class="card-body text-center">
-                    <h5 class="card-title"><i class="bi bi-cart-check"></i>今日訂單</h5>
-                    <p class="card-text">5</p>
+                    <h5 class="card-title"><i class="bi bi-cart-check"></i> 今日訂單</h5>
+                    <p class="h3 fw-bold mb-1">5</p>
+                    <p class="card-text"><small>比昨日增長 20%</small></p>
                 </div>
             </div>
         </a>
@@ -18,10 +19,11 @@
     <!-- 本月收入卡片 -->
     <div class="col-md-4">
         <a href="monthlyRevenue.jsp" class="text-decoration-none">
-            <div class="card custom-card bg-success-light mb-3">
+            <div class="card custom-card bg-success-light text-dark mb-3 shadow-sm rounded">
                 <div class="card-body text-center">
-                    <h5 class="card-title"><i class="bi bi-currency-dollar"></i>本月收入</h5>
-                    <p class="card-text">NT$ 50,000</p>
+                    <h5 class="card-title"><i class="bi bi-currency-dollar"></i> 本月收入</h5>
+                    <p class="h3 fw-bold mb-1">NT$ 50,000</p>
+                    <p class="card-text"><small>同比增長 15%</small></p>
                 </div>
             </div>
         </a>
@@ -30,10 +32,11 @@
     <!-- 新增客戶卡片 -->
     <div class="col-md-4">
         <a href="newCustomers.jsp" class="text-decoration-none">
-            <div class="card custom-card bg-info-light mb-3">
+            <div class="card custom-card bg-info-light text-dark mb-3 shadow-sm rounded">
                 <div class="card-body text-center">
-                    <h5 class="card-title"><i class="bi bi-people"></i>新增客戶</h5>
-                    <p class="card-text">10</p>
+                    <h5 class="card-title"><i class="bi bi-people"></i> 新增客戶</h5>
+                    <p class="h3 fw-bold mb-1">10</p>
+                    <p class="card-text"><small>今日新增 2 位</small></p>
                 </div>
             </div>
         </a>
@@ -42,10 +45,11 @@
     <!-- 商家待審核通知卡片 -->
     <div class="col-md-4">
         <a href="pendingMerchants.jsp" class="text-decoration-none">
-            <div class="card custom-card bg-warning-light mb-3">
+            <div class="card custom-card bg-warning-light text-dark mb-3 shadow-sm rounded">
                 <div class="card-body text-center">
-                    <h5 class="card-title"><i class="bi bi-file-earmark-person"></i>商家待審核</h5>
-                    <p class="card-text">3</p>
+                    <h5 class="card-title"><i class="bi bi-file-earmark-person"></i> 商家待審核</h5>
+                    <p class="h3 fw-bold mb-1">3</p>
+                    <p class="card-text"><small>需立即處理</small></p>
                 </div>
             </div>
         </a>
@@ -54,10 +58,11 @@
     <!-- 未讀訊息卡片 -->
     <div class="col-md-4">
         <a href="unreadMessages.jsp" class="text-decoration-none">
-            <div class="card custom-card bg-secondary-light mb-3">
+            <div class="card custom-card bg-secondary-light text-dark mb-3 shadow-sm rounded">
                 <div class="card-body text-center">
-                    <h5 class="card-title"><i class="bi bi-envelope"></i>未讀訊息</h5>
-                    <p class="card-text">8</p>
+                    <h5 class="card-title"><i class="bi bi-envelope"></i> 未讀訊息</h5>
+                    <p class="h3 fw-bold mb-1">8</p>
+                    <p class="card-text"><small>最近一小時新增 3 條</small></p>
                 </div>
             </div>
         </a>
@@ -66,10 +71,11 @@
     <!-- 訂單爭議卡片 -->
     <div class="col-md-4">
         <a href="orderDisputes.jsp" class="text-decoration-none">
-            <div class="card custom-card bg-danger-light mb-3">
+            <div class="card custom-card bg-danger-light text-dark mb-3 shadow-sm rounded">
                 <div class="card-body text-center">
-                    <h5 class="card-title"><i class="bi bi-exclamation-triangle"></i>訂單爭議</h5>
-                    <p class="card-text">2</p>
+                    <h5 class="card-title"><i class="bi bi-exclamation-triangle"></i> 訂單爭議</h5>
+                    <p class="h3 fw-bold mb-1">2</p>
+                    <p class="card-text"><small>需立即跟進</small></p>
                 </div>
             </div>
         </a>

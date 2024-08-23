@@ -1,26 +1,9 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 
-<style>
-    .sort {
-        text-decoration: none; /* 去除底線 */
-        color: inherit; /* 繼承父元素的顏色 */
-        cursor: pointer; /* 鼠標懸停時顯示為手型 */
-        opacity: 0.8;
-    }
-
-    .sort:hover {
-        color: #007bff;
-    }
-
-    .sort.asc ,.sort.desc {
-        opacity: 1;
-    }
-</style>
-
 <div class="d-flex flex-wrap justify-content-between mb-3">
     <!-- 搜索 -->
     <div class="d-flex align-items-center me-3 mb-2">
-        <input type="text" id="search" class="form-control me-2" placeholder="搜尋客戶或訂單編號"
+        <input type="text" id="search" class="form-control me-2" placeholder="搜尋客戶姓名名或編號"
                style="max-width: 250px;">
         <button class="btn btn-primary" style="white-space: nowrap;">搜尋</button>
     </div>
@@ -57,8 +40,14 @@
 
 <script>
     const filterTable = () => {
+        const searchQuery = document.getElementById('search').value.toLowerCase();
+        const statusFilter = document.getElementById('statusFilter').value;
 
-    }
+        const tbody = document.querySelector('#customerTableBody');
+        const rows = Array.from(tbody.querySelectorAll('tr'));
+
+        // TODO: 去資料庫撈資料
+    };
 
     const sortTable = (sortBy, sortOrder) => {
         const tbody = document.querySelector('#customerTableBody');
