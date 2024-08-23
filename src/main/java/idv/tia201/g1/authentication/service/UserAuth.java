@@ -1,5 +1,6 @@
 package idv.tia201.g1.authentication.service;
 
+import idv.tia201.g1.entity.Admin;
 import idv.tia201.g1.entity.Company;
 import idv.tia201.g1.entity.User;
 
@@ -25,6 +26,9 @@ public interface UserAuth {
                 }
                 break;
             case ROLE_ADMIN:
+                if (this instanceof Admin) {
+                    return ((Admin) this).getAdminId();
+                }
                 break;
         }
         return null;

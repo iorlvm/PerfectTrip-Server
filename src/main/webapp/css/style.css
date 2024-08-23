@@ -9,7 +9,9 @@ body {
 }
 
 main {
-    min-height: calc(100vh - 96px);
+    position: relative;
+    min-height: calc(100vh - 98px);
+    padding: 1em;
 }
 
 .card {
@@ -34,4 +36,66 @@ main {
 
 .footer {
     text-align: center;
+}
+
+.chat-container {
+    width: 100%;
+    height: calc(100vh - 98px)
+}
+
+.custom-card {
+    border: none;
+    border-radius: 10px; /* 圓角 */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* 陰影 */
+    transition: transform 0.2s; /* 添加平滑過渡效果 */
+    color: white; /* 白色字體 */
+}
+
+.custom-card:hover {
+    transform: translateY(-3px); /* 懸停時上移 */
+}
+
+.custom-card .card-body {
+    border-radius: 10px; /* 和卡片一致的圓角 */
+    padding: 15px; /* 增加間距 */
+}
+
+.card-title {
+    font-size: 1.3rem; /* 調整卡片標題字體大小 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.card-title i {
+    margin-right: 8px; /* 圖標和文字之間的距離 */
+}
+
+.card-text {
+    font-size: 1.5rem; /* 調整卡片正文字體大小 */
+}
+
+/* 定義每個卡片的背景顏色 */
+.bg-primary-light {
+    background-color: #007bff; /* 較淡的藍色背景 */
+}
+
+.bg-success-light {
+    background-color: #28a745; /* 較淡的綠色背景 */
+}
+
+.bg-info-light {
+    background-color: #17a2b8; /* 較淡的青色背景 */
+}
+
+.bg-warning-light {
+    background-color: #ff8c00; /* 柔和的橙色背景，適合白色字體 */
+}
+
+.bg-secondary-light {
+    background-color: #6c757d; /* 較淡的灰色背景 */
+}
+
+.bg-danger-light {
+    background-color: #dc3545; /* 較淡的紅色背景 */
 }

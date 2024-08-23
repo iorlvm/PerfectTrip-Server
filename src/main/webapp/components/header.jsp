@@ -1,8 +1,8 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 
 <!-- Navbar -->
-<nav class="navbar navbar-expand-md navbar-light bg-light" style="padding: 0 0.75em">
-    <a class="navbar-brand" href="#">Admin Panel</a>
+<nav class="navbar navbar-expand-md navbar-light bg-light" style="padding:0 0 0 0.75em; border-bottom: 1px solid #0000002a">
+    <div class="navbar-brand">${pageTitle}</div>
     <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
     </button>

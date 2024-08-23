@@ -23,14 +23,80 @@ public class RouterController {
 
     @RequestMapping("/login")
     public String login() {
-        return "views/login";
+        return "/views/login";
     }
-
 
     @RequestMapping("/dashboard")
     public String dashboard(Model model) {
         // 管理中心主畫面
         model.addAttribute("content", "views/dashboard.jsp");
-        return "layout";
+        model.addAttribute("pageTitle", "報告總覽");
+        return "/layout";
     }
+
+    @RequestMapping("/messages")
+    public String messages(Model model) {
+        // 訊息中心主畫面
+        model.addAttribute("content", "views/chat.jsp");
+        model.addAttribute("pageTitle", "訊息中心");
+        return "/layout";
+    }
+
+    @RequestMapping("/settings")
+    public String settings(Model model) {
+        // 設定
+        model.addAttribute("content", "views/settings.jsp");
+        model.addAttribute("pageTitle", "設定");
+        return "/layout";
+    }
+
+    @RequestMapping("/reservations/list")
+    public String currentReservations(Model model) {
+        // 當前訂單
+        model.addAttribute("content", "views/reservations/list.jsp");
+        model.addAttribute("pageTitle", "訂單列表");
+        return "/layout";
+    }
+
+    @RequestMapping("/reservations/disputes")
+    public String disputesReservations(Model model) {
+        // 歷史訂單
+        model.addAttribute("content", "views/reservations/disputes.jsp");
+        model.addAttribute("pageTitle", "訂單爭議");
+        return "/layout";
+    }
+
+    @RequestMapping("/customers/list")
+    public String customersList(Model model) {
+        // 顧客列表
+        model.addAttribute("content", "views/customers/list.jsp");
+        model.addAttribute("pageTitle", "客戶列表");
+        return "/layout";
+    }
+
+    @RequestMapping("/customers/feedback")
+    public String customersFeedback(Model model) {
+        // 客戶反饋
+        model.addAttribute("content", "views/customers/feedback.jsp");
+        model.addAttribute("pageTitle", "客戶反饋");
+        return "/layout";
+    }
+
+    @RequestMapping("/companies/list")
+    public String companiesList(Model model) {
+        // 商家列表
+        model.addAttribute("content", "views/companies/list.jsp");
+        model.addAttribute("pageTitle", "商家列表");
+        return "/layout";
+    }
+
+    @RequestMapping("/companies/verification")
+    public String companyVerification(Model model) {
+        // 商家審核
+        model.addAttribute("content", "views/companies/verification.jsp");
+        model.addAttribute("pageTitle", "商家驗證");
+        return "/layout";
+    }
+
+
 }
