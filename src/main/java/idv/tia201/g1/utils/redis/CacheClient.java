@@ -147,7 +147,7 @@ public class CacheClient {
                         CACHE_REBUILD_EXECUTOR.submit(() -> {
                             try {
                                 // 查詢資料庫
-                                R r = dbFallback.apply(id);
+                                R r = transactionTemplate.execute(status -> dbFallback.apply(id));
                                 if (r == null) {
                                     // 資料庫中這筆檔案消失了(可能被刪除), 改存入空字串
                                     set(key, "", statusTTL, unit);

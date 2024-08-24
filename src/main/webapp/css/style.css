@@ -1,0 +1,57 @@
+*{
+    margin: 0;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
+main {
+    position: relative;
+    min-height: calc(100vh - 98px);
+    padding: 1em;
+}
+
+.sidebar {
+    padding: 15px;
+}
+
+.sidebar .nav-link {
+    color: rgba(255, 255, 255, .55);;
+}
+
+.sidebar .nav-link:hover {
+    color: white;
+}
+
+.sidebar .nav-link.active {
+    color: white;
+}
+
+.footer {
+    text-align: center;
+}
+
+.chat-container {
+    width: 100%;
+    height: calc(100vh - 98px)
+}
+
+.sort {
+    width: 100%;
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    cursor: pointer;
+    opacity: 0.8;
+}
+
+.sort:hover {
+    color: #007bff;
+}
+
+.sort.asc, .sort.desc {
+    opacity: 1;
+}

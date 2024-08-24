@@ -13,5 +13,4 @@ public interface ChatUserMappingDao extends JpaRepository<ChatUserMapping, Long>
             "FROM ChatUserMapping c " +
             "WHERE c.userType = :userType AND c.refId = :refId")
     Long findMappingUserIdByUserTypeAndRefId(@Param("userType") String userType, @Param("refId") Integer refId);
-    ChatUserMapping findByUserTypeAndRefId(String userType, Integer refId);
 }

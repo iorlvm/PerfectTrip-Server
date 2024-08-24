@@ -10,8 +10,6 @@ import org.springframework.stereotype.Repository;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 import static idv.tia201.g1.utils.Constants.*;
 
@@ -115,25 +113,6 @@ public class CustomChatParticipantDaoImpl implements CustomChatParticipantDao {
                     }
                 })
                 .toList();
-    }
-
-    @Override
-    public Set<Long> findChatIdByTypeAndRefId(String type, Integer refId) {
-        String queryStr = "SELECT p.chat_id " +
-                "FROM chat_participants p " +
-                "JOIN chat_user_mappings m ON p.mapping_user_id = m.mapping_user_id " +
-                "WHERE m.ref_id = :refId AND m.user_type = :type ";
-
-        Query query = entityManager.createNativeQuery(queryStr);
-        query.setParameter("refId", refId);
-        query.setParameter("type", type);
-
-        @SuppressWarnings("unchecked")
-        List<Number> resultList = query.getResultList();
-
-        return resultList.stream()
-                .map(Number::longValue)
-                .collect(Collectors.toSet());
     }
 
     private static ChatParticipant getParticipant(Object[] result) {

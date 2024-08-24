@@ -30,6 +30,8 @@ public interface ChatService {
 
     Long getOrCreateMappingUserId(String type, Integer id);
 
+    Long getTotalUnreadMessagesNumber(Long mappingUserId);
+
     @Transactional
     void updateChatRoomPinned(Long chatId, Boolean pinned);
 

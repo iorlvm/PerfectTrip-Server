@@ -129,6 +129,11 @@ public class ChatServiceImpl implements ChatService {
         return userId;
     }
 
+    @Override
+    public Long getTotalUnreadMessagesNumber(Long mappingUserId) {
+        return chatParticipantDao.getTotalUnreadMessagesNumberByMappingUserId(mappingUserId);
+    }
+
     private ChatRoom createChatRoom() {
         Long chatId = idWorker.nextId("chat");
         ChatRoom chatRoom = new ChatRoom();

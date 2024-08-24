@@ -22,9 +22,11 @@ public class ChatController {
     private ChatService chatService;
 
     @GetMapping("/uid")
-    public Result getChatUserId() {
+    public Result getChatUserIdAndUnread() {
         try {
-            return Result.ok(chatService.getOrCreateMappingUserId(UserHolder.getRole(), UserHolder.getId()).toString());
+            Long uid = chatService.getOrCreateMappingUserId(UserHolder.getRole(), UserHolder.getId());
+            Long unread = chatService.getTotalUnreadMessagesNumber(uid);
+            return Result.ok(new String[]{String.valueOf(uid), String.valueOf(unread)});
         } catch (Exception e) {
             // TODO: 也許需要log紀錄
             return Result.fail(e.getMessage());
