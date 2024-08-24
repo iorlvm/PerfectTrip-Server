@@ -2,12 +2,8 @@ package idv.tia201.g1.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import idv.tia201.g1.authentication.service.UserAuth;
-import idv.tia201.g1.constant.Action;
 import idv.tia201.g1.constant.Gender;
 import idv.tia201.g1.constant.UserGroup;
-import idv.tia201.g1.converter.ActionConverter;
-import idv.tia201.g1.converter.GenderConverter;
-import idv.tia201.g1.converter.UserGroupConverter;
 import jakarta.persistence.*;
 
 import java.util.Date;
@@ -22,57 +18,167 @@ public class User implements UserAuth {
     @GeneratedValue(strategy = GenerationType.IDENTITY) // auto increment
     @Column(name = "user_id")
     private Integer userId;
-    
+
     @Column(name = "username")
     private String username;
-    
+
     @JsonIgnore
     @Column(name = "password")
     private String password;
-    
+
     @Column(name = "first_name")
     private String firstName;
-    
+
     @Column(name = "last_name")
     private String lastName;
-    
+
     @Column(name = "nickname")
     private String nickname;
-    
+
     @Column(name = "tax_id")
     private String taxId;
-    
-    @Convert(converter = GenderConverter.class)
+
+    @Enumerated(EnumType.STRING)
     @Column(name = "gender")
     private Gender gender;
-    
-    @Convert(converter = UserGroupConverter.class)
+
+    @Enumerated(EnumType.STRING)
     @Column(name = "user_group")
     private UserGroup userGroup;
-    
+
     @Column(name = "phone_number")
     private String phoneNumber;
-    
+
     @Column(name = "country")
     private String country;
-    
-    @Convert(converter = ActionConverter.class)
-    @Column(name = "action")
-    private Action action;
-    
+
     @Column(name = "change_id")
     private Integer changeId;
-    
+
     @Column(name = "created_date")
     private Date createdDate;
-    
+
     @Column(name = "last_modified_date")
     private Date lastModifiedDate;
 
     @Transient
     private String token;
 
-    public User() {}
+    public User() {
+
+    }
+
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    public static class Builder {
+
+        private Integer userId;
+        private String username;
+        private String password;
+        private String firstName;
+        private String lastName;
+        private String nickname;
+        private String taxId;
+        private Gender gender;
+        private UserGroup userGroup;
+        private String phoneNumber;
+        private String country;
+        private Integer changeId;
+        private Date createdDate;
+        private Date lastModifiedDate;
+
+        public Builder userId(Integer userId) {
+            this.userId = userId;
+            return this;
+        }
+
+        public Builder username(String username) {
+            this.username = username;
+            return this;
+        }
+
+        public Builder password(String password) {
+            this.password = password;
+            return this;
+        }
+
+        public Builder firstName(String firstName) {
+            this.firstName = firstName;
+            return this;
+        }
+
+        public Builder lastName(String lastName) {
+            this.lastName = lastName;
+            return this;
+        }
+
+        public Builder nickname(String nickname) {
+            this.nickname = nickname;
+            return this;
+        }
+
+        public Builder taxId(String taxId) {
+            this.taxId = taxId;
+            return this;
+        }
+
+        public Builder gender(Gender gender) {
+            this.gender = gender;
+            return this;
+        }
+
+        public Builder userGroup(UserGroup userGroup) {
+            this.userGroup = userGroup;
+            return this;
+        }
+
+        public Builder phoneNumber(String phoneNumber) {
+            this.phoneNumber = phoneNumber;
+            return this;
+        }
+
+        public Builder country(String country) {
+            this.country = country;
+            return this;
+        }
+
+        public Builder changeId(Integer changeId) {
+            this.changeId = changeId;
+            return this;
+        }
+
+        public Builder createdDate(Date createdDate) {
+            this.createdDate = createdDate;
+            return this;
+        }
+
+        public Builder lastModifiedDate(Date lastModifiedDate) {
+            this.lastModifiedDate = lastModifiedDate;
+            return this;
+        }
+
+        public User build() {
+            User user = new User();
+            user.userId = this.userId;
+            user.username = this.username;
+            user.password = this.password;
+            user.firstName = this.firstName;
+            user.lastName = this.lastName;
+            user.nickname = this.nickname;
+            user.taxId = this.taxId;
+            user.gender = this.gender;
+            user.userGroup = this.userGroup;
+            user.phoneNumber = this.phoneNumber;
+            user.country = this.country;
+            user.changeId = this.changeId;
+            user.createdDate = this.createdDate;
+            user.lastModifiedDate = this.lastModifiedDate;
+            return user;
+        }
+
+    }
 
     public Integer getUserId() {
         return userId;
@@ -84,19 +190,6 @@ public class User implements UserAuth {
 
     public String getUsername() {
         return username;
-    }
-
-    @Override
-    public String getRole() {
-        return ROLE_USER;
-    }
-
-    public String getToken() {
-        return token;
-    }
-
-    public void setToken(String token) {
-        this.token = token;
     }
 
     public void setUsername(String username) {
@@ -175,23 +268,15 @@ public class User implements UserAuth {
         this.country = country;
     }
 
-    public Action getAction() {
-        return action;
-    }
-
-    public void setAction(Action action) {
-        this.action = action;
-    }
-
     public Integer getChangeId() {
-		return changeId;
-	}
+        return changeId;
+    }
 
-	public void setChangeId(Integer changeId) {
-		this.changeId = changeId;
-	}
+    public void setChangeId(Integer changeId) {
+        this.changeId = changeId;
+    }
 
-	public Date getCreatedDate() {
+    public Date getCreatedDate() {
         return createdDate;
     }
 
@@ -205,6 +290,19 @@ public class User implements UserAuth {
 
     public void setLastModifiedDate(Date lastModifiedDate) {
         this.lastModifiedDate = lastModifiedDate;
+    }
+
+    @Override
+    public String getRole() {
+        return ROLE_USER;
+    }
+
+    public String getToken() {
+        return token;
+    }
+
+    public void setToken(String token) {
+        this.token = token;
     }
 
 }

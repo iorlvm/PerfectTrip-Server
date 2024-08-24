@@ -1,13 +1,15 @@
 package idv.tia201.g1.chat.dao;
 
 import idv.tia201.g1.entity.ChatParticipant;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 
+import java.sql.Timestamp;
 import java.util.List;
+import java.util.Set;
 
 public interface CustomChatParticipantDao {
     List<ChatParticipant> findByChatId(Long chatId);
 
-    Page<Long> findChatIdByTypeAndRefId(String type, Integer refId, Pageable pageable);
+    List<Long> findChatIdByTypeAndRefId(String type, Integer refId, int size, Timestamp earliestTimestamp);
+
+    Set<Long> findChatIdByTypeAndRefId(String type, Integer refId);
 }

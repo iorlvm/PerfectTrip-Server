@@ -1,18 +1,16 @@
 package idv.tia201.g1.company.controller;
-
 import idv.tia201.g1.authentication.service.TokenService;
-import idv.tia201.g1.dto.Result;
-import idv.tia201.g1.dto.CompanyLoginRequest;
-import idv.tia201.g1.dto.CompanyRegisterRequest;
+import idv.tia201.g1.dto.*;
 import idv.tia201.g1.company.service.CompanyService;
 import idv.tia201.g1.entity.Company;
 import jakarta.validation.Valid;
-import org.apache.catalina.Store;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.server.ResponseStatusException;
 
+
+@Validated
 @RestController
 @RequestMapping("/store")
 public class CompanyController {
@@ -27,33 +25,53 @@ public class CompanyController {
     @PostMapping("/register")
     public Result register(@RequestBody @Valid CompanyRegisterRequest companyRegisterRequest) {
         try {
-            Integer companyId = companyService.register(companyRegisterRequest);
-            Company company = companyService.findByCompanyId(companyId);
+            Company company = companyService.register(companyRegisterRequest);
             return Result.ok(company);
         } catch (Exception e) {
-            // 日誌記錄（可選）
-            // log.error("Error during registration", e);
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Registration failed", e);
+            return Result.fail(e.getMessage());
         }
+
     }
 
     // 登錄方法
     @PostMapping("/login")
     public Result login(@RequestBody @Valid CompanyLoginRequest companyLoginRequest) {
+
         try {
             Company company = companyService.login(companyLoginRequest);
-            if (company != null) {
-                String token = tokenService.createToken(company);
-                company.setToken(token);
-                return Result.ok(company);
-            } else {
-                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials");
-            }
+            String token = tokenService.createToken(company);
+            company.setToken(token);
+            return Result.ok(company);
         } catch (Exception e) {
-            // 日誌記錄（可選）
-            // log.error("Error during login", e);
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Login failed", e);
+            return Result.fail(e.getMessage());
         }
+    }
+    @GetMapping("/store/{companyId}")
+    public Result getCompany(@PathVariable  Integer companyId) {
+        Company company = companyService.findByCompanyId(companyId);
+        return Result.ok(company);
+    }
+
+    @GetMapping("/store")
+
+        public Result getAllCompany(CompanyQueryParams companyQueryParams) {
+
+            Page<Company> companyPage = companyService.findAll(companyQueryParams);
+
+            return Result.ok(companyPage);
+
+    }
+
+    @PutMapping("/store/{companyId}")
+    public Result updateCompany(@PathVariable Integer companyId ,@RequestBody @Valid CompanyUpdateRequest companyUpdateRequest) {
+        Company company = companyService.UpdateCompany(companyId,  companyUpdateRequest);
+        return Result.ok(company);
+    }
+
+    @DeleteMapping ("/store/{companyId}")
+    public Result deleteCompany(@PathVariable Integer companyId) {
+        Company company = companyService.deleteCompany(companyId);
+        return Result.ok(company);
     }
 
 }

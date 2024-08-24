@@ -12,7 +12,7 @@ public class UserRegisterRequest {
 
     @NotBlank
     private String password;
-    
+
     private String firstName;
 
     private String lastName;
@@ -47,60 +47,60 @@ public class UserRegisterRequest {
         this.password = password;
     }
 
-	public String getFirstName() {
-		return firstName;
-	}
+    public String getFirstName() {
+        return firstName;
+    }
 
-	public void setFirstName(String firstName) {
-		this.firstName = firstName;
-	}
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
 
-	public String getLastName() {
-		return lastName;
-	}
+    public String getLastName() {
+        return lastName;
+    }
 
-	public void setLastName(String lastName) {
-		this.lastName = lastName;
-	}
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
 
-	public String getNickname() {
-		return nickname;
-	}
+    public String getNickname() {
+        return nickname;
+    }
 
-	public void setNickname(String nickname) {
-		this.nickname = nickname;
-	}
+    public void setNickname(String nickname) {
+        this.nickname = nickname;
+    }
 
-	public String getTaxId() {
-		return taxId;
-	}
+    public String getTaxId() {
+        return taxId;
+    }
 
-	public void setTaxId(String taxId) {
-		this.taxId = taxId;
-	}
+    public void setTaxId(String taxId) {
+        this.taxId = taxId;
+    }
 
-	public Gender getGender() {
-		return gender;
-	}
+    public Gender getGender() {
+        return gender;
+    }
 
-	public void setGender(Gender gender) {
-		this.gender = gender;
-	}
+    public void setGender(Gender gender) {
+        this.gender = gender;
+    }
 
-	public String getPhoneNumber() {
-		return phoneNumber;
-	}
+    public String getPhoneNumber() {
+        return phoneNumber;
+    }
 
-	public void setPhoneNumber(String phoneNumber) {
-		this.phoneNumber = phoneNumber;
-	}
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
+    }
 
-	public String getCountry() {
-		return country;
-	}
+    public String getCountry() {
+        return country;
+    }
 
-	public void setCountry(String country) {
-		this.country = country;
-	}
+    public void setCountry(String country) {
+        this.country = country;
+    }
 
 }

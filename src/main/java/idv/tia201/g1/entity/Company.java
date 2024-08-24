@@ -5,7 +5,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.io.Serializable;
-import java.time.LocalDateTime;
+import java.util.Date;
 
 import static idv.tia201.g1.utils.Constants.ROLE_COMPANY;
 
@@ -43,17 +43,14 @@ public class Company implements Serializable, UserAuth {
     @Column(name = "score", nullable = false)
     private float score;
 
-    @Column(name = "action")
-    private String action;
-
     @Column(name = "change_id", nullable = false)
     private int changeId;
 
-    @Column(name = "created_date", nullable = false)
-    private LocalDateTime createdDate;
+    @Column(name = "created_date", nullable = false, updatable = false)//更新時忽略這個欄位
+    private Date createdDate;
 
     @Column(name = "last_modified_date", nullable = false)
-    private LocalDateTime lastModifiedDate;
+    private Date lastModifiedDate;
 
     @Transient
     private String token;
@@ -61,6 +58,19 @@ public class Company implements Serializable, UserAuth {
     @Override
     public String getRole() {
         return ROLE_COMPANY;
+    }
+
+    @PrePersist
+    protected void onCreate() {
+        if (createdDate == null) {
+            createdDate = new Date();
+        }
+        lastModifiedDate = createdDate;
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+            lastModifiedDate =new Date();
     }
 }
 

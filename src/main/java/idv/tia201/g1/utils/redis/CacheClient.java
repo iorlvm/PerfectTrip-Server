@@ -1,5 +1,6 @@
 package idv.tia201.g1.utils.redis;
 
+import idv.tia201.g1.entity.ChatParticipant;
 import idv.tia201.g1.utils.basic.JSONUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -7,10 +8,14 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 
 @Slf4j

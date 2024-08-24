@@ -1,7 +1,9 @@
 package idv.tia201.g1.dto;
 
 import jakarta.validation.constraints.NotBlank;
+import lombok.Data;
 
+@Data
 public class CompanyRegisterRequest {
 
     @NotBlank
@@ -11,25 +13,15 @@ public class CompanyRegisterRequest {
     private String password;
 
     @NotBlank
-    private CompanyRegisterRequest(){
+    private String companyName;
 
-    }
+    @NotBlank
+    private String vatNumber;
 
-    public @NotBlank String getUsername() {
-        return username;
-    }
+    @NotBlank
+    private String address;
 
-    public void setUsername(@NotBlank String username) {
-        this.username = username;
-    }
-
-    public @NotBlank String getPassword() {
-        return password;
-    }
-
-    public void setPassword(@NotBlank String password) {
-        this.password = password;
-    }
-
+    @NotBlank
+    private  String telephone;
 
 }

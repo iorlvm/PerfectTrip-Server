@@ -5,14 +5,13 @@ import idv.tia201.g1.entity.ChatParticipant;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static idv.tia201.g1.utils.Constants.*;
 
@@ -24,6 +23,8 @@ public class CustomChatParticipantDaoImpl implements CustomChatParticipantDao {
     @Override
     public List<ChatParticipant> findByChatId(Long chatId) {
         String queryStr = "SELECT " +
+                "    p.participant_id, " +
+                "    p.chat_id, " +
                 "    p.mapping_user_id AS user_id, " +
                 "    CASE " +
                 "        WHEN m.user_type = '" + ROLE_USER + "' THEN u.nickname " +
@@ -69,54 +70,84 @@ public class CustomChatParticipantDaoImpl implements CustomChatParticipantDao {
     }
 
     @Override
-    public Page<Long> findChatIdByTypeAndRefId(String type, Integer refId, Pageable pageable) {
-        String queryStr = "SELECT " +
-                "    result.chat_id, " +
-                "    result.total_count " +
-                "FROM ( " +
-                "    SELECT " +
-                "        p.chat_id, " +
-                "        p.last_modified_date, " +
-                "        p.pinned, " +
-                "        COUNT(*) OVER() AS total_count " +
-                "    FROM chat_participants p " +
-                "    JOIN chat_user_mappings m ON " +
-                "        p.mapping_user_id = m.mapping_user_id " +
-                "    WHERE m.ref_id = :refId AND m.user_type = :type " +
-                ") AS result " +
-                "ORDER BY " +
-                "    result.pinned DESC, " +
-                "    result.last_modified_date DESC " +
-                "LIMIT :pageSize OFFSET :offset;";
+    public List<Long> findChatIdByTypeAndRefId(String type, Integer refId, int size, Timestamp earliestTimestamp) {
+        String queryStr = "";
+        if (earliestTimestamp.getTime() == TIMESTAMP_MAX_VALUE) {
+            // 表示第一次取得, 將所有釘選中的聊天室傳給前端
+            queryStr += "SELECT pinned.chat_id " +
+                    "FROM (SELECT p.chat_id " +
+                    "      FROM chat_participants p " +
+                    "               JOIN chat_user_mappings m ON " +
+                    "          p.mapping_user_id = m.mapping_user_id " +
+                    "      WHERE m.ref_id = :refId " +
+                    "        AND m.user_type = :type " +
+                    "        AND p.pinned = true " +
+                    "      ORDER BY p.last_modified_date DESC) pinned " +
+                    "UNION ";
+        }
+        queryStr += "SELECT unpinned.chat_id " +
+                "FROM (SELECT p.chat_id " +
+                "      FROM chat_participants p " +
+                "               JOIN chat_user_mappings m ON " +
+                "          p.mapping_user_id = m.mapping_user_id " +
+                "      WHERE m.ref_id = :refId " +
+                "        AND m.user_type = :type " +
+                "        AND p.pinned = false " +
+                "        AND p.last_modified_date <= :earliestTimestamp " +
+                "      ORDER BY p.last_modified_date DESC " +
+                "      LIMIT :size OFFSET 0) unpinned;";
 
         Query query = entityManager.createNativeQuery(queryStr);
         query.setParameter("refId", refId);
         query.setParameter("type", type);
-        query.setParameter("pageSize", pageable.getPageSize());
-        query.setParameter("offset", pageable.getOffset());
+        query.setParameter("earliestTimestamp", earliestTimestamp);
+        query.setParameter("size", size);
+
+
+        List<?> resultList = query.getResultList();
+
+        return resultList.stream()
+                .map(result -> {
+                    if (result instanceof Number) {
+                        return ((Number) result).longValue();
+                    } else {
+                        throw new RuntimeException("Unexpected result type: " + result.getClass().getName());
+                    }
+                })
+                .toList();
+    }
+
+    @Override
+    public Set<Long> findChatIdByTypeAndRefId(String type, Integer refId) {
+        String queryStr = "SELECT p.chat_id " +
+                "FROM chat_participants p " +
+                "JOIN chat_user_mappings m ON p.mapping_user_id = m.mapping_user_id " +
+                "WHERE m.ref_id = :refId AND m.user_type = :type ";
+
+        Query query = entityManager.createNativeQuery(queryStr);
+        query.setParameter("refId", refId);
+        query.setParameter("type", type);
 
         @SuppressWarnings("unchecked")
-        List<Object[]> resultList = query.getResultList();
+        List<Number> resultList = query.getResultList();
 
-        List<Long> chatIds = resultList.stream()
-                .map(row -> ((Number) row[0]).longValue())
-                .toList();
-
-        long total = resultList.isEmpty() ? 0L : ((Number) resultList.get(0)[1]).longValue();
-
-        return new PageImpl<>(chatIds, pageable, total);
+        return resultList.stream()
+                .map(Number::longValue)
+                .collect(Collectors.toSet());
     }
 
     private static ChatParticipant getParticipant(Object[] result) {
         ChatParticipant participant = new ChatParticipant();
-        participant.setMappingUserId((Long) result[0]);
-        participant.setName((String) result[1]);
-        participant.setAvatar((String) result[2]);
-        participant.setType((String) result[3]);
-        participant.setPinned((Boolean) result[4]);
-        participant.setNotify((String) result[5]);
-        participant.setUnreadMessages((Integer) result[6]);
-        participant.setLastReadingAt((Timestamp) result[7]);
+        participant.setParticipantId((Long) result[0]);
+        participant.setChatId((Long) result[1]);
+        participant.setMappingUserId((Long) result[2]);
+        participant.setName((String) result[3]);
+        participant.setAvatar((String) result[4]);
+        participant.setType((String) result[5]);
+        participant.setPinned((Boolean) result[6]);
+        participant.setNotify((String) result[7]);
+        participant.setUnreadMessages((Integer) result[8]);
+        participant.setLastReadingAt((Timestamp) result[9]);
         return participant;
     }
 }
