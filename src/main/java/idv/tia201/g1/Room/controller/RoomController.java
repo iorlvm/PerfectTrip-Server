@@ -82,7 +82,7 @@ public class RoomController {
         Blob photoBlob = room.getPhoto();
         if( photoBlob != null) {
             try {
-                photoBytes = photoBlob.getBytes(1, (int)photoBlob.length())
+                photoBytes = photoBlob.getBytes(1, (int)photoBlob.length());
             }catch (SQLException e){
                 throw new PhotoRetrieverException("Error retrieving photo");
             }
