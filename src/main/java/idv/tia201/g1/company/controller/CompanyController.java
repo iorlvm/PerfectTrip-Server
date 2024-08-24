@@ -30,7 +30,6 @@ public class CompanyController {
         } catch (Exception e) {
             return Result.fail(e.getMessage());
         }
-
     }
 
     // 登錄方法
@@ -62,12 +61,14 @@ public class CompanyController {
 
     }
 
+    //修改資料
     @PutMapping("/store/{companyId}")
     public Result updateCompany(@PathVariable Integer companyId ,@RequestBody @Valid CompanyUpdateRequest companyUpdateRequest) {
         Company company = companyService.UpdateCompany(companyId,  companyUpdateRequest);
         return Result.ok(company);
     }
 
+    //刪除資料
     @DeleteMapping ("/store/{companyId}")
     public Result deleteCompany(@PathVariable Integer companyId) {
         Company company = companyService.deleteCompany(companyId);
