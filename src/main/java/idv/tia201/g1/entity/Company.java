@@ -52,6 +52,9 @@ public class Company implements Serializable, UserAuth {
     @Column(name = "last_modified_date", nullable = false)
     private Date lastModifiedDate;
 
+    @Column(name = "pass", nullable = false)
+    private String pass;
+
     @Transient
     private String token;
 
