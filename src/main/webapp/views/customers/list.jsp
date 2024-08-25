@@ -35,6 +35,45 @@
     </table>
 </div>
 
+<!-- Customer Detail Modal -->
+<div class="modal fade" id="customerDetailModal" tabindex="-1" aria-labelledby="customerDetailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="customerDetailModalLabel">客戶詳細資訊</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="modalCustomerId" class="form-label">客戶編號</label>
+                    <input type="text" class="form-control" id="modalCustomerId" readonly>
+                </div>
+                <div class="mb-3">
+                    <label for="modalCustomerName" class="form-label">客戶名稱</label>
+                    <input type="text" class="form-control" id="modalCustomerName">
+                </div>
+                <div class="mb-3">
+                    <label for="modalCustomerEmail" class="form-label">電子郵件</label>
+                    <input type="email" class="form-control" id="modalCustomerEmail">
+                </div>
+                <div class="mb-3">
+                    <label for="modalCustomerPhone" class="form-label">電話</label>
+                    <input type="text" class="form-control" id="modalCustomerPhone">
+                </div>
+                <div class="mb-3">
+                    <label for="modalCustomerDate" class="form-label">註冊日期</label>
+                    <input type="date" class="form-control" id="modalCustomerDate">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" id="saveCustomerButton">儲存變更</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
 <%@ include file="/components/pagination.jsp" %>
 <%@ include file="/components/alert.jsp" %>
 
@@ -134,8 +173,7 @@
                     <button class="btn btn-sm btn-warning">編輯</button>
                     <button class="btn btn-sm btn-danger">刪除</button>
                 </td>
-            </tr>
-        `;
+            </tr>`;
             tableBody.insertAdjacentHTML('beforeend', row);
         });
     };
@@ -157,6 +195,17 @@
         });
     };
 
+    const getCustomerDetailsAPI = (customerId) => {
+        // Simulated data for demonstration purposes
+        const mockData = {
+            'C001': { userId: 'C001', firstName: '張', lastName: '三', username: 'zhangsan@example.com', phoneNumber: '0987654321', createdDate: '2024-07-01' },
+            'C002': { userId: 'C002', firstName: '李', lastName: '四', username: 'lisi@example.com', phoneNumber: '0912345678', createdDate: '2024-07-15' },
+            'C003': { userId: 'C003', firstName: '王', lastName: '五', username: 'wangwu@example.com', phoneNumber: '0922333444', createdDate: '2024-08-05' }
+        };
+
+        return mockData[customerId] || {};
+    };
+
     const loadCustomers = async (offset = 0) => {
         try {
             const res = await getCustomersListAPI(offset);
@@ -172,5 +221,48 @@
     document.addEventListener('DOMContentLoaded', () => {
         loadCustomers();
         initTable();
+
+        // Event delegation for dynamically added rows
+        document.getElementById('customerTableBody').addEventListener('click', (event) => {
+            if (event.target.classList.contains('btn-warning')) {
+                const row = event.target.closest('tr');
+                showCustomerModal(row);
+            }
+        });
+
+        document.getElementById('saveCustomerButton').addEventListener('click', saveCustomerDetails);
     });
+
+    const showCustomerModal = (row) => {
+        const customerId = row.children[0].innerText; // Retrieve customer ID from the row
+
+        // Fetch customer details using customerId (for now, we use mock data)
+        const customerDetails = getCustomerDetailsAPI(customerId);
+
+        // Populate the modal with customer details
+        document.getElementById('modalCustomerId').value = customerDetails.userId;
+        document.getElementById('modalCustomerName').value = customerDetails.firstName + customerDetails.lastName;
+        document.getElementById('modalCustomerEmail').value = customerDetails.username;
+        document.getElementById('modalCustomerPhone').value = customerDetails.phoneNumber;
+        document.getElementById('modalCustomerDate').value = customerDetails.createdDate;
+
+        // Show the modal
+        const modal = new bootstrap.Modal(document.getElementById('customerDetailModal'));
+        modal.show();
+    };
+
+    const saveCustomerDetails = () => {
+        const customerId = document.getElementById('modalCustomerId').value;
+        const customerName = document.getElementById('modalCustomerName').value;
+        const customerEmail = document.getElementById('modalCustomerEmail').value;
+        const customerPhone = document.getElementById('modalCustomerPhone').value;
+        const customerDate = document.getElementById('modalCustomerDate').value;
+
+        // Implement logic to save updated customer details (send data to backend, etc.)
+        console.log(`Saving changes for Customer ID: \${customerId}, Name: \${customerName}, Email: \${customerEmail}, Phone: \${customerPhone}, Date: \${customerDate}`);
+
+        // Close the modal after saving changes
+        const modal = bootstrap.Modal.getInstance(document.getElementById('customerDetailModal'));
+        modal.hide();
+    };
 </script>

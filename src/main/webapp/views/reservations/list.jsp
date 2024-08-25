@@ -50,6 +50,59 @@
     </table>
 </div>
 
+<!-- Order Detail Modal -->
+<div class="modal fade" id="orderDetailModal" tabindex="-1" aria-labelledby="orderDetailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="orderDetailModalLabel">訂單詳細資訊</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <strong>訂單編號:</strong>
+                        <p id="modalOrderId" class="text-muted"></p>
+                    </div>
+                    <div class="col-md-4">
+                        <strong>客戶名稱:</strong>
+                        <p id="modalCustomerName" class="text-muted"></p>
+                    </div>
+                    <div class="col-md-4">
+                        <strong>旅館名稱:</strong>
+                        <p id="modalHotelName" class="text-muted"></p>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <strong>日期:</strong>
+                        <p id="modalDate" class="text-muted"></p>
+                    </div>
+                    <div class="col-md-4">
+                        <strong>金額:</strong>
+                        <p id="modalAmount" class="text-muted"></p>
+                    </div>
+                    <div class="col-md-4">
+                        <strong>狀態:</strong>
+                        <p id="modalStatus" class="text-muted"></p>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        <strong>詳細說明:</strong>
+                        <textarea id="modalDetails" class="form-control" rows="3" placeholder="請輸入詳細說明" style="resize: none;"></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer justify-content-between">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" id="saveButton">儲存變更</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
 <%@ include file="/components/pagination.jsp" %>
 <%@ include file="/components/alert.jsp" %>
 
@@ -151,8 +204,7 @@
                     <button class="btn btn-sm btn-warning">編輯</button>
                     <button class="btn btn-sm btn-danger">刪除</button>
                 </td>
-            </tr>
-        `;
+            </tr>`;
             tableBody.insertAdjacentHTML('beforeend', row);
         });
     };
@@ -179,6 +231,17 @@
         });
     };
 
+    const getOrderDetailsAPI = (orderId) => {
+        // Simulated data for demonstration purposes
+        const mockData = {
+            'O001': { orderId: 'O001', customerName: '張三', hotelName: '假日酒店', date: '2024-07-01', amount: '3000', status: '已完成', details: '此訂單已完成。' },
+            'O002': { orderId: 'O002', customerName: '李四', hotelName: '豪華旅館', date: '2024-07-15', amount: '4500', status: '未完成', details: '此訂單尚未完成，等待付款。' },
+            'O003': { orderId: 'O003', customerName: '王五', hotelName: '經典飯店', date: '2024-08-05', amount: '2500', status: '爭議處理', details: '此訂單目前處於爭議處理狀態。' }
+        };
+
+        return mockData[orderId] || {};
+    };
+
     const loadOrders = async (offset = 0) => {
         try {
             const res = await getOrdersListAPI(offset);
@@ -194,5 +257,45 @@
     document.addEventListener('DOMContentLoaded', () => {
         loadOrders();
         initTable();
+
+        // Event delegation for dynamically added rows
+        document.getElementById('orderTableBody').addEventListener('click', (event) => {
+            if (event.target.classList.contains('btn-warning')) {
+                const row = event.target.closest('tr');
+                showModal(row);
+            }
+        });
+
+        document.getElementById('saveButton').addEventListener('click', () => {
+            const orderId = document.getElementById('modalOrderId').innerText;
+            const updatedDetails = document.getElementById('modalDetails').value;
+
+            // Implement logic to save updated details (send data to backend, etc.)
+            console.log(`Saving changes for Order ID: \${orderId}, Updated Details: \${updatedDetails}`);
+
+            // Close the modal after saving changes
+            const modal = bootstrap.Modal.getInstance(document.getElementById('orderDetailModal'));
+            modal.hide();
+        });
     });
+
+    const showModal = (row) => {
+        const orderId = row.children[0].innerText; // Retrieve order ID from the row
+
+        // Fetch order details using orderId (for now, we use mock data)
+        const orderDetails = getOrderDetailsAPI(orderId);
+
+        // Populate the modal with order details
+        document.getElementById('modalOrderId').innerText = orderDetails.orderId;
+        document.getElementById('modalCustomerName').innerText = orderDetails.customerName;
+        document.getElementById('modalHotelName').innerText = orderDetails.hotelName;
+        document.getElementById('modalDate').innerText = orderDetails.date;
+        document.getElementById('modalAmount').innerText = orderDetails.amount;
+        document.getElementById('modalStatus').innerText = orderDetails.status;
+        document.getElementById('modalDetails').value = orderDetails.details;
+
+        // Show the modal
+        const modal = new bootstrap.Modal(document.getElementById('orderDetailModal'));
+        modal.show();
+    };
 </script>

@@ -38,6 +38,49 @@
     </table>
 </div>
 
+<!-- Company Detail Modal -->
+<div class="modal fade" id="companyDetailModal" tabindex="-1" aria-labelledby="companyDetailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="companyDetailModalLabel">公司詳細資訊</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="modalCompanyId" class="form-label">公司編號</label>
+                    <input type="text" class="form-control" id="modalCompanyId" readonly>
+                </div>
+                <div class="mb-3">
+                    <label for="modalCompanyName" class="form-label">公司名稱</label>
+                    <input type="text" class="form-control" id="modalCompanyName">
+                </div>
+                <div class="mb-3">
+                    <label for="modalManager" class="form-label">負責人</label>
+                    <input type="text" class="form-control" id="modalManager">
+                </div>
+                <div class="mb-3">
+                    <label for="modalPhone" class="form-label">電話</label>
+                    <input type="text" class="form-control" id="modalPhone">
+                </div>
+                <div class="mb-3">
+                    <label for="modalEmail" class="form-label">電子郵件</label>
+                    <input type="email" class="form-control" id="modalEmail">
+                </div>
+                <div class="mb-3">
+                    <label for="modalRegistrationDate" class="form-label">註冊日期</label>
+                    <input type="date" class="form-control" id="modalRegistrationDate">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" id="saveCompanyButton">儲存變更</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
 <%@ include file="/components/pagination.jsp" %>
 <%@ include file="/components/alert.jsp" %>
 
@@ -166,6 +209,17 @@
             setTimeout(() => resolve(mockData), 100); // Simulate network delay
         });
     };
+
+    const getCompanyDetailsAPI = (companyId) => {
+        // Simulated data for demonstration purposes
+        const mockData = {
+            'C001': { companyId: 'C001', companyName: 'Company A', manager: 'Alice Smith', phone: '123-456-7890', email: 'alice@example.com', registrationDate: '2024-01-15' },
+            'C002': { companyId: 'C002', companyName: 'Company B', manager: 'Bob Jones', phone: '987-654-3210', email: 'bob@example.com', registrationDate: '2024-02-20' },
+            'C003': { companyId: 'C003', companyName: 'Company C', manager: 'Charlie Brown', phone: '555-555-5555', email: 'charlie@example.com', registrationDate: '2024-03-30' }
+        };
+
+        return mockData[companyId] || {};
+    };
     // const getCompaniesListAPI = (offset = 0) => {
     //     let url = '/companies?limit=' + 10 + '&offset=' + offset;
     //     return fetch(url, {
@@ -198,5 +252,50 @@
     document.addEventListener('DOMContentLoaded', () => {
         loadCompanies();
         initTable();
+
+        // Event delegation for dynamically added rows
+        document.getElementById('companyTableBody').addEventListener('click', (event) => {
+            if (event.target.classList.contains('btn-warning')) {
+                const row = event.target.closest('tr');
+                showCompanyModal(row);
+            }
+        });
+
+        document.getElementById('saveCompanyButton').addEventListener('click', saveCompanyDetails)
     });
+
+    const showCompanyModal = (row) => {
+        const companyId = row.children[0].innerText; // Retrieve company ID from the row
+
+        // Fetch company details using companyId (for now, we use mock data)
+        const companyDetails = getCompanyDetailsAPI(companyId);
+
+        // Populate the modal with company details
+        document.getElementById('modalCompanyId').value = companyDetails.companyId;
+        document.getElementById('modalCompanyName').value = companyDetails.companyName;
+        document.getElementById('modalManager').value = companyDetails.manager;
+        document.getElementById('modalPhone').value = companyDetails.phone;
+        document.getElementById('modalEmail').value = companyDetails.email;
+        document.getElementById('modalRegistrationDate').value = companyDetails.registrationDate;
+
+        // Show the modal
+        const modal = new bootstrap.Modal(document.getElementById('companyDetailModal'));
+        modal.show();
+    };
+
+    const saveCompanyDetails = () => {
+        const companyId = document.getElementById('modalCompanyId').value;
+        const companyName = document.getElementById('modalCompanyName').value;
+        const manager = document.getElementById('modalManager').value;
+        const phone = document.getElementById('modalPhone').value;
+        const email = document.getElementById('modalEmail').value;
+        const registrationDate = document.getElementById('modalRegistrationDate').value;
+
+        // Implement logic to save updated company details (send data to backend, etc.)
+        console.log(`Saving changes for Company ID: \${companyId}, Name: \${companyName}, Manager: \${manager}, Phone: \${phone}, Email: \${email}, Date: \${registrationDate}`);
+
+        // Close the modal after saving changes
+        const modal = bootstrap.Modal.getInstance(document.getElementById('companyDetailModal'));
+        modal.hide();
+    };
 </script>
