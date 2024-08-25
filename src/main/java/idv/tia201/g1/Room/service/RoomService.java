@@ -1,9 +1,7 @@
 package idv.tia201.g1.Room.service;
 
 
-import idv.tia201.g1.dto.RoomResponse;
 import idv.tia201.g1.entity.Room;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -13,13 +11,15 @@ import java.util.List;
 public interface RoomService {
 
 
-    Room addNewRoom(MultipartFile photo,
+    Room addNewRoom(Long companyId, MultipartFile photo,
                     String roomType,
-                    int roomPrice) throws SQLException, IOException;
+                    int roomPrice, Long changeId) throws SQLException, IOException;
 
     List<String> getAllRoomTypes();
 
     List<Room> getAllRooms();
 
     byte[] getRoomPhotoByRoomId(Long roomId) throws SQLException;
+
+    void deletRoom(Long roomId);
 }
