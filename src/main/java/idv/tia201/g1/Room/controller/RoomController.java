@@ -9,7 +9,7 @@ import idv.tia201.g1.entity.BookedRoom;
 import idv.tia201.g1.entity.Room;
 import lombok.RequiredArgsConstructor;
 import org.apache.tomcat.util.codec.binary.Base64;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -31,11 +31,13 @@ public class RoomController {
     @CrossOrigin(origins = "http://localhost:5173")
     @PostMapping("/add/new-room")
     public ResponseEntity<RoomResponse> addNewRoom(
+            @RequestParam("companyId") Long companyId,
+            @RequestParam("changeId") Long changeId,
             @RequestParam("photo") MultipartFile photo,
             @RequestParam("roomType") String roomType,
             @RequestParam("roomPrice") int roomPrice) throws SQLException, IOException {
 
-        Room savedRoom = roomService.addNewRoom(photo, roomType,roomPrice);
+        Room savedRoom = roomService.addNewRoom(companyId, photo, roomType, roomPrice,changeId);
         RoomResponse roomResponse = new RoomResponse(
                 savedRoom.getId(),
                 savedRoom.getRoomType(),
@@ -43,21 +45,23 @@ public class RoomController {
         );
         return ResponseEntity.ok(roomResponse);
     }
+
     @CrossOrigin(origins = "http://localhost:5173")
     @GetMapping("/room/types")
     public List<String> getRoomTypes() throws SQLException {
-        return roomService.getAllRoomTypes();
+        return roomService.getAllRoomTypes();  // 獲取 category
     }
 
+    @GetMapping("/all")
     public ResponseEntity<List<RoomResponse>> getAllRooms() throws SQLException {
         List<Room> rooms = roomService.getAllRooms();
         List<RoomResponse> roomResponses = new ArrayList<>();
 
-        for(Room ele : rooms) {
+        for (Room ele : rooms) {
             byte[] photoByte = roomService.getRoomPhotoByRoomId(ele.getId());
             RoomResponse roomResponse = getRoomResponse(ele);
 
-            if(photoByte != null && photoByte.length > 0) {
+            if (photoByte != null && photoByte.length > 0) {
                 String base64Photo = Base64.encodeBase64String(photoByte);
                 roomResponse.setPhoto(base64Photo);
                 roomResponses.add(roomResponse);
@@ -73,31 +77,35 @@ public class RoomController {
                 .stream()
                 .map(booking ->
                         new BookingResponse(
-                        booking.getBookingId(),
-                        booking.getCheckInDate(),
-                        booking.getCheckOutDate(),
-                        booking.getBookingConfirmCode()))
+                                booking.getBookingId(),
+                                booking.getCheckInDate(),
+                                booking.getCheckOutDate(),
+                                booking.getBookingConfirmCode()))
                 .toList();
         byte[] photoBytes = null;
         Blob photoBlob = room.getPhoto();
-        if( photoBlob != null) {
+        if (photoBlob != null) {
             try {
-                photoBytes = photoBlob.getBytes(1, (int)photoBlob.length())
-            }catch (SQLException e){
+                photoBytes = photoBlob.getBytes(1, (int) photoBlob.length());
+            } catch (SQLException e) {
                 throw new PhotoRetrieverException("Error retrieving photo");
             }
         }
         return new RoomResponse(
                 room.getId(),
-                room.getRoomType(),
-                room.getRoomPrice(),
-                room.isBooked(),photoBytes,bookingInfo
-                );
+                room.getRoomType(),  // roomType 對應 category
+                room.getRoomPrice(),  // roomPrice 對應 price
+                room.isBooked(), photoBytes, bookingInfo
+        );
     }
-
 
     private List<BookedRoom> getAllBookingsByRoomId(Long roomId) {
         return bookingService.getAllBookingsByRoomId(roomId);
     }
 
+    @DeleteMapping("delete/room/{roomId}")
+    public ResponseEntity<Void> deleteRoom(@PathVariable Long roomId) {
+        roomService.deletRoom(roomId);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
 }
