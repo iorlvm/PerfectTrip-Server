@@ -1,6 +1,6 @@
 package idv.tia201.g1.chat.utils;
 
-import idv.tia201.g1.dto.MessageDTO;
+import idv.tia201.g1.chat.dto.MessageDTO;
 
 public class Utils {
     public static boolean isImageEmpty(MessageDTO.ImageDTO img) {

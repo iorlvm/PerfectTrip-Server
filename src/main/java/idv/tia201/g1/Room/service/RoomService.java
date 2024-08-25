@@ -1,7 +1,7 @@
 package idv.tia201.g1.Room.service;
 
 
-import idv.tia201.g1.entity.Room;
+import idv.tia201.g1.Room.entity.Room;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;

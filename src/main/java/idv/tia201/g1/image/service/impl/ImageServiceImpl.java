@@ -1,12 +1,12 @@
 package idv.tia201.g1.image.service.impl;
 
-import idv.tia201.g1.dto.ImageUploadRequest;
-import idv.tia201.g1.entity.Image;
+import idv.tia201.g1.image.dto.ImageUploadRequest;
+import idv.tia201.g1.image.entity.Image;
 import idv.tia201.g1.image.dao.ImageDao;
 import idv.tia201.g1.image.service.ImageService;
-import idv.tia201.g1.utils.basic.ImageUtil;
-import idv.tia201.g1.utils.redis.ImageCacheClient;
-import idv.tia201.g1.utils.redis.RedisIdWorker;
+import idv.tia201.g1.core.utils.basic.ImageUtil;
+import idv.tia201.g1.image.utils.ImageCacheClient;
+import idv.tia201.g1.core.utils.redis.RedisIdWorker;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -17,7 +17,7 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
-import static idv.tia201.g1.utils.Constants.*;
+import static idv.tia201.g1.core.utils.Constants.*;
 
 @Service
 public class ImageServiceImpl implements ImageService {

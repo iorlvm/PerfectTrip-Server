@@ -1,6 +1,6 @@
 package idv.tia201.g1.Room.service;
 
-import idv.tia201.g1.entity.BookedRoom;
+import idv.tia201.g1.Room.entity.BookedRoom;
 
 import java.util.List;
 

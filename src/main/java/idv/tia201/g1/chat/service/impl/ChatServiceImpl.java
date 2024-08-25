@@ -2,20 +2,20 @@ package idv.tia201.g1.chat.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import idv.tia201.g1.authentication.service.UserAuth;
+import idv.tia201.g1.chat.dto.*;
+import idv.tia201.g1.core.entity.UserAuth;
 import idv.tia201.g1.chat.dao.ChatMessageDao;
 import idv.tia201.g1.chat.dao.ChatParticipantDao;
 import idv.tia201.g1.chat.dao.ChatRoomDao;
 import idv.tia201.g1.chat.event.UserUpdateEvent;
 import idv.tia201.g1.chat.service.CacheService;
 import idv.tia201.g1.chat.service.ChatService;
-import idv.tia201.g1.dto.*;
-import idv.tia201.g1.entity.ChatMessage;
-import idv.tia201.g1.entity.ChatParticipant;
-import idv.tia201.g1.entity.ChatRoom;
-import idv.tia201.g1.utils.DtoConverter;
-import idv.tia201.g1.utils.UserHolder;
-import idv.tia201.g1.utils.redis.RedisIdWorker;
+import idv.tia201.g1.chat.entity.ChatMessage;
+import idv.tia201.g1.chat.entity.ChatParticipant;
+import idv.tia201.g1.chat.entity.ChatRoom;
+import idv.tia201.g1.chat.utils.DtoConverter;
+import idv.tia201.g1.core.utils.UserHolder;
+import idv.tia201.g1.core.utils.redis.RedisIdWorker;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.*;
@@ -26,7 +26,7 @@ import java.time.Instant;
 import java.util.*;
 
 import static idv.tia201.g1.chat.utils.Utils.isImageEmpty;
-import static idv.tia201.g1.utils.Constants.*;
+import static idv.tia201.g1.core.utils.Constants.*;
 
 @Service
 public class ChatServiceImpl implements ChatService {

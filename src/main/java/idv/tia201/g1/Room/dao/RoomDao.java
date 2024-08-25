@@ -1,6 +1,6 @@
 package idv.tia201.g1.Room.dao;
 
-import idv.tia201.g1.entity.Room;
+import idv.tia201.g1.Room.entity.Room;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 

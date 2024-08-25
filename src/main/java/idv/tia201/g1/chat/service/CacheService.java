@@ -1,10 +1,10 @@
 package idv.tia201.g1.chat.service;
 
-import idv.tia201.g1.dto.MessageDTO;
-import idv.tia201.g1.entity.ChatMessage;
-import idv.tia201.g1.entity.ChatParticipant;
-import idv.tia201.g1.entity.ChatRoom;
-import idv.tia201.g1.entity.ChatUserMapping;
+import idv.tia201.g1.chat.dto.MessageDTO;
+import idv.tia201.g1.chat.entity.ChatMessage;
+import idv.tia201.g1.chat.entity.ChatParticipant;
+import idv.tia201.g1.chat.entity.ChatRoom;
+import idv.tia201.g1.chat.entity.ChatUserMapping;
 
 import java.sql.Timestamp;
 import java.util.List;

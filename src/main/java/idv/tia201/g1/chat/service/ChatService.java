@@ -1,9 +1,9 @@
 package idv.tia201.g1.chat.service;
 
-import idv.tia201.g1.authentication.service.UserAuth;
-import idv.tia201.g1.dto.ChatRoomDTO;
-import idv.tia201.g1.dto.MessageDTO;
-import idv.tia201.g1.dto.UserIdentifier;
+import idv.tia201.g1.core.entity.UserAuth;
+import idv.tia201.g1.chat.dto.ChatRoomDTO;
+import idv.tia201.g1.chat.dto.MessageDTO;
+import idv.tia201.g1.chat.dto.UserIdentifier;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;

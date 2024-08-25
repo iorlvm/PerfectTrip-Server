@@ -1,6 +1,6 @@
 package idv.tia201.g1.chat.event;
 
-import idv.tia201.g1.dto.PayloadDTO;
+import idv.tia201.g1.chat.dto.PayloadDTO;
 import lombok.Getter;
 import org.springframework.context.ApplicationEvent;
 

@@ -1,6 +1,6 @@
 package idv.tia201.g1.image.dao.impl;
 
-import idv.tia201.g1.entity.Image;
+import idv.tia201.g1.image.entity.Image;
 import idv.tia201.g1.image.dao.ImageDao;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;

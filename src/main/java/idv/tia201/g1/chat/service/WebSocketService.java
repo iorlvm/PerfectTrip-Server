@@ -1,6 +1,6 @@
 package idv.tia201.g1.chat.service;
 
-import idv.tia201.g1.dto.PayloadDTO;
+import idv.tia201.g1.chat.dto.PayloadDTO;
 
 public interface WebSocketService {
     /**

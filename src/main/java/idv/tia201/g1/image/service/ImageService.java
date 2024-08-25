@@ -1,7 +1,7 @@
 package idv.tia201.g1.image.service;
 
-import idv.tia201.g1.dto.ImageUploadRequest;
-import idv.tia201.g1.entity.Image;
+import idv.tia201.g1.image.dto.ImageUploadRequest;
+import idv.tia201.g1.image.entity.Image;
 
 public interface ImageService {
 

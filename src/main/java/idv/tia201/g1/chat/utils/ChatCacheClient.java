@@ -1,7 +1,7 @@
 package idv.tia201.g1.chat.utils;
 
-import idv.tia201.g1.entity.ChatParticipant;
-import idv.tia201.g1.utils.basic.JSONUtil;
+import idv.tia201.g1.chat.entity.ChatParticipant;
+import idv.tia201.g1.core.utils.basic.JSONUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
@@ -13,8 +13,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static idv.tia201.g1.utils.Constants.CACHE_CHAT_PARTICIPANT;
-import static idv.tia201.g1.utils.Constants.LOCK_CHAT_PARTICIPANT;
+import static idv.tia201.g1.core.utils.Constants.CACHE_CHAT_PARTICIPANT;
+import static idv.tia201.g1.core.utils.Constants.LOCK_CHAT_PARTICIPANT;
 
 
 @Slf4j

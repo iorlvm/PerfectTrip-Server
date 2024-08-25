@@ -1,11 +1,11 @@
 package idv.tia201.g1.chat.controller;
 
 import idv.tia201.g1.chat.service.ChatService;
-import idv.tia201.g1.dto.ChatRoomDTO;
-import idv.tia201.g1.dto.Result;
-import idv.tia201.g1.dto.MessageDTO;
-import idv.tia201.g1.dto.UserIdentifier;
-import idv.tia201.g1.utils.UserHolder;
+import idv.tia201.g1.chat.dto.ChatRoomDTO;
+import idv.tia201.g1.core.dto.Result;
+import idv.tia201.g1.chat.dto.MessageDTO;
+import idv.tia201.g1.chat.dto.UserIdentifier;
+import idv.tia201.g1.core.utils.UserHolder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,7 +13,7 @@ import java.sql.Timestamp;
 import java.util.List;
 import java.util.Set;
 
-import static idv.tia201.g1.utils.Constants.TIMESTAMP_MAX_STRING;
+import static idv.tia201.g1.core.utils.Constants.TIMESTAMP_MAX_STRING;
 
 @RestController
 @RequestMapping("/chat")

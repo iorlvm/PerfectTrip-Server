@@ -6,14 +6,14 @@ import idv.tia201.g1.chat.dao.ChatParticipantDao;
 import idv.tia201.g1.chat.dao.ChatRoomDao;
 import idv.tia201.g1.chat.dao.ChatUserMappingDao;
 import idv.tia201.g1.chat.service.CacheService;
-import idv.tia201.g1.dto.MessageDTO;
-import idv.tia201.g1.entity.ChatMessage;
-import idv.tia201.g1.entity.ChatParticipant;
-import idv.tia201.g1.entity.ChatRoom;
-import idv.tia201.g1.entity.ChatUserMapping;
-import idv.tia201.g1.utils.basic.JSONUtil;
-import idv.tia201.g1.utils.redis.CacheClient;
-import idv.tia201.g1.utils.redis.RedisIdWorker;
+import idv.tia201.g1.chat.dto.MessageDTO;
+import idv.tia201.g1.chat.entity.ChatMessage;
+import idv.tia201.g1.chat.entity.ChatParticipant;
+import idv.tia201.g1.chat.entity.ChatRoom;
+import idv.tia201.g1.chat.entity.ChatUserMapping;
+import idv.tia201.g1.core.utils.basic.JSONUtil;
+import idv.tia201.g1.core.utils.redis.CacheClient;
+import idv.tia201.g1.core.utils.redis.RedisIdWorker;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
@@ -32,7 +32,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import static idv.tia201.g1.chat.utils.Utils.isImageEmpty;
-import static idv.tia201.g1.utils.Constants.*;
+import static idv.tia201.g1.core.utils.Constants.*;
 
 @Service
 public class CacheServiceImpl implements CacheService {

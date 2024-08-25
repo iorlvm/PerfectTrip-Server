@@ -1,6 +1,6 @@
 package idv.tia201.g1.chat.dao;
 
-import idv.tia201.g1.entity.ChatMessage;
+import idv.tia201.g1.chat.entity.ChatMessage;
 import io.lettuce.core.dynamic.annotation.Param;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

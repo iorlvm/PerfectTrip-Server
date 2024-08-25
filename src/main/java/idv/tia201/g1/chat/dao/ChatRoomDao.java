@@ -1,6 +1,6 @@
 package idv.tia201.g1.chat.dao;
 
-import idv.tia201.g1.entity.ChatRoom;
+import idv.tia201.g1.chat.entity.ChatRoom;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

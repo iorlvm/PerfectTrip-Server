@@ -3,7 +3,7 @@ package idv.tia201.g1.Room.service.impl;
 import idv.tia201.g1.Room.dao.RoomDao;
 import idv.tia201.g1.Room.exception.ResourceNotFoundException;
 import idv.tia201.g1.Room.service.RoomService;
-import idv.tia201.g1.entity.Room;
+import idv.tia201.g1.Room.entity.Room;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;

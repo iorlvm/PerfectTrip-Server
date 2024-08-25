@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import idv.tia201.g1.chat.event.UserUpdateEvent;
 import idv.tia201.g1.chat.service.CacheService;
 import idv.tia201.g1.chat.service.WebSocketService;
-import idv.tia201.g1.dto.PayloadDTO;
+import idv.tia201.g1.chat.dto.PayloadDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;

@@ -1,6 +1,6 @@
 package idv.tia201.g1.image.dao;
 
-import idv.tia201.g1.entity.Image;
+import idv.tia201.g1.image.entity.Image;
 
 public interface ImageDao  {
     Image findById(Long id);

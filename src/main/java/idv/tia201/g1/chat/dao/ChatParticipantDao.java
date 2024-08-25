@@ -1,6 +1,6 @@
 package idv.tia201.g1.chat.dao;
 
-import idv.tia201.g1.entity.ChatParticipant;
+import idv.tia201.g1.chat.entity.ChatParticipant;
 import io.lettuce.core.dynamic.annotation.Param;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;

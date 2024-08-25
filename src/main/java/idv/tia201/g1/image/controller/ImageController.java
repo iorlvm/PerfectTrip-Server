@@ -1,10 +1,10 @@
 package idv.tia201.g1.image.controller;
 
-import idv.tia201.g1.dto.ImageUploadRequest;
-import idv.tia201.g1.dto.Result;
-import idv.tia201.g1.entity.Image;
+import idv.tia201.g1.image.dto.ImageUploadRequest;
+import idv.tia201.g1.core.dto.Result;
+import idv.tia201.g1.image.entity.Image;
 import idv.tia201.g1.image.service.ImageService;
-import idv.tia201.g1.utils.UserHolder;
+import idv.tia201.g1.core.utils.UserHolder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -12,7 +12,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import static idv.tia201.g1.utils.Constants.ROLE_ADMIN;
+import static idv.tia201.g1.core.utils.Constants.ROLE_ADMIN;
 
 @RestController
 @RequestMapping("/image")

@@ -1,10 +1,9 @@
 package idv.tia201.g1.chat.dao;
 
-import idv.tia201.g1.entity.ChatParticipant;
+import idv.tia201.g1.chat.entity.ChatParticipant;
 
 import java.sql.Timestamp;
 import java.util.List;
-import java.util.Set;
 
 public interface CustomChatParticipantDao {
     List<ChatParticipant> findByChatId(Long chatId);

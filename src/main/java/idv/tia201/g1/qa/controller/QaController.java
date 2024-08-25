@@ -1,11 +1,9 @@
 package idv.tia201.g1.qa.controller;
 
-import idv.tia201.g1.dto.Result;
-import idv.tia201.g1.entity.QuestionAnswer;
+import idv.tia201.g1.core.dto.Result;
+import idv.tia201.g1.qa.entity.qa;
 import idv.tia201.g1.qa.service.QaService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -21,7 +19,7 @@ public class QaController {
 
     @GetMapping("/QAs")
     public Result Qa() {
-        List<QuestionAnswer> all = qaService.getAll();
+        List<qa> all = qaService.getAll();
         return Result.ok(all);
     }
 

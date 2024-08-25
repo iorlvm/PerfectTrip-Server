@@ -1,7 +1,7 @@
 package idv.tia201.g1.chat.dao.impl;
 
 import idv.tia201.g1.chat.dao.CustomChatParticipantDao;
-import idv.tia201.g1.entity.ChatParticipant;
+import idv.tia201.g1.chat.entity.ChatParticipant;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
@@ -11,7 +11,7 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
-import static idv.tia201.g1.utils.Constants.*;
+import static idv.tia201.g1.core.utils.Constants.*;
 
 @Repository
 public class CustomChatParticipantDaoImpl implements CustomChatParticipantDao {

@@ -5,8 +5,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import idv.tia201.g1.chat.service.CacheService;
 import idv.tia201.g1.chat.service.ChatService;
 import idv.tia201.g1.chat.service.WebSocketService;
-import idv.tia201.g1.dto.MessageDTO;
-import idv.tia201.g1.dto.PayloadDTO;
+import idv.tia201.g1.chat.dto.MessageDTO;
+import idv.tia201.g1.chat.dto.PayloadDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -14,7 +14,7 @@ import java.sql.Timestamp;
 import java.time.Instant;
 
 import static idv.tia201.g1.chat.utils.Utils.isImageEmpty;
-import static idv.tia201.g1.utils.Constants.*;
+import static idv.tia201.g1.core.utils.Constants.*;
 
 @Service
 public class WebSocketServiceImpl implements WebSocketService {
