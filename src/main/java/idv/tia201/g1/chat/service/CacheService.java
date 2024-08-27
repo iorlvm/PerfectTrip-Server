@@ -68,6 +68,16 @@ public interface CacheService {
     void updateLastReadingAt(Long chatId, Long mappingUserId, Timestamp time);
 
     /**
+     * 更新聊天室參與者的聊天室設定
+     *
+     * @param chatId 聊天室id
+     * @param mappingUserId 使用者的id
+     * @param pinned 釘選設定
+     * @param notify 通知設定
+     */
+    void updateChatSettings(Long chatId, Long mappingUserId, Boolean pinned, String notify);
+
+    /**
      * 對聊天室的名稱或是照片進行修改
      *
      * @param chatId 聊天室的id

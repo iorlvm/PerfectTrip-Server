@@ -175,6 +175,27 @@ public class CacheServiceImpl implements CacheService {
     }
 
     @Override
+    public void updateChatSettings(Long chatId, Long mappingUserId, Boolean pinned, String notify) {
+        if (pinned == null && notify == null) return; // 沒有修改任何東西
+
+        ChatParticipant participant = findParticipantByChatIdAndMappingUserId(chatId, mappingUserId);
+        if (pinned != null) participant.setPinned(pinned);
+        if (notify != null) participant.setNotify(notify);
+
+        // 修改緩存中的資料
+        chatCacheClient.mapPut(
+                CACHE_CHAT_PARTICIPANT + chatId,
+                mappingUserId.toString(),
+                participant,
+                CACHE_CHAT_TTL,
+                TimeUnit.SECONDS);
+        // 將修改丟入隊列中
+        stringRedisTemplate.opsForStream().add(
+                QUEUE_NAME,
+                Collections.singletonMap("participant", JSONUtil.toJsonStr(participant)));
+    }
+
+    @Override
     public void updateChatInfo(Long chatId, String chatName, String chatPhoto) {
         ChatRoom chatRoom = findChatRoomByChatId(chatId);
         if (chatName != null) chatRoom.setChatName(chatName);
