@@ -106,7 +106,7 @@ public class PaymentServiceImpl implements PaymentService {
 
         if (paymentResponse.getStatus() != PAY_STATE_SUCCESS) {
             // 付款不成功, 不進行後續操作
-            return;
+            throw new IllegalStateException("支付失敗: 請稍後重試。");
         }
 
         order.setStatus("付款完成"); // TODO: 之後討論一下狀態的顯示對應
