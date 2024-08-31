@@ -1,16 +1,12 @@
 package idv.tia201.g1.product.dao;
 
-import idv.tia201.g1.product.entity.Room;
+import idv.tia201.g1.product.entity.Product;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
 
-import java.util.List;
-
-public interface RoomDao extends JpaRepository<Room, Integer> {
+public interface RoomDao extends JpaRepository<Product, Integer> {
 
 
-    @Query("SELECT DISTINCT r.roomType FROM Room r")
-    List<String> findDistinctRoomTypes();
+
 
 
 }
