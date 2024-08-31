@@ -3,15 +3,20 @@ package idv.tia201.g1.order.service.impl;
 import idv.tia201.g1.core.dto.Result;
 import idv.tia201.g1.core.entity.UserAuth;
 import idv.tia201.g1.core.utils.UserHolder;
+import idv.tia201.g1.order.dao.OrderDao;
 import idv.tia201.g1.order.dto.CreateOrderRequest;
 import idv.tia201.g1.order.entity.Order;
 import idv.tia201.g1.order.service.OrderService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import static idv.tia201.g1.core.utils.Constants.ROLE_USER;
 
 @Service
 public class OrderServiceImpl implements OrderService {
+
+    @Autowired
+    private OrderDao orderDao;
 
     @Override
     public Order createOrder(CreateOrderRequest createOrderRequest) {
