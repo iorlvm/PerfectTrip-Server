@@ -109,7 +109,7 @@ public class PaymentServiceImpl implements PaymentService {
             throw new IllegalStateException("支付失敗: 請稍後重試。");
         }
 
-        order.setStatus("付款完成"); // TODO: 之後討論一下狀態的顯示對應
+        order.setPayStatus(paymentResponse.getRecTradeId()); // TODO: 之後討論一下狀態的顯示對應
         orderDao.save(order);
     }
 

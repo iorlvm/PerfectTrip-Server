@@ -1,13 +1,10 @@
 package idv.tia201.g1.order.entity;
 
-
-import idv.tia201.g1.member.entity.User;
 import jakarta.persistence.*;
 import lombok.Data;
 
 import java.sql.Date;
 import java.sql.Timestamp;
-import java.time.Instant;
 
 @Data
 @Entity
@@ -17,77 +14,59 @@ public class Order {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "order_id")
-    private int orderId;
+    private Integer orderId;
 
-    //訂單狀態 EX:已完成訂單
-    @Column(name = "status", nullable = false, length = 50)
-    private String status;
+    @Column(name = "user_id")
+    private Integer userId;
 
-    //折扣前金額(快照)
-    @Column(name = "full_price", nullable = false)
-    private int fullPrice;
+    @Column(name = "pay_status")
+    private String payStatus;
 
-    //折扣(快照)
-    @Column(name = "discount", nullable = false)
-    private int discount;
+    @Column(name = "full_price")
+    private Integer fullPrice;
 
-    //稅金(快照)
-    @Column(name = "tax", nullable = false)
-    private int tax;
+    @Column(name = "service_fee")
+    private Integer serviceFee;
 
-    //手續費(快照)
-    @Column(name = "service_fee", nullable = false)
-    private int serviceFee;
+    @Column(name = "discount")
+    private Integer discount;
 
-    //實際金額
-    @Column(name = "actual_price", nullable = false)
-    private int actualPrice;
+    @Column(name = "tax")
+    private Integer tax;
 
-    //實際入住人名
-    @Column(name = "actual_living", nullable = false, length = 50)
-    private String actualLiving;
+    @Column(name = "actual_price")
+    private Integer actualPrice;
 
-    //FK;由哪位使用者下訂的
-    @Column(name = "user_id", nullable = false)
-    private int userId;
-
-    //FK;由哪一間旅館的房間
-    @Column(name = "change_id", nullable = false)
-    private int changeId;
-
-    //開始入住日期
-    @Column(name = "start_date", nullable = false)
+    @Column(name = "start_date")
     private Date startDate;
 
-    //退房日期
-    @Column(name = "end_date", nullable = false)
+    @Column(name = "end_date")
     private Date endDate;
 
-    //訂單創建日期
-    @Column(name = "created_date", nullable = false, updatable = false)
+    @Column(name = "order_request")
+    private String orderRequest;
+
+    //希望入住時間
+    @Column(name = "wished_time")
+    private String wishedTime;
+
+    @Column(name = "change_id")
+    private Integer changeId;
+
+    @Column(name = "created_date", updatable = false)
     private Timestamp createdDate;
 
-    //
-    @Column(name = "last_modified_date", nullable = false)
+    @Column(name = "last_modified_date")
     private Timestamp lastModifiedDate;
-
-    @ManyToOne
-    @JoinColumn(name = "user_id", insertable = false, updatable = false)
-    private User user;
 
     @PrePersist
     protected void onCreate() {
-        if (createdDate == null) {
-            createdDate = Timestamp.from(Instant.now());
-        }
+        createdDate = new Timestamp(System.currentTimeMillis());
         lastModifiedDate = createdDate;
     }
 
     @PreUpdate
     protected void onUpdate() {
-//        if (lastModifiedDate == null) {
-//            lastModifiedDate = Timestamp.from(Instant.now());
-//        }
+        lastModifiedDate = new Timestamp(System.currentTimeMillis());
     }
-
 }
