@@ -38,7 +38,9 @@ public class AdminController {
 
     @GetMapping("/logout")
     public RedirectView logout(HttpSession session) {
+        String token = (String) session.getAttribute("token");
         session.invalidate();
+        tokenService.revokeToken(token);
         return new RedirectView("/");
     }
 }
