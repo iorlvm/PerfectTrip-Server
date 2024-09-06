@@ -1,5 +1,6 @@
 package idv.tia201.g1.product.dto;
 
+import idv.tia201.g1.product.entity.Product;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.apache.tomcat.util.codec.binary.Base64;
@@ -36,5 +37,9 @@ public class RoomResponse {
         this.isBooked = isBooked;
         this.photo = photoBytes != null ? Base64.encodeBase64String(photoBytes) : null;
         this.bookings = bookings;
+    }
+
+    public RoomResponse(Product theRoom) {
+
     }
 }

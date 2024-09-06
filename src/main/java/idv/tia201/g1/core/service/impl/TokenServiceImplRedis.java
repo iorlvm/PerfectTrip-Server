@@ -54,6 +54,12 @@ public class TokenServiceImplRedis implements TokenService {
     }
 
     @Override
+    public void revokeToken(String token) {
+        String key = LOGIN_USER + token;
+        stringRedisTemplate.delete(key);
+    }
+
+    @Override
     public void flashLoginExpire(String token) {
         String key = LOGIN_USER + token;
         stringRedisTemplate.expire(key, LOGIN_TTL, TimeUnit.SECONDS);
