@@ -15,4 +15,9 @@ public class ImageUploadRequest {
     private Boolean resizeEnabled;
     private Integer width;
     private Integer height;
+
+
+    public ImageUploadRequest(byte[] bytes, String originalFilename) {
+
+    }
 }

@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.apache.tomcat.util.codec.binary.Base64;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Data
@@ -41,5 +42,8 @@ public class RoomResponse {
 
     public RoomResponse(Product theRoom) {
 
+    }
+
+    public RoomResponse(Integer id, String productName, BigDecimal roomPrice) {
     }
 }
