@@ -12,6 +12,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.sql.Date;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.LinkedList;
@@ -21,6 +23,9 @@ import static idv.tia201.g1.core.utils.Constants.ROLE_USER;
 
 @Service
 public class OrderServiceImpl implements OrderService {
+
+    private static final double SERVICE_FEE_PERCENT = 0.10; // 5%
+    private static final double TAX_PERCENT = 0.05; // 10%
 
     @Autowired
     private OrderDao orderDao;
@@ -104,6 +109,21 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public Order updateOrder(Order order) {
         return null;
+    }
+
+    @Override
+    public List<Order> getOrdersByUserId(Integer userId) {
+        return orderDao.findByUserId(userId);
+    }
+
+//    @Override
+//    public List<Order> getOrdersByCompanyId(Integer companyId) {
+//        return orderDao.findByCompanyId(companyId);
+//    }
+
+    @Override
+    public List<Order> getOrders() {
+        return orderDao.findAll();
     }
 
     private List<Double> getDiscountByCompanyIdBetweenStartDateAnEndDate(Integer companyId, Date startDate, Date endDate) {

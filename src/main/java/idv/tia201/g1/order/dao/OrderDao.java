@@ -3,13 +3,17 @@ package idv.tia201.g1.order.dao;
 import idv.tia201.g1.order.entity.Order;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.sql.Date;
 import java.util.List;
 
-public interface OrderDao extends JpaRepository<Order, Integer>{
+public interface OrderDao extends JpaRepository<Order, Integer> {
+    List<Order> findByUserId(Integer userId);
 
-    Order findByOrderId (Integer orderId);
+//    List<Order> findByCompanyId(Integer companyId);
+
+    Order findByOrderId(Integer orderId);
 
     @Query("SELECT SUM(p.price * od.quantity) FROM Order o " +
             "JOIN OrderDetail od ON od.orderId = o.orderId " +
