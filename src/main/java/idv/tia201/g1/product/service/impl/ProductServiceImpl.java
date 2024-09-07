@@ -37,7 +37,7 @@ public class ProductServiceImpl implements ProductService {
     @Autowired
     ProductDao productDao;
     @Autowired
-    ProductDetailsDao productDetailsDaoDao;
+    ProductDetailsDao productDetailsDao;
     @Autowired
     ProductFacilitiesDao productFacilitiesDao;
     @Autowired
@@ -46,6 +46,85 @@ public class ProductServiceImpl implements ProductService {
     ImageService imageService;
     @Autowired
     Product product;
+
+
+    /*** 新增 Product 方法 ***/
+    @Override
+    public Product handleAddProduct(AddProductRequest addProductRequest) {
+        // 請求參數檢查
+        if (addProductRequest == null) {
+            throw new IllegalArgumentException("參數異常：請求對象為 null");
+        }
+
+        if (StringUtils.isBlank(addProductRequest.getProductName())) {
+            throw new IllegalArgumentException("參數異常：商品名稱未填寫");
+        }
+
+        if (addProductRequest.getPrice() == null) {
+            throw new IllegalArgumentException("參數異常：價格未填寫");
+        }
+
+        if (addProductRequest.getStock() == null) {
+            throw new IllegalArgumentException("參數異常：庫存未填寫");
+        }
+
+        if (addProductRequest.getMaxOccupancy() == null) {
+            throw new IllegalArgumentException("參數異常：最大入住人數未填寫");
+        }
+
+        // changeId 跟 companyId 應該要從登入中的使用者取得 (也就是從UserHolder工具中取出)
+        UserAuth loginUser = UserHolder.getUser();
+        if (loginUser == null || !ROLE_COMPANY.equals(loginUser.getRole())) {
+            throw new IllegalStateException("狀態異常：使用者未登入或身份不屬於商家");
+        }
+
+        // 將商品存入資料庫
+        Product newProduct = new Product();
+        BeanUtils.copyProperties(addProductRequest, newProduct);
+        newProduct.setCompanyId(Long.valueOf(loginUser.getId()));
+        newProduct.setChangeId(Long.valueOf(loginUser.getId()));
+        Product saved = productDao.save(newProduct);
+
+        // 取得剛剛存入的商品id
+        Integer productId = saved.getProductId();
+
+        // 取得請求中的細節設定id後, 存入資料庫
+        ProductDetails productDetails = addProductRequest.getProductDetails();
+        if (productDetails != null) {
+            // 確保物件不為空
+            productDetails.setProductId(productId);
+            productDetailsDao.save(productDetails);
+        }
+
+        // 取得請求中所有的設施設定id後, 存入資料庫
+        List<ProductFacilities> productFacilities = addProductRequest.getProductFacilities();
+        if (productFacilities != null && !productFacilities.isEmpty()) {
+            // 確保物件不為空
+            productFacilities.forEach(facility -> facility.setProductId(productId));
+            productFacilitiesDao.saveAll(productFacilities);
+        }
+
+
+        ImageUploadRequest imageUploadRequest = addProductRequest.getImageUploadRequest();
+        if (imageUploadRequest != null) {
+            // 有傳輸圖片的情況, 使用ImageService處理並存放圖片
+            Image image = imageService.upload(imageUploadRequest);
+            Image save = imageService.save(image);
+            String url = "image/" + save.getId();
+
+            ProductPhotos productPhotos = new ProductPhotos();
+            productPhotos.setProductId(productId);
+            productPhotos.setPhotoUrl(url);
+            productPhotos.setDescription(save.getComment());
+            productPhotos.setMain(true);
+
+            // 將圖片存放到相簿中
+            productPhotosDao.save(productPhotos);
+        }
+
+        return newProduct;
+    }
+
 
     @Override
     public Product updateProduct(Long productId,
@@ -119,82 +198,7 @@ public class ProductServiceImpl implements ProductService {
         return product;
     }
 
-    /*** 新增 Product 方法 ***/
-    @Override
-    public Product handleAddProduct(AddProductRequest addProductRequest) {
-        // 請求參數檢查
-        if (addProductRequest == null) {
-            throw new IllegalArgumentException("參數異常：請求對象為 null");
-        }
 
-        if (StringUtils.isBlank(addProductRequest.getProductName())) {
-            throw new IllegalArgumentException("參數異常：商品名稱未填寫");
-        }
-
-        if (addProductRequest.getPrice() == null) {
-            throw new IllegalArgumentException("參數異常：價格未填寫");
-        }
-
-        if (addProductRequest.getStock() == null) {
-            throw new IllegalArgumentException("參數異常：庫存未填寫");
-        }
-
-        if (addProductRequest.getMaxOccupancy() == null) {
-            throw new IllegalArgumentException("參數異常：最大入住人數未填寫");
-        }
-
-        // changeId 跟 companyId 應該要從登入中的使用者取得 (也就是從UserHolder工具中取出)
-        UserAuth loginUser = UserHolder.getUser();
-        if (loginUser == null || !ROLE_COMPANY.equals(loginUser.getRole())) {
-            throw new IllegalStateException("狀態異常：使用者未登入或身份不屬於商家");
-        }
-
-        // 將商品存入資料庫
-        Product newProduct = new Product();
-        BeanUtils.copyProperties(addProductRequest, newProduct);
-        newProduct.setCompanyId(Long.valueOf(loginUser.getId()));
-        newProduct.setChangeId(Long.valueOf(loginUser.getId()));
-        Product saved = productDao.save(newProduct);
-
-        // 取得剛剛存入的商品id
-        Integer productId = saved.getProductId();
-
-        // 取得請求中的細節設定id後, 存入資料庫
-        ProductDetails productDetails = addProductRequest.getProductDetails();
-        if (productDetails != null) {
-            // 確保物件不為空
-            productDetails.setProductId(productId);
-            productDetailsDaoDao.save(productDetails);
-        }
-
-        // 取得請求中所有的設施設定id後, 存入資料庫
-        List<ProductFacilities> productFacilities = addProductRequest.getProductFacilities();
-        if (productFacilities != null && !productFacilities.isEmpty()) {
-            // 確保物件不為空
-            productFacilities.forEach(facility -> facility.setProductId(productId));
-            productFacilitiesDao.saveAll(productFacilities);
-        }
-
-
-        ImageUploadRequest imageUploadRequest = addProductRequest.getImageUploadRequest();
-        if (imageUploadRequest != null) {
-            // 有傳輸圖片的情況, 使用ImageService處理並存放圖片
-            Image image = imageService.upload(imageUploadRequest);
-            Image save = imageService.save(image);
-            String url = "image/" + save.getId();
-
-            ProductPhotos productPhotos = new ProductPhotos();
-            productPhotos.setProductId(productId);
-            productPhotos.setPhotoUrl(url);
-            productPhotos.setDescription(save.getComment());
-            productPhotos.setMain(true);
-
-            // 將圖片存放到相簿中
-            productPhotosDao.save(productPhotos);
-        }
-
-        return newProduct;
-    }
 
 
     /**
@@ -260,7 +264,7 @@ public class ProductServiceImpl implements ProductService {
 
         // 確認查詢結果不為空：如果結果為空，返回空列表
         if (products == null || products.isEmpty()) {
-            return new ArrayList<>(); // 返回空列表[]
+            return new ArrayList<>();
         }
 
         // 返回查詢結果
