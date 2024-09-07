@@ -24,4 +24,8 @@ public class CompanyRegisterRequest {
     @NotBlank
     private  String telephone;
 
+    @NotBlank
+    private String manager;
+
+
 }

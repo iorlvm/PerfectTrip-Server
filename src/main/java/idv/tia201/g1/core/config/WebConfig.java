@@ -53,7 +53,7 @@ public class WebConfig implements WebMvcConfigurer {
                 .excludePathPatterns("/company/login", "/company/register");    // TODO: 討論後修改
 
         registry.addInterceptor(new AdminLoginInterceptor())
-                .addPathPatterns("/admin/**", "/dashboard")  // TODO: 討論後修改
+                .addPathPatterns("/admin/**")  // TODO: 討論後修改
                 .excludePathPatterns("/admin/login");
     }
 }

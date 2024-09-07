@@ -7,5 +7,7 @@ public interface TokenService {
 
     UserAuth validateToken(String token);
 
+    void revokeToken(String token);
+
     void flashLoginExpire(String token);
 }

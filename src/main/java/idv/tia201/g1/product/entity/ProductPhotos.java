@@ -7,11 +7,9 @@ import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 
 
+@Data
 @Entity
 @Table(name = "product_photos")
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
 public class ProductPhotos {
 
     @Id

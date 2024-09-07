@@ -7,21 +7,19 @@ import lombok.Getter;
 import lombok.Setter;
 import org.springframework.stereotype.Repository;
 
-import javax.sql.rowset.serial.SerialBlob;
-import java.math.BigDecimal;
 import java.util.Date;
 
+@Data
 @Entity
 @Data
 @AllArgsConstructor
 @Repository
 @Table(name = "product_master")  // 指定對應的資料表名稱
-
 public class Product {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "product_id")  // 對應資料表中的 product_id 欄位
-    private Integer id;
+    @Column(name = "product_id")
+    private Integer productId;
 
     @Column(name = "price")  // 對應資料表中的 price 欄位
     private BigDecimal roomPrice;
@@ -36,20 +34,16 @@ public class Product {
     private String productName;
 
     @Column(name = "company_id")
-    private Long companyId;
+    private Integer companyId;
 
     @Column(name = "change_id")
-    private Long changeId;
+    private Integer changeId;
 
     @Column(name = "created_date", updatable = false)
     private Date createdDate;
 
     @Column(name = "last_modified_date")
     private Date lastModifiedDate;
-
-    public Product() {
-
-    }
 
     @PrePersist
     protected void onCreate() {

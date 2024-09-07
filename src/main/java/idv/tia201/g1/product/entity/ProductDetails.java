@@ -2,20 +2,15 @@ package idv.tia201.g1.product.entity;
 
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.apache.commons.math3.stat.descriptive.summary.Product;
 
-import java.io.Serializable;
+import java.util.List;
 
+
+@Data
 @Entity
 @Table(name = "product_details")
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class ProductDetails implements Serializable {
-
+public class ProductDetails {
     @Id
     @Column(name = "product_id")
     private int productId;
@@ -32,8 +27,19 @@ public class ProductDetails implements Serializable {
     @Column(name = "allow_free_cancellation")
     private boolean allowFreeCancellation;
 
-//    @OneToOne
-//    @MapsId
-//    @JoinColumn(name = "product_id")
-//    private Product product;
+    @OneToOne
+    @JoinColumn(name = "product_id", insertable = false, updatable = false)
+    private Product product;
+
+    @ManyToMany
+    @JoinTable(
+            joinColumns = @JoinColumn(
+                    referencedColumnName = "product_id",
+                    name = "product_id"),
+            name = "product_facilities",
+            inverseJoinColumns = @JoinColumn(
+                    name = "facility_id",
+                    referencedColumnName = "facility_id")
+    )
+    private List<Facility> facilities;
 }
