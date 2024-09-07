@@ -266,7 +266,7 @@ public class ChatServiceImpl implements ChatService {
             throw new IllegalStateException("非法的請求: 該用戶不是此聊天室的參與者");
         }
 
-        chatParticipantDao.updatePinnedByChatIdAndMappingUserId(chatId, loginUserId, pinned);
+        cacheService.updateChatSettings(chatId, loginUserId, pinned, null);
     }
 
     @Override
@@ -286,7 +286,7 @@ public class ChatServiceImpl implements ChatService {
             throw new IllegalStateException("非法的請求: 該用戶不是此聊天室的參與者");
         }
 
-        chatParticipantDao.updateNotifyByChatIdAndMappingUserId(chatId, loginUserId, state);
+        cacheService.updateChatSettings(chatId, loginUserId, null, state);
     }
 
     private Long findMappingUserId() {

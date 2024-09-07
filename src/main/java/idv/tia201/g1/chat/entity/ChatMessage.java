@@ -44,8 +44,6 @@ public class ChatMessage {
 
     @PreUpdate
     protected void onUpdate() {
-        if (lastModifiedDate == null) {
-            lastModifiedDate = Timestamp.from(Instant.now());
-        }
+        lastModifiedDate = Timestamp.from(Instant.now());
     }
 }

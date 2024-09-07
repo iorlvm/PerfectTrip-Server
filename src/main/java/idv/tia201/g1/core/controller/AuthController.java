@@ -32,4 +32,13 @@ public class AuthController {
 
         return Result.ok(authDTO);
     }
+
+    @GetMapping("/logout")
+    public Result logout(@RequestHeader("Authorization") String authorizationHeader) {
+        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+            String token = authorizationHeader.substring(7);
+            tokenService.revokeToken(token);
+        }
+        return Result.ok();
+    }
 }
