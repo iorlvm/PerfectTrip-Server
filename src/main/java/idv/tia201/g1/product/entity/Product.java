@@ -1,12 +1,19 @@
 package idv.tia201.g1.product.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+import org.springframework.stereotype.Repository;
 
 import java.util.Date;
 
 @Data
 @Entity
+@Data
+@AllArgsConstructor
+@Repository
 @Table(name = "product_master")  // 指定對應的資料表名稱
 public class Product {
     @Id
@@ -14,11 +21,11 @@ public class Product {
     @Column(name = "product_id")
     private Integer productId;
 
-    @Column(name = "price")
-    private Integer price;
+    @Column(name = "price")  // 對應資料表中的 price 欄位
+    private BigDecimal roomPrice;
 
-    @Column(name = "stock")
-    private Integer stock;
+    @Column(name = "stock")  // 如果 stock 用於表示是否被預訂
+    private int stock;
 
     @Column(name = "max_occupancy")
     private Integer maxOccupancy;
@@ -50,5 +57,13 @@ public class Product {
     protected void onUpdate() {
             lastModifiedDate = new Date();
 
+    }
+
+    public Integer getProductId() {
+        this.id = getProductId();
+        return id;
+    }
+
+    public void setPhoto(SerialBlob serialBlob) {
     }
 }
