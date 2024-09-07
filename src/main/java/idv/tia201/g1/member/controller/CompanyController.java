@@ -1,4 +1,5 @@
 package idv.tia201.g1.member.controller;
+
 import idv.tia201.g1.core.dto.Result;
 import idv.tia201.g1.core.service.TokenService;
 import idv.tia201.g1.member.dto.CompanyLoginRequest;
@@ -49,31 +50,32 @@ public class CompanyController {
             return Result.fail(e.getMessage());
         }
     }
+
     @GetMapping("/store/{companyId}")
-    public Result getCompany(@PathVariable  Integer companyId) {
+    public Result getCompany(@PathVariable Integer companyId) {
         Company company = companyService.findByCompanyId(companyId);
         return Result.ok(company);
     }
 
     @GetMapping("/store")
 
-        public Result getAllCompany(CompanyQueryParams companyQueryParams) {
+    public Result getAllCompany(CompanyQueryParams companyQueryParams) {
 
-            Page<Company> companyPage = companyService.findAll(companyQueryParams);
+        Page<Company> companyPage = companyService.findAll(companyQueryParams);
 
-            return Result.ok(companyPage);
+        return Result.ok(companyPage);
 
     }
 
     //修改資料
     @PutMapping("/store/{companyId}")
-    public Result updateCompany(@PathVariable Integer companyId ,@RequestBody @Valid CompanyUpdateRequest companyUpdateRequest) {
-        Company company = companyService.UpdateCompany(companyId,  companyUpdateRequest);
+    public Result updateCompany(@PathVariable Integer companyId, @RequestBody @Valid CompanyUpdateRequest companyUpdateRequest) {
+        Company company = companyService.UpdateCompany(companyId, companyUpdateRequest);
         return Result.ok(company);
     }
 
     //刪除資料
-    @DeleteMapping ("/store/{companyId}")
+    @DeleteMapping("/store/{companyId}")
     public Result deleteCompany(@PathVariable Integer companyId) {
         Company company = companyService.deleteCompany(companyId);
         return Result.ok(company);
