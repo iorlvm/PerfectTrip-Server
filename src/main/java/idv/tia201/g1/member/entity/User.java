@@ -61,11 +61,11 @@ public class User implements UserAuth {
     @Column(name = "last_modified_date")
     private Date lastModifiedDate;
 
-    @Column(name = "birthday")
-    private Date birthday;
-
-    @Column(name = "address")
-    private String address;
+//    @Column(name = "birthday")
+//    private Date birthday;
+//
+//    @Column(name = "address")
+//    private String address;
 
     @Transient
     private String token;
