@@ -12,7 +12,7 @@ import java.util.List;
 @NoArgsConstructor
 public class RoomResponse {
 
-    private Long id;
+    private Integer id;
 
     private String roomType;
 
@@ -24,13 +24,13 @@ public class RoomResponse {
 
     private List<BookingResponse> bookings;
 
-    public RoomResponse(Long id, String roomType, int roomPrice) {
+    public RoomResponse(Integer id, String roomType, Integer roomPrice) {
         this.id = id;
         this.roomType = roomType;
         this.roomPrice = roomPrice;
     }
 
-    public RoomResponse(Long id, String roomType, int roomPrice, boolean isBooked,
+    public RoomResponse(Integer id, String roomType, Integer roomPrice, boolean isBooked,
                         byte[] photoBytes, List<BookingResponse> bookings) {
         this.id = id;
         this.roomType = roomType;

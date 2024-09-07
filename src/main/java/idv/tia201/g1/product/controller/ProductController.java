@@ -13,7 +13,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.sql.rowset.serial.SerialBlob;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -76,9 +75,9 @@ public class ProductController {
 
         // 創建 ProductResponse 對象，封裝響應數據
         ProductResponse productResponse = new ProductResponse(
-                savedProduct.getId(),
+                savedProduct.getProductId(),
                 savedProduct.getProductName(),
-                savedProduct.getRoomPrice()
+                savedProduct.getPrice()
         );
 
         // 返回 HTTP 200 OK 的回應，並包含 productResponse 對象
@@ -117,7 +116,7 @@ public class ProductController {
     }
 
     private RoomResponse getRoomResponse(Product product) {
-        return new RoomResponse(product.getId(), product.getProductName(), product.getRoomPrice());
+        return new RoomResponse(product.getProductId(), product.getProductName(), product.getPrice());
     }
 
     // 處理 HTTP DELETE 請求，刪除指定的房間
@@ -142,7 +141,7 @@ public class ProductController {
         byte[] photoBytes = (photo != null && !photo.isEmpty()) ? photo.getBytes() : productService.getRoomPhotoByRoomId(Math.toIntExact(roomId));
 
         Product updatedProduct = productService.updateProduct(roomId, productName, roomPrice, photoBytes, null, 0);
-        RoomResponse roomResponse = new RoomResponse(updatedProduct.getId(), updatedProduct.getProductName(), updatedProduct.getRoomPrice());
+        RoomResponse roomResponse = new RoomResponse(updatedProduct.getProductId(), updatedProduct.getProductName(), updatedProduct.getPrice());
 
         return ResponseEntity.ok(roomResponse);
     }

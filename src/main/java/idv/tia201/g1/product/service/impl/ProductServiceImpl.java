@@ -21,7 +21,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.sql.rowset.serial.SerialBlob;
-import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -81,8 +80,8 @@ public class ProductServiceImpl implements ProductService {
         // 將商品存入資料庫
         Product newProduct = new Product();
         BeanUtils.copyProperties(addProductRequest, newProduct);
-        newProduct.setCompanyId(Long.valueOf(loginUser.getId()));
-        newProduct.setChangeId(Long.valueOf(loginUser.getId()));
+        newProduct.setCompanyId(loginUser.getId());
+        newProduct.setChangeId(loginUser.getId());
         Product saved = productDao.save(newProduct);
 
         // 取得剛剛存入的商品id
@@ -160,11 +159,11 @@ public class ProductServiceImpl implements ProductService {
         // 更新房間價格 (ProductPrice) 確保有效且不小於 0
         // 否則拋出一個異常 (IllegalArgumentException)
         if (roomPrice > 0) {
-            product.setRoomPrice(BigDecimal.valueOf(roomPrice));
+            product.setPrice(roomPrice);
         } else if (roomPrice < 0 ) {
             throw new IllegalArgumentException("參數異常：房間價格無效");
         }  else {
-            product.setRoomPrice(BigDecimal.valueOf(roomPrice));
+            product.setPrice(roomPrice);
         }
 
         // 更新最大入住人數 (maxOccupancy) 確保 maxOccupancy 不為 null 且不小於 0

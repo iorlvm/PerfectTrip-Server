@@ -64,8 +64,8 @@ public class User implements UserAuth {
     @Column(name = "birthday")
     private Date birthday;
 
-    @Column(name = "adress")
-    private String adress;
+    @Column(name = "address")
+    private String address;
 
     @Transient
     private String token;
