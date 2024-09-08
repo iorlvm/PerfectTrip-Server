@@ -243,7 +243,7 @@
             const data = res.data;
             console.log(data);
             renderCompanies(data.result);
-            renderPagination(data.total, data.limit, data.offset);
+            renderPagination(data.total, data.limit, data.offset, loadCompanies);
         } catch (error) {
             console.error('Error loading companies:', error);
         }

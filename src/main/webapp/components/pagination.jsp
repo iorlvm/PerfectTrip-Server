@@ -5,7 +5,7 @@
 </nav>
 
 <script>
-    const renderPagination = (total, limit, offset) => {
+    const renderPagination = (total, limit, offset , callBack) => {
         const pagination = document.getElementById('pagination');
         pagination.innerHTML = '';
 
@@ -35,13 +35,12 @@
         </li>`;
         pagination.insertAdjacentHTML('beforeend', nextButton);
 
-        // 添加事件监听器
         document.querySelectorAll('.page-link').forEach(pageLink => {
             pageLink.addEventListener('click', (e) => {
                 e.preventDefault();
                 const page = parseInt(e.target.getAttribute('data-page'));
                 const newOffset = (page - 1) * limit;
-                loadCustomers(newOffset);
+                callBack(newOffset);
             });
         });
     };
