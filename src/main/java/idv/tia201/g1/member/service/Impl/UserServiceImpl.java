@@ -8,6 +8,7 @@ import idv.tia201.g1.member.dto.UserUpdateRequest;
 import idv.tia201.g1.member.entity.User;
 import idv.tia201.g1.member.dao.UserDao;
 import idv.tia201.g1.member.service.UserService;
+import idv.tia201.g1.member.util.EncryptUtil;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -64,7 +65,7 @@ public class UserServiceImpl implements UserService {
         }
 
         // Hash the user's password
-        String hashedPassword = getHashPassword(userRegisterRequest.getPassword());
+        String hashedPassword = EncryptUtil.encryptWithMD5(userRegisterRequest.getPassword());
         userRegisterRequest.setPassword(hashedPassword);
 
         // Create the user and return the user ID
@@ -190,7 +191,7 @@ public class UserServiceImpl implements UserService {
         validateUserIdNotExists(user);
 
         // Update the user's password if provided
-        Optional.ofNullable(userUpdateRequest.getPassword()).ifPresent(password -> user.setPassword(getHashPassword(password)));
+        Optional.ofNullable(userUpdateRequest.getPassword()).ifPresent(password -> user.setPassword(EncryptUtil.encryptWithMD5(password)));
 
         // Update the user's first name if provided
         Optional.ofNullable(userUpdateRequest.getFirstName()).ifPresent(user::setFirstName);
@@ -427,24 +428,12 @@ public class UserServiceImpl implements UserService {
      */
     private void validateUserPassword(User user, String password) {
 
-        String hashedPassword = getHashPassword(password);
+        String hashedPassword = EncryptUtil.encryptWithMD5(password);
 
         if (!user.getPassword().equals(hashedPassword)) {
             log.warn("該 username {} 的密碼不正確", user.getUsername());
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid password.");
         }
-
-    }
-
-    /**
-     * Hashes the given password using MD5.
-     *
-     * @param password the password to hash
-     * @return the hashed password
-     */
-    private String getHashPassword(String password) {
-
-        return DigestUtils.md5DigestAsHex(password.getBytes());
 
     }
 
