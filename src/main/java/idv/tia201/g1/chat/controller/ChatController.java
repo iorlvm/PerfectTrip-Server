@@ -16,7 +16,7 @@ import java.util.Set;
 import static idv.tia201.g1.core.utils.Constants.TIMESTAMP_MAX_STRING;
 
 @RestController
-@RequestMapping("/chat")
+@RequestMapping("/api/chat")
 public class ChatController {
     @Autowired
     private ChatService chatService;

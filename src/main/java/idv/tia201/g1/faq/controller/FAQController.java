@@ -17,8 +17,8 @@ public class FAQController {
     private FAQService FAQService;
 
 
-    @GetMapping("/QAs")
-    public Result Qa() {
+    @GetMapping("/api/faq")
+    public Result faq() {
         List<FAQ> all = FAQService.getAll();
         return Result.ok(all);
     }

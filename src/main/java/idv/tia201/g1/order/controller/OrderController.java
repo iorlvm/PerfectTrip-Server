@@ -18,7 +18,7 @@ import java.util.List;
 import static idv.tia201.g1.core.utils.Constants.*;
 
 @RestController
-@RequestMapping("api/orders")
+@RequestMapping("/api/orders")
 public class OrderController {
     @Autowired
     private OrderService orderService;
