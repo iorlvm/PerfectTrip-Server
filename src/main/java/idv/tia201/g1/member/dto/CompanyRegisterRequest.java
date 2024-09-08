@@ -1,11 +1,14 @@
 package idv.tia201.g1.member.dto;
 
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 @Data
 public class CompanyRegisterRequest {
 
+
+    @Email
     @NotBlank
     private String username;
 

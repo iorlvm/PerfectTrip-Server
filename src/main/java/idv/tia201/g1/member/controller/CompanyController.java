@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Validated
 @RestController
-@RequestMapping("/store")
+@RequestMapping("/api/store")
 public class CompanyController {
 
     @Autowired
@@ -51,14 +51,13 @@ public class CompanyController {
         }
     }
 
-    @GetMapping("/store/{companyId}")
+    @GetMapping("/{companyId}")
     public Result getCompany(@PathVariable Integer companyId) {
         Company company = companyService.findByCompanyId(companyId);
         return Result.ok(company);
     }
 
-    @GetMapping("/store")
-
+    @GetMapping("/all")
     public Result getAllCompany(CompanyQueryParams companyQueryParams) {
 
         Page<Company> companyPage = companyService.findAll(companyQueryParams);
@@ -68,14 +67,14 @@ public class CompanyController {
     }
 
     //修改資料
-    @PutMapping("/store/{companyId}")
+    @PutMapping("/{companyId}")
     public Result updateCompany(@PathVariable Integer companyId, @RequestBody @Valid CompanyUpdateRequest companyUpdateRequest) {
         Company company = companyService.UpdateCompany(companyId, companyUpdateRequest);
         return Result.ok(company);
     }
 
     //刪除資料
-    @DeleteMapping("/store/{companyId}")
+    @DeleteMapping("/{companyId}")
     public Result deleteCompany(@PathVariable Integer companyId) {
         Company company = companyService.deleteCompany(companyId);
         return Result.ok(company);
