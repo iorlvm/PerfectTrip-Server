@@ -3,7 +3,10 @@ package idv.tia201.g1.order.controller;
 import idv.tia201.g1.core.dto.Result;
 import idv.tia201.g1.core.entity.UserAuth;
 import idv.tia201.g1.core.utils.UserHolder;
+import idv.tia201.g1.member.dto.UserUpdateRequest;
+import idv.tia201.g1.member.entity.User;
 import idv.tia201.g1.order.dto.CreateOrderRequest;
+import idv.tia201.g1.order.dto.UpdateOrderRequest;
 import idv.tia201.g1.order.entity.Order;
 import idv.tia201.g1.order.service.OrderService;
 import jakarta.validation.Valid;
@@ -15,13 +18,13 @@ import java.util.List;
 import static idv.tia201.g1.core.utils.Constants.*;
 
 @RestController
-@RequestMapping("/orders")
+@RequestMapping("api/orders")
 public class OrderController {
     @Autowired
     private OrderService orderService;
 
     @PostMapping
-    public Result createOrder(@RequestBody @Valid CreateOrderRequest createOrderRequest) {
+    public Result createOrder(@RequestBody CreateOrderRequest createOrderRequest) {
         try {
             Order order = orderService.createOrder(createOrderRequest);
             return Result.ok(order);
@@ -54,6 +57,17 @@ public class OrderController {
 
             return Result.ok(res, res == null ? 0L : res.size());
 
+        } catch (Exception e) {
+            return Result.fail(e.getMessage());
+        }
+    }
+
+    @PutMapping("/{orderId}")
+    public Result updateOrders(@PathVariable Integer orderId, @RequestBody @Valid UpdateOrderRequest updateOrderRequest) {
+
+        try {
+            Order order = orderService.updateOrder(orderId, updateOrderRequest);
+            return Result.ok(order);
         } catch (Exception e) {
             return Result.fail(e.getMessage());
         }

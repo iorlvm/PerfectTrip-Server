@@ -4,9 +4,12 @@ import idv.tia201.g1.core.entity.UserAuth;
 import idv.tia201.g1.core.utils.UserHolder;
 import idv.tia201.g1.order.dao.OrderDao;
 import idv.tia201.g1.order.dao.OrderDetailDao;
+import idv.tia201.g1.order.dao.OrderResidentsDao;
 import idv.tia201.g1.order.dto.CreateOrderRequest;
+import idv.tia201.g1.order.dto.UpdateOrderRequest;
 import idv.tia201.g1.order.entity.Order;
 import idv.tia201.g1.order.entity.OrderDetail;
+import idv.tia201.g1.order.entity.OrderResidents;
 import idv.tia201.g1.order.service.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -31,7 +34,8 @@ public class OrderServiceImpl implements OrderService {
     private OrderDao orderDao;
     @Autowired
     private OrderDetailDao orderDetailDao;
-
+    @Autowired
+    private OrderResidentsDao orderResidentsDao;
     @Override
     public Order createOrder(CreateOrderRequest createOrderRequest) {
         UserAuth user = UserHolder.getUser();
@@ -79,7 +83,7 @@ public class OrderServiceImpl implements OrderService {
         //  更新訂單資訊
         Integer companyId = createOrderRequest.getCompanyId();
 
-        Integer dailyPrice  = orderDao.calculateTotalPrice(orderId);
+        Integer dailyPrice = orderDao.calculateTotalPrice(orderId);
         List<Double> discount = getDiscountByCompanyIdBetweenStartDateAnEndDate(companyId, save.getStartDate(), save.getEndDate());
 
         // 計算全價
@@ -105,10 +109,54 @@ public class OrderServiceImpl implements OrderService {
     }
 
 
-
     @Override
-    public Order updateOrder(Order order) {
-        return null;
+    public Order updateOrder(Integer orderId, UpdateOrderRequest request) {
+        //檢查參數格式
+        validateUpdateOrderRequest(request);
+
+        //檢查是否登入
+        UserAuth user = UserHolder.getUser();
+        if (user == null || !ROLE_USER.equals(user.getRole())) {
+            //代表這張訂單代表使用者未登入!!
+            throw new IllegalStateException("使用者未登入!!");
+        }
+        //驗證order id是否有效
+        Order order = orderDao.findByOrderId(orderId);
+        //檢查這份order是否屬於登入者
+        if (order == null || !order.getUserId().equals(user.getId())) {
+            //代表這張訂單不屬於登入者!!
+            throw new IllegalStateException("訂單不屬於登入者!!");
+        }
+
+        OrderResidents orderResident = new OrderResidents();
+        orderResident.setOrderId(orderId);
+        orderResident.setCountry(request.getCountry());
+        orderResident.setFirstName(request.getFirstName());
+        orderResident.setLastName(request.getLastName());
+        orderResident.setEmail(request.getEmail());
+        orderResident.setTel(request.getPhone());
+        order.setOrderRequest(request.getRemark());
+
+        Order save = orderDao.save(order);
+        orderResidentsDao.save(orderResident);
+
+
+        return save;
+    }
+
+    private static void validateUpdateOrderRequest(UpdateOrderRequest request) {
+        if (request.getFirstName() == null || request.getFirstName().trim().isEmpty()) {
+            throw new IllegalArgumentException("First name cannot be empty");
+        }
+        if (request.getLastName() == null || request.getLastName().trim().isEmpty()) {
+            throw new IllegalArgumentException("Last name cannot be empty");
+        }
+        if (request.getEmail() == null || request.getEmail().trim().isEmpty()) {
+            throw new IllegalArgumentException("Email cannot be empty");
+        }
+        if (request.getPhone() == null || request.getPhone().trim().isEmpty()) {
+            throw new IllegalArgumentException("Phone number cannot be empty");
+        }
     }
 
     @Override
@@ -150,6 +198,7 @@ public class OrderServiceImpl implements OrderService {
 
         return (int) Math.round(totalDiscountedPrice);
     }
+
     private static List<Date> getDatesBetween(Date startDate, Date endDate) {
         List<Date> dates = new ArrayList<>();
         Calendar calendar = Calendar.getInstance();

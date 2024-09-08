@@ -1,6 +1,7 @@
 package idv.tia201.g1.order.service;
 
 import idv.tia201.g1.order.dto.CreateOrderRequest;
+import idv.tia201.g1.order.dto.UpdateOrderRequest;
 import idv.tia201.g1.order.entity.Order;
 import org.hibernate.sql.Update;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,7 +15,7 @@ public interface OrderService {
     Order createOrder(CreateOrderRequest createOrderRequest);
 
     //確定客房資訊
-    Order updateOrder(Order order);
+    Order updateOrder(Integer orderId, UpdateOrderRequest request);
 
     //根據UserId取得訂單列表
     List<Order> getOrdersByUserId(Integer userId);
