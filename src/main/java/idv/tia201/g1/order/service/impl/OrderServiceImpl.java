@@ -116,10 +116,10 @@ public class OrderServiceImpl implements OrderService {
         return orderDao.findByUserId(userId);
     }
 
-//    @Override
-//    public List<Order> getOrdersByCompanyId(Integer companyId) {
-//        return orderDao.findByCompanyId(companyId);
-//    }
+    @Override
+    public List<Order> getOrdersByCompanyId(Integer companyId) {
+        return orderDao.findByCompanyId(companyId);
+    }
 
     @Override
     public List<Order> getOrders() {

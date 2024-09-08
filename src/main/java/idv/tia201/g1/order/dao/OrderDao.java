@@ -11,9 +11,13 @@ import java.util.List;
 public interface OrderDao extends JpaRepository<Order, Integer> {
     List<Order> findByUserId(Integer userId);
 
-//    List<Order> findByCompanyId(Integer companyId);
-
     Order findByOrderId(Integer orderId);
+
+    @Query("SELECT o FROM Order o " +
+            "JOIN OrderDetail od ON od.orderId = o.orderId " +
+            "JOIN Product p ON p.productId = od.productId " +
+            "WHERE p.companyId = :companyId")
+    List<Order> findByCompanyId(@Param("companyId") Integer companyId);
 
     @Query("SELECT SUM(p.price * od.quantity) FROM Order o " +
             "JOIN OrderDetail od ON od.orderId = o.orderId " +
@@ -31,6 +35,5 @@ public interface OrderDao extends JpaRepository<Order, Integer> {
             @Param("companyId") Integer companyId,
             @Param("startDate") Date startDate,
             @Param("endDate") Date endDate);
-
 
 }

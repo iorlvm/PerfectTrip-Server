@@ -20,7 +20,7 @@ public interface OrderService {
     List<Order> getOrdersByUserId(Integer userId);
 
 //    //根據CompanyId取得訂單列表
-//    List<Order> getOrdersByCompanyId(Integer companyId);
+    List<Order> getOrdersByCompanyId(Integer companyId);
 
     //Admin取得所有訂單列表
     List<Order> getOrders( );

@@ -44,7 +44,7 @@ public class OrderController {
                     res = orderService.getOrdersByUserId(loginUser.getId());
                     break;
                 case ROLE_COMPANY:
-//                    res = orderService.getOrdersByCompanyId(loginUser.getId());
+                    res = orderService.getOrdersByCompanyId(loginUser.getId());
                     break;
                 case ROLE_ADMIN:
                     res = orderService.getOrders();
