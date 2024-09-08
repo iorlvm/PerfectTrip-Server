@@ -219,6 +219,10 @@ public class UserServiceImpl implements UserService {
         // Update the user's country if provided
         Optional.ofNullable(userUpdateRequest.getCountry()).ifPresent(user::setCountry);
 
+        Optional.ofNullable(userUpdateRequest.getBirthday()).ifPresent(user::setBirthday);
+
+        Optional.ofNullable(userUpdateRequest.getAddress()).ifPresent(user::setAddress);
+
         // Update the user's change ID if provided
         Optional.ofNullable(userUpdateRequest.getChangeId()).ifPresent(user::setChangeId);
 
@@ -330,6 +334,8 @@ public class UserServiceImpl implements UserService {
                 .userGroup(UserGroup.NORMAL)
                 .phoneNumber(userRegisterRequest.getPhoneNumber())
                 .country(userRegisterRequest.getCountry())
+                .birthday(userRegisterRequest.getBirthday())
+                .address(userRegisterRequest.getAddress())
                 .changeId(0)
                 .createdDate(new Date())
                 .lastModifiedDate(new Date())

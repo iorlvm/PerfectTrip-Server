@@ -1,9 +1,11 @@
 package idv.tia201.g1.member.dto;
 
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 
 public class UserLoginRequest {
 
+    @Email
     @NotBlank
     private String username;
 

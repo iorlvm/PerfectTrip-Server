@@ -1,10 +1,14 @@
 package idv.tia201.g1.member.dto;
 
 import idv.tia201.g1.member.constant.Gender;
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+
+import java.util.Date;
 
 public class UserRegisterRequest {
 
+    @Email
     @NotBlank
     private String username;
 
@@ -24,6 +28,10 @@ public class UserRegisterRequest {
     private String phoneNumber;
 
     private String country;
+
+    private Date birthday;
+
+    private String address;
 
     public UserRegisterRequest() {
 
@@ -99,6 +107,22 @@ public class UserRegisterRequest {
 
     public void setCountry(String country) {
         this.country = country;
+    }
+
+    public Date getBirthday() {
+        return birthday;
+    }
+
+    public void setBirthday(Date birthday) {
+        this.birthday = birthday;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
     }
 
 }

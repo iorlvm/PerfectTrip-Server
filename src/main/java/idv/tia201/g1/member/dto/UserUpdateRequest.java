@@ -3,6 +3,8 @@ package idv.tia201.g1.member.dto;
 import idv.tia201.g1.member.constant.Gender;
 import jakarta.validation.constraints.NotNull;
 
+import java.util.Date;
+
 public class UserUpdateRequest {
 
     private String password;
@@ -20,6 +22,10 @@ public class UserUpdateRequest {
     private String phoneNumber;
 
     private String country;
+
+    private Date birthday;
+
+    private String address;
 
     @NotNull
     private Integer changeId;
@@ -98,6 +104,22 @@ public class UserUpdateRequest {
 
     public void setChangeId(Integer changeId) {
         this.changeId = changeId;
+    }
+
+    public Date getBirthday() {
+        return birthday;
+    }
+
+    public void setBirthday(Date birthday) {
+        this.birthday = birthday;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
     }
 
 }
