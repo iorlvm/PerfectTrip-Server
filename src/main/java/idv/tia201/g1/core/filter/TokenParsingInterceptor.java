@@ -9,6 +9,8 @@ import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
+import static idv.tia201.g1.core.utils.Constants.*;
+
 @Component
 public class TokenParsingInterceptor implements HandlerInterceptor {
     private final TokenService tokenService;
@@ -28,10 +30,8 @@ public class TokenParsingInterceptor implements HandlerInterceptor {
             if (userAuth != null) {
                 UserHolder.saveUser(userAuth);
                 // TODO: 未來刪除 測試用token 避免過期
-                switch (token) {
-                    case "customer":
-                    case "company":
-                        return true;
+                if (ROLE_ADMIN.equals(token) || ROLE_COMPANY.equals(token) || "customer".equals(token)) {
+                    return true;
                 }
                 tokenService.flashLoginExpire(token);
             }
@@ -46,7 +46,7 @@ public class TokenParsingInterceptor implements HandlerInterceptor {
             if (userAuth != null) {
                 UserHolder.saveUser(userAuth);
                 // TODO: 未來刪除 測試用token 避免過期
-                if ("admin".equals(token)) {
+                if (ROLE_ADMIN.equals(token)) {
                     return true;
                 }
                 tokenService.flashLoginExpire(token);
