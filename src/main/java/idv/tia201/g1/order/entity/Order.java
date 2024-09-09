@@ -45,7 +45,7 @@ public class Order {
     private Date endDate;
     //訂單要求
     @Column(name = "order_request")
-    private String orderRequest;
+    private String orderNotes;
 
     //希望入住時間
     @Column(name = "wished_time")
