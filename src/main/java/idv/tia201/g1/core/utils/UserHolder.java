@@ -13,15 +13,6 @@ public class UserHolder {
         return threadLocal.get();
     }
 
-    public static <R> R getUser(Class<R> userClass) {
-        UserAuth user = threadLocal.get();
-        if (userClass.isInstance(user)) {
-            return userClass.cast(user);
-        } else {
-            throw new IllegalArgumentException("轉型失敗: 傳入的Class與物件型態不相符");
-        }
-    }
-
     public static String getRole() {
         UserAuth userAuth = getUser();
         return userAuth == null? null : userAuth.getRole();
