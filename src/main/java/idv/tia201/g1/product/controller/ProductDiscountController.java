@@ -1,11 +1,13 @@
 package idv.tia201.g1.product.controller;
 
+import idv.tia201.g1.product.dto.AddDiscountRequest;
 import idv.tia201.g1.product.entity.ProductDiscount;
 import idv.tia201.g1.product.service.ProductDiscountService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.sql.Timestamp;
 import java.util.List;
 
 @RestController
@@ -18,9 +20,16 @@ public class ProductDiscountController {
 
     // 添加新的優惠
     @PostMapping("/add")
-    public ResponseEntity<ProductDiscount> addDiscount(@RequestBody ProductDiscount productDiscount) {
-        ProductDiscount save = productDiscountService.addProductDiscount(productDiscount);
-        return ResponseEntity.status(200).body(save);
+    public ResponseEntity<ProductDiscount> addDiscount(@RequestBody AddDiscountRequest addDiscountRequest) {
+        // 將 AddDiscountRequest 轉換為 ProductDiscount entity
+        ProductDiscount productDiscount = new ProductDiscount();
+        productDiscount.setDiscountTitle(addDiscountRequest.getDiscountTitle());
+        productDiscount.setDiscountRate(addDiscountRequest.getDiscountRate());
+        productDiscount.setStartDateTime(Timestamp.valueOf(addDiscountRequest.getStartDate().atStartOfDay()));
+        productDiscount.setEndDateTime(Timestamp.valueOf(addDiscountRequest.getEndDate().atStartOfDay()));
+
+        ProductDiscount savedDiscount = productDiscountService.addProductDiscount(productDiscount);
+        return ResponseEntity.ok(savedDiscount);
     }
 
     // 根據公司ID (company_id) 來查詢優惠
