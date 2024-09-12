@@ -9,10 +9,13 @@ import idv.tia201.g1.chat.dto.MessageDTO;
 import idv.tia201.g1.chat.dto.ParticipantDTO;
 import idv.tia201.g1.chat.dto.PayloadDTO;
 import idv.tia201.g1.core.utils.Constants;
+import idv.tia201.g1.member.entity.Admin;
 import idv.tia201.g1.member.entity.Company;
 import idv.tia201.g1.member.entity.User;
 
 public class DtoConverter {
+    private static final String BASE_URL = "http://localhost:8080/";
+
     public static ChatRoomDTO toChatRoomDTO(ChatRoom chatRoom, ChatParticipant chatUser) {
         if (chatRoom == null || chatUser == null)
             throw new IllegalArgumentException("參數異常: 聊天室與使者用不得為空");
@@ -40,7 +43,9 @@ public class DtoConverter {
         participantDTO.setUserId(participant.getMappingUserId());
         participantDTO.setName(participant.getName());
         participantDTO.setType(participant.getType());
-        participantDTO.setAvatar(participant.getAvatar());
+        if (participant.getAvatar() != null) {
+            participantDTO.setAvatar(BASE_URL + participant.getAvatar());
+        }
         participantDTO.setLastReadingAt(participant.getLastReadingAt());
 
         return participantDTO;
@@ -69,20 +74,22 @@ public class DtoConverter {
         switch (userAuth.getRole()) {
             case Constants.ROLE_USER:
                 if (userAuth instanceof User user) {
-                    userInfo.setAvatar("image/74502663084965891");
+                    userInfo.setAvatar(BASE_URL + "image/74502663084965891");
                     userInfo.setName(user.getNickname());
                 }
                 break;
             case Constants.ROLE_COMPANY:
                 if (userAuth instanceof Company company) {
-                    userInfo.setAvatar("image/74502663084965891");
+                    userInfo.setAvatar(BASE_URL +"image/74502663084965891");
                     userInfo.setName(company.getCompanyName());
                 }
                 break;
             case Constants.ROLE_ADMIN:
                 // TODO: 先暫時給預設值 未來修正
-                userInfo.setAvatar("image/74502663084965891");
-                userInfo.setName("管理員");
+                if (userAuth instanceof Admin admin) {
+                    userInfo.setAvatar(BASE_URL +"image/74502663084965891");
+                    userInfo.setName(admin.getAdminGroup());
+                }
                 break;
         }
 
