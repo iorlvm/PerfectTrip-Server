@@ -27,9 +27,6 @@ public class UserUpdateRequest {
 
     private String address;
 
-    @NotNull
-    private Integer changeId;
-
     public UserUpdateRequest() {
 
     }
@@ -96,14 +93,6 @@ public class UserUpdateRequest {
 
     public void setCountry(String country) {
         this.country = country;
-    }
-
-    public Integer getChangeId() {
-        return changeId;
-    }
-
-    public void setChangeId(Integer changeId) {
-        this.changeId = changeId;
     }
 
     public Date getBirthday() {
