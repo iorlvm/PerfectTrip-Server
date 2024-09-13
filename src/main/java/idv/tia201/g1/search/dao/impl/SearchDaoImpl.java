@@ -8,6 +8,7 @@ import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
 import java.sql.Date;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -59,7 +60,7 @@ public class SearchDaoImpl implements SearchDao {
                 "    ) AS remaining_rooms, " +                                      // 剩餘房間數量
                 "    p.price AS price " +                                           // 價格 (原價)
                 "FROM product_master p " +
-                "WHERE p.company_id IN (:companyIds)";
+                "WHERE p.company_id IN :companyIds";
 
         Query query = entityManager.createNativeQuery(queryStr);
         query.setParameter("companyIds", companyIds);
@@ -74,8 +75,7 @@ public class SearchDaoImpl implements SearchDao {
             Integer companyId = (Integer) res[0];
             ProductCalculation productCalculation = getProductCalculation(res);
 
-            List<ProductCalculation> productCalculations = companyProductMap.get(companyId);
-            if (productCalculations == null) productCalculations = new ArrayList<>();
+            List<ProductCalculation> productCalculations = companyProductMap.computeIfAbsent(companyId, k -> new ArrayList<>());
 
             productCalculations.add(productCalculation);
         }
@@ -95,6 +95,7 @@ public class SearchDaoImpl implements SearchDao {
                 "WHERE p.product_id IN :productIds";
 
         Query query = entityManager.createNativeQuery(queryStr);
+        query.setParameter("productIds", productIds);
 
         // 獲取結果
         Object[] row = (Object[]) query.getSingleResult();  // 確保只有一筆結果
@@ -115,7 +116,8 @@ public class SearchDaoImpl implements SearchDao {
     private static ProductCalculation getProductCalculation(Object[] res) {
         Integer productId = (Integer) res[1];
         Integer maxOccupancy = (Integer) res[2];
-        Integer remainingRooms = (Integer) res[3];
+        BigDecimal bigDecimalValue = (BigDecimal) res[3];
+        Integer remainingRooms = bigDecimalValue.intValue();
         Integer price = (Integer) res[4];
 
         ProductCalculation productCalculation = new ProductCalculation();

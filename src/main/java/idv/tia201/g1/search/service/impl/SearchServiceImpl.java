@@ -74,6 +74,7 @@ public class SearchServiceImpl implements SearchService {
 
         List<SearchResponse> responses = new ArrayList<>();
         Long size = stringRedisTemplate.opsForList().size(key);
+
         if (size != null && size > 0) {
             List<String> jsonList = stringRedisTemplate.opsForList().range(key, 0, size - 1);
 
@@ -150,21 +151,25 @@ public class SearchServiceImpl implements SearchService {
             }
 
             // 將處理完的responses存到redis中緩存
-            List<String> jsonList = new ArrayList<>(responses.size());
-            for (SearchResponse response : responses) {
-                try {
-                    jsonList.add(objectMapper.writeValueAsString(response));
-                } catch (JsonProcessingException e) {
-                    throw new RuntimeException(e);
+            if (!responses.isEmpty()) {
+                List<String> jsonList = new ArrayList<>(responses.size());
+                for (SearchResponse response : responses) {
+                    try {
+                        jsonList.add(objectMapper.writeValueAsString(response));
+                    } catch (JsonProcessingException e) {
+                        throw new RuntimeException(e);
+                    }
                 }
+                stringRedisTemplate.opsForList().leftPushAll(key, jsonList);            // 存到緩存避免短時間內重新查詢 (創建訂單時同時刪除緩存)
             }
-            stringRedisTemplate.opsForList().leftPushAll(key, jsonList);            // 存到緩存避免短時間內重新查詢 (創建訂單時同時刪除緩存)
         }
         stringRedisTemplate.expire(key, CACHE_SEARCH_TTL, TimeUnit.SECONDS);        // 十分鐘過期消失  (設定/重設過期時間)
 
         // 根據價格由低到高排序  回傳Page<SearchResponse>
         String orderBy = request.getOrderBy();
         Boolean isDesc = request.getIsDesc();
+
+        if (orderBy == null) orderBy = "price";
 
         switch (orderBy) {
             case "score":
