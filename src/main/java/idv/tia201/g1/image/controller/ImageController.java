@@ -15,12 +15,11 @@ import org.springframework.web.bind.annotation.*;
 import static idv.tia201.g1.core.utils.Constants.ROLE_ADMIN;
 
 @RestController
-@RequestMapping("/image")
 public class ImageController {
     @Autowired
     private ImageService imageService;
 
-    @GetMapping("/{id}")
+    @GetMapping("/image/{id}")
     public ResponseEntity<byte[]> getImageById(@PathVariable Long id) {
         Image image = imageService.findById(id);
         if (image != null) {
@@ -31,7 +30,7 @@ public class ImageController {
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
-    @PostMapping
+    @PostMapping("/api/image")
     public Result handleFileUpload(ImageUploadRequest imageUploadRequest) {
         try {
             // 將上傳的檔案處理成需要的格式
@@ -49,7 +48,7 @@ public class ImageController {
         }
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/api/image/{id}")
     public ResponseEntity<Void> deleteImage(@PathVariable Long id) {
         if (!ROLE_ADMIN.equals(UserHolder.getRole())) {
             new ResponseEntity<>(HttpStatus.FORBIDDEN);

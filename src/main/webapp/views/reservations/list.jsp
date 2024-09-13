@@ -248,7 +248,7 @@
             const data = res.data;
             console.log(data);
             renderOrders(data.result);
-            renderPagination(data.total, data.limit, data.offset);
+            renderPagination(data.total, data.limit, data.offset, loadOrders);
         } catch (error) {
             console.error('加載訂單時出錯:', error);
         }

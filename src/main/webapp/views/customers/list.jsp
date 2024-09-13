@@ -179,7 +179,7 @@
     };
 
     const getCustomersListAPI = (offset = 0) => {
-        let url = '/users?limit=' + 10 + '&offset=' + offset;
+        let url = '/api/users?limit=' + 5 + '&offset=' + offset;
         return fetch(url, {
             method: 'GET'
         }).then(response => {
@@ -212,7 +212,7 @@
             const data = res.data;
             console.log(data)
             renderCustomers(data.result);
-            renderPagination(data.total, data.limit, data.offset);
+            renderPagination(data.total, data.limit, data.offset, loadCustomers);
         } catch (error) {
             console.error('Error loading customers:', error);
         }

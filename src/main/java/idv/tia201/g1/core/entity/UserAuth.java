@@ -1,5 +1,6 @@
 package idv.tia201.g1.core.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import idv.tia201.g1.member.entity.Admin;
 import idv.tia201.g1.member.entity.Company;
 import idv.tia201.g1.member.entity.User;
@@ -10,6 +11,7 @@ import static idv.tia201.g1.core.utils.Constants.*;
 public interface UserAuth {
     String getRole();
 
+    @JsonIgnore
     default Integer getId(){
         String role = getRole();
         if (role == null) return null;

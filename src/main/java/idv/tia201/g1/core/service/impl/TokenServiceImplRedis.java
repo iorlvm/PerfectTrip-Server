@@ -1,11 +1,9 @@
 package idv.tia201.g1.core.service.impl;
 
 import com.google.gson.Gson;
+import idv.tia201.g1.core.entity.AuthInfo;
 import idv.tia201.g1.core.service.TokenService;
 import idv.tia201.g1.core.entity.UserAuth;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -29,7 +27,11 @@ public class TokenServiceImplRedis implements TokenService {
         String token = UUID.randomUUID().toString().replace("-", "");
         String key = LOGIN_USER + token;
 
-        String json = gson.toJson(new TokenData(user, user.getClass().getName()));
+        AuthInfo authInfo = new AuthInfo();
+        authInfo.setId(user.getId());
+        authInfo.setRole(user.getRole());
+
+        String json = gson.toJson(authInfo);
         stringRedisTemplate.opsForValue().set(key, json, LOGIN_TTL, TimeUnit.SECONDS);
         return token;
     }
@@ -39,15 +41,7 @@ public class TokenServiceImplRedis implements TokenService {
         String key = LOGIN_USER + token;
         String json = stringRedisTemplate.opsForValue().get(key);
         if (json != null) {
-            TokenData tokenData = gson.fromJson(json, TokenData.class);
-            try {
-                Class<?> userClass = Class.forName(tokenData.getType());
-                return (UserAuth) gson.fromJson(gson.toJson(tokenData.getData()), userClass);
-            } catch (ClassNotFoundException e) {
-                // TODO: 日誌紀錄
-                e.printStackTrace();
-                return null;
-            }
+            return gson.fromJson(json, AuthInfo.class);
         } else {
             return null;
         }
@@ -63,13 +57,5 @@ public class TokenServiceImplRedis implements TokenService {
     public void flashLoginExpire(String token) {
         String key = LOGIN_USER + token;
         stringRedisTemplate.expire(key, LOGIN_TTL, TimeUnit.SECONDS);
-    }
-
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    private static class TokenData {
-        private Object data;
-        private String type;
     }
 }

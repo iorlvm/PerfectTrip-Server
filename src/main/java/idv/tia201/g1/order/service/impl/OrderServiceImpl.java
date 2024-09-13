@@ -135,7 +135,7 @@ public class OrderServiceImpl implements OrderService {
         orderResident.setLastName(request.getLastName());
         orderResident.setEmail(request.getEmail());
         orderResident.setTel(request.getPhone());
-        order.setOrderRequest(request.getRemark());
+        order.setOrderNotes(request.getRemark());
 
         Order save = orderDao.save(order);
         orderResidentsDao.save(orderResident);

@@ -12,7 +12,7 @@ public class PaymentController {
     @Autowired
     private PaymentService paymentService;
 
-    @PostMapping("/pay/{orderId}")
+    @PostMapping("/api/pay/{orderId}")
     public Result pay(@PathVariable Integer orderId, @RequestBody PaymentRequest paymentRequest) {
         try {
             PaymentResponse response = paymentService.processPayment(orderId, paymentRequest);
