@@ -174,6 +174,23 @@ public class OrderServiceImpl implements OrderService {
         return orderDao.findAll();
     }
 
+    @Override
+    public Order getOrder(Integer orderId) {
+        if (! ROLE_USER.equals(UserHolder.getRole())){
+            throw new RuntimeException("權限異常!!");
+        }
+        Order order = orderDao.findByOrderId(orderId);
+        if (order == null) {
+            throw new RuntimeException("找不到訂單!!");
+        }
+        Integer userId = order.getUserId();
+
+         if (UserHolder.getId() != userId){
+             throw  new RuntimeException("該訂單不屬於你!!!");
+         }
+        return order;
+    }
+
     private List<Double> getDiscountByCompanyIdBetweenStartDateAnEndDate(Integer companyId, Date startDate, Date endDate) {
         long daysBetween = getDaysBetween(startDate, endDate);
         List<Double> res = orderDao.getDiscountByCompanyIdBetweenStartDateAnEndDate(companyId, startDate, endDate);

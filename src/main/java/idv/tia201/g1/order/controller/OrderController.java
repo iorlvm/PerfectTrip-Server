@@ -3,8 +3,6 @@ package idv.tia201.g1.order.controller;
 import idv.tia201.g1.core.dto.Result;
 import idv.tia201.g1.core.entity.UserAuth;
 import idv.tia201.g1.core.utils.UserHolder;
-import idv.tia201.g1.member.dto.UserUpdateRequest;
-import idv.tia201.g1.member.entity.User;
 import idv.tia201.g1.order.dto.CreateOrderRequest;
 import idv.tia201.g1.order.dto.UpdateOrderRequest;
 import idv.tia201.g1.order.entity.Order;
@@ -72,4 +70,16 @@ public class OrderController {
             return Result.fail(e.getMessage());
         }
     }
+
+    @GetMapping("/{orderId}")
+    public Result getOrderById(@PathVariable Integer orderId) {
+        try {
+            Order order = orderService.getOrder(orderId);
+            return Result.ok(order);
+        } catch (Exception e) {
+            return Result.fail(e.getMessage());
+        }
+    }
 }
+
+
