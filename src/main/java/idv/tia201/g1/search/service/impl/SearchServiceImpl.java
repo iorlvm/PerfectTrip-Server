@@ -117,7 +117,7 @@ public class SearchServiceImpl implements SearchService {
                     continue;
                 }
 
-                System.out.println(123);
+                System.out.println(OrderUitl.getDiscountByCompanyIdBetweenStartDateAnEndDate(orderDao, companyId, startDate, endDate));
 
                 SearchUtils.ProductSet minCost = SearchUtils.findMinCost(products, roomCount, adultCount);
                 int minPrice = minCost.getMinCost();
