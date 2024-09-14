@@ -3,9 +3,11 @@ package idv.tia201.g1.search.utils;
 import idv.tia201.g1.search.dto.ProductCalculation;
 import lombok.Data;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class SearchUtils {
+
     @Data
     public static class ProductSet {
         int minCost;
@@ -18,52 +20,64 @@ public class SearchUtils {
     }
 
     public static ProductSet findMinCost(List<ProductCalculation> products, int minAdults, int requiredRooms) {
-        int n = products.size();
-        int minCost = Integer.MAX_VALUE;
-        List<Integer> bestProductIds = Collections.emptyList();
+        int totalCost = 0;
+        int adultsAccommodated = 0;
+        int roomsUsed = 0;
+        List<Integer> selectedProductIds = new ArrayList<>();
 
-        // 生成所有可能的房間組合
-        int[] currentCombination = new int[n];
-        while (true) {
-            // 計算當前組合的總價格、容納人數和房間數量
-            int totalCost = 0;
-            int roomsUsed = 0;
-            int adultsAccommodated = 0;
-            List<Integer> currentProductIds = new ArrayList<>();
-            for (int i = 0; i < n; i++) {
-                int count = currentCombination[i];
-                if (count > 0) {
-                    ProductCalculation product = products.get(i);
-                    totalCost += count * product.getPrice();
-                    roomsUsed += count;
-                    adultsAccommodated += count * product.getMaxOccupancy();
-                    for (int j = 0; j < count; j++) {
-                        currentProductIds.add(product.getProductId());
-                    }
-                }
+
+        // 每次選擇房間後重新排序
+        while (adultsAccommodated < minAdults && roomsUsed < requiredRooms) {
+            int remainingAdults = minAdults - adultsAccommodated;
+            products.sort(((o1, o2) -> {
+                        // 計算房間容量與需求的差異
+                        int diff1 = Math.abs(o1.getMaxOccupancy() - remainingAdults);
+                        int diff2 = Math.abs(o2.getMaxOccupancy() - remainingAdults);
+
+                        // 先比較差異大小
+                        if (diff1 != diff2) {
+                            return diff1 - diff2;
+                        } else {
+                            // 如果差異相同，根據性價比 (價格 / 可容納人數) 進行比較
+                            double ratio1 = (double) o1.getPrice() / o1.getMaxOccupancy();
+                            double ratio2 = (double) o2.getPrice() / o2.getMaxOccupancy();
+                            return Double.compare(ratio1, ratio2);
+                        }
+                    }));
+
+            // 2. 選擇排序後的第一間房間
+            ProductCalculation bestProduct = products.get(0);
+
+            // 3. 確保不超過房間庫存
+            if (bestProduct.getRemainingRooms() <= 0) {
+                // 沒有可用房間了，跳過此房型
+                products.remove(0);
+                continue;
             }
 
-            // 檢查是否滿足要求
-            if (roomsUsed == requiredRooms && adultsAccommodated >= minAdults) {
-                if (totalCost < minCost) {
-                    minCost = totalCost;
-                    bestProductIds = currentProductIds;
-                }
-            }
+            // 4. 選擇一間房間，更新成本、成人數和房間使用數
+            totalCost += bestProduct.getPrice();
+            adultsAccommodated += bestProduct.getMaxOccupancy();
+            roomsUsed++;
 
-            // 生成下一個組合
-            int i = 0;
-            while (i < n && currentCombination[i] == products.get(i).getRemainingRooms()) {
-                currentCombination[i] = 0;
-                i++;
+            // 記錄選擇的房間ID
+            selectedProductIds.add(bestProduct.getProductId());
+
+            // 5. 更新剩餘房間數量
+            bestProduct.setRemainingRooms(bestProduct.getRemainingRooms() - 1);
+
+            // 6. 如果該房型的剩餘房間已用完，從列表中移除
+            if (bestProduct.getRemainingRooms() == 0) {
+                products.remove(0);
             }
-            if (i == n) {
-                break;
-            }
-            currentCombination[i]++;
         }
 
-        // 返回結果
-        return minCost == Integer.MAX_VALUE ? new ProductSet(-1, Collections.emptyList()) : new ProductSet(minCost, bestProductIds);
+        // 7. 檢查是否滿足最小成人數的需求
+        if (adultsAccommodated < minAdults) {
+            return new ProductSet(-1, new ArrayList<>());  // 無法滿足需求
+        }
+
+        // 返回最小成本和選擇的房間ID
+        return new ProductSet(totalCost, selectedProductIds);
     }
 }

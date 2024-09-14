@@ -117,10 +117,9 @@ public class SearchServiceImpl implements SearchService {
                     continue;
                 }
 
-                System.out.println(OrderUitl.getDiscountByCompanyIdBetweenStartDateAnEndDate(orderDao, companyId, startDate, endDate));
-
-                SearchUtils.ProductSet minCost = SearchUtils.findMinCost(products, roomCount, adultCount);
+                SearchUtils.ProductSet minCost = SearchUtils.findMinCost(products, adultCount, roomCount);
                 int minPrice = minCost.getMinCost();
+                System.out.println(minCost);
                 if (minPrice >= 0) {
                     // 合理的價格, 表示有找到資料
                     List<Integer> productIds = minCost.getProductIds();
@@ -138,8 +137,6 @@ public class SearchServiceImpl implements SearchService {
 
                     // 取得日期範圍的折扣列表
                     List<Double> discounts = OrderUitl.getDiscountByCompanyIdBetweenStartDateAnEndDate(orderDao, companyId, startDate, endDate);
-
-                    System.out.println(discounts);
 
                     boolean isPromotion = false;
                     double totalPrice = 0;
