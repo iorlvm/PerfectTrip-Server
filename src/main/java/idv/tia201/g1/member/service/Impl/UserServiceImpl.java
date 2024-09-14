@@ -1,5 +1,7 @@
 package idv.tia201.g1.member.service.Impl;
 
+import idv.tia201.g1.core.entity.UserAuth;
+import idv.tia201.g1.core.utils.UserHolder;
 import idv.tia201.g1.member.constant.UserGroup;
 import idv.tia201.g1.member.dto.UserLoginRequest;
 import idv.tia201.g1.member.dto.UserQueryParams;
@@ -224,7 +226,8 @@ public class UserServiceImpl implements UserService {
         Optional.ofNullable(userUpdateRequest.getAddress()).ifPresent(user::setAddress);
 
         // Update the user's change ID if provided
-        Optional.ofNullable(userUpdateRequest.getChangeId()).ifPresent(user::setChangeId);
+        UserAuth loginUser = UserHolder.getUser();
+        Optional.ofNullable(loginUser.getId()).ifPresent(user::setChangeId);
 
         // Set the last modified date to the current date
         user.setLastModifiedDate(new Date());
