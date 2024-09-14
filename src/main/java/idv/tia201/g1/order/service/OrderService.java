@@ -28,4 +28,7 @@ public interface OrderService {
 
     //正式結帳訂單 , 將此會員以通過的課程訂單狀態改為已結帳
 
+    //根據訂單編號取得訂單詳情
+    Order getOrder(Integer orderId);
+
 }
