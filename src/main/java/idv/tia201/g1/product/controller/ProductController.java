@@ -48,41 +48,22 @@ public class ProductController {
      * 處理 HTTP POST 請求的方法，調用來向服務器發送新產品添加請求的操作
      */
     @PostMapping("/add")
-    // 返回帶有 ProductResponse 資料的 HTTP 回應實體
-    public ResponseEntity<Object> handleAddProduct(
-            @RequestParam("companyId") Long companyId,
-            @RequestParam("changeId") Long changeId,
-            @RequestParam("photo") MultipartFile photo,
-            @RequestParam("productName") String productName,
-            @RequestParam("roomPrice") int roomPrice,
-            @RequestParam("stock") int stock,
-            @RequestParam("maxOccupancy") int maxOccupancy) throws SQLException, IOException {
-
-        // 構建 AddProductRequest 對象，包含從請求中提取的所有參數
-        AddProductRequest request = new AddProductRequest();
-        request.setProductName(productName);
-        request.setPrice(roomPrice);
-        request.setStock(stock);
-        request.setMaxOccupancy(maxOccupancy);
-
-        // 圖片處理
-        if (photo != null && !photo.isEmpty()) {
-            request.setImageUploadRequest(new ImageUploadRequest(photo.getBytes(), photo.getOriginalFilename()));
-        }
-
-        // 調用 productService 的 handleAddProduct 方法
+    public ResponseEntity<Object> handleAddProduct(@RequestBody AddProductRequest request) {
+        // 現在可以從 request 中提取 companyId 和其他字段
         Product savedProduct = productService.handleAddProduct(request);
 
-        // 創建 ProductResponse 對象，封裝響應數據
+        // 返回產品信息
         ProductResponse productResponse = new ProductResponse(
                 savedProduct.getProductId(),
                 savedProduct.getProductName(),
-                savedProduct.getPrice()
+                savedProduct.getPrice(),
+                savedProduct.getMaxOccupancy(),  // 確保你有返回這些欄位
+                savedProduct.getStock(),
+                savedProduct.getCompanyId()
         );
-
-        // 返回 HTTP 200 OK 的回應，並包含 productResponse 對象
         return ResponseEntity.ok(productResponse);
     }
+
 
     @CrossOrigin(origins = "http://localhost:5173")
     // 標示了一個處理 HTTP GET 請求的方法，並且這個請求的路徑必須匹配 /allTypes
@@ -96,28 +77,6 @@ public class ProductController {
         return ResponseEntity.ok(productTypes);
     }
 
-    // 處理 HTTP GET 請求，返回所有產品
-    @GetMapping("/all")
-    public ResponseEntity<List<RoomResponse>> getAllProducts() throws SQLException {
-        List<Product> products = productService.getAllProducts();
-
-        if (products == null || products.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NO_CONTENT).body(Collections.emptyList());
-        }
-
-        // 將產品轉換為 RoomResponse 並返回
-        List<RoomResponse> roomResponses = new ArrayList<>();
-        for (Product product : products) {
-            RoomResponse roomResponse = getRoomResponse(product);
-            roomResponses.add(roomResponse);
-        }
-
-        return ResponseEntity.ok(roomResponses);
-    }
-
-    private RoomResponse getRoomResponse(Product product) {
-        return new RoomResponse(product.getProductId(), product.getProductName(), product.getPrice());
-    }
 
     // 處理 HTTP DELETE 請求，刪除指定的房間
     @DeleteMapping("/delete/room/{roomId}")
@@ -130,19 +89,49 @@ public class ProductController {
         }
     }
 
-    // 處理 HTTP PUT 請求，更新指定的房間
     @PutMapping("/update/{roomId}")
-    public ResponseEntity<RoomResponse> updateRoom(@PathVariable Long roomId,
-                                                   @RequestParam String productName,
-                                                   @RequestParam int roomPrice,
-                                                   @RequestParam MultipartFile photo)
-            throws IOException, SQLException {
+    public ResponseEntity<RoomResponse> updateRoom(
+            @PathVariable Long roomId,
+            @RequestParam String productName,
+            @RequestParam int roomPrice,
+            @RequestParam int stock,
+            @RequestPart(required = false) MultipartFile photo) throws IOException, SQLException {
+
 
         byte[] photoBytes = (photo != null && !photo.isEmpty()) ? photo.getBytes() : productService.getRoomPhotoByRoomId(Math.toIntExact(roomId));
 
-        Product updatedProduct = productService.updateProduct(roomId, productName, roomPrice, photoBytes, null, 0);
+
+        Product updatedProduct = productService.updateProduct(roomId, productName, roomPrice, photoBytes, null, stock);
+
+
         RoomResponse roomResponse = new RoomResponse(updatedProduct.getProductId(), updatedProduct.getProductName(), updatedProduct.getPrice());
 
         return ResponseEntity.ok(roomResponse);
+    }
+
+
+    @GetMapping("/all")
+    public ResponseEntity<List<ProductResponse>> getAllProducts() {
+        List<Product> products = productService.getAllProducts();
+
+        if (products == null || products.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).body(Collections.emptyList());
+        }
+
+        // 把 Product 轉換為 ProductResponse 並返回
+        List<ProductResponse> productResponses = new ArrayList<>();
+        for (Product product : products) {
+            ProductResponse productResponse = new ProductResponse(
+                    product.getProductId(),
+                    product.getProductName(),
+                    product.getPrice(),
+                    product.getMaxOccupancy(),
+                    product.getStock(),
+                    product.getCompanyId()
+            );
+            productResponses.add(productResponse);
+        }
+
+        return ResponseEntity.ok(productResponses);
     }
 }

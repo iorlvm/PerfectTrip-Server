@@ -71,58 +71,77 @@ public class ProductServiceImpl implements ProductService {
             throw new IllegalArgumentException("參數異常：最大入住人數未填寫");
         }
 
-        // changeId 跟 companyId 應該要從登入中的使用者取得 (也就是從UserHolder工具中取出)
+        // changeId 跟 companyId 應該要從登入中的使用者取得 (也就是從 UserHolder 工具中取出)
         UserAuth loginUser = UserHolder.getUser();
-        if (loginUser == null || !ROLE_COMPANY.equals(loginUser.getRole())) {
+        if (loginUser == null || !ROLE_ADMIN.equals(loginUser.getRole())) {
             throw new IllegalStateException("狀態異常：使用者未登入或身份不屬於商家");
         }
+
+        // 打印登入的公司 ID 和變更 ID
+        System.out.println("公司ID: " + loginUser.getId() + ", 變更ID: " + loginUser.getId());
 
         // 將商品存入資料庫
         Product newProduct = new Product();
         BeanUtils.copyProperties(addProductRequest, newProduct);
         newProduct.setCompanyId(loginUser.getId());
         newProduct.setChangeId(loginUser.getId());
-        Product saved = productDao.save(newProduct);
 
-        // 取得剛剛存入的商品id
-        Integer productId = saved.getProductId();
+        // 保存商品
+        Product savedProduct = productDao.save(newProduct);
 
-        // 取得請求中的細節設定id後, 存入資料庫
+        // 打印保存的產品資料
+        System.out.println("保存的產品: " + savedProduct);
+
+        // 取得剛剛存入的商品 ID
+        Integer productId = savedProduct.getProductId();
+
+        // 處理 ProductDetails（商品詳細信息）
         ProductDetails productDetails = addProductRequest.getProductDetails();
         if (productDetails != null) {
-            // 確保物件不為空
+            // 設定 productId 並存入資料庫
             productDetails.setProductId(productId);
             productDetailsDao.save(productDetails);
+            System.out.println("保存的產品細節: " + productDetails);
         }
 
-        // 取得請求中所有的設施設定id後, 存入資料庫
+        // 處理 ProductFacilities（商品設施）
         List<ProductFacilities> productFacilities = addProductRequest.getProductFacilities();
         if (productFacilities != null && !productFacilities.isEmpty()) {
-            // 確保物件不為空
+            // 設定 productId 並批量保存設施
             productFacilities.forEach(facility -> facility.setProductId(productId));
             productFacilitiesDao.saveAll(productFacilities);
+            System.out.println("保存的產品設施: " + productFacilities);
         }
 
-
+        // 處理圖片上傳
         ImageUploadRequest imageUploadRequest = addProductRequest.getImageUploadRequest();
-        if (imageUploadRequest != null) {
-            // 有傳輸圖片的情況, 使用ImageService處理並存放圖片
+        if (imageUploadRequest != null && imageUploadRequest.getFile() != null && !imageUploadRequest.getFile().isEmpty()) {
+            // 確認圖片存在且非空才處理上傳
             Image image = imageService.upload(imageUploadRequest);
-            Image save = imageService.save(image);
-            String url = "image/" + save.getId();
+            Image savedImage = imageService.save(image);
+            String url = "image/" + savedImage.getId();
 
+            // 保存圖片到 ProductPhotos
             ProductPhotos productPhotos = new ProductPhotos();
             productPhotos.setProductId(productId);
             productPhotos.setPhotoUrl(url);
-            productPhotos.setDescription(save.getComment());
+            productPhotos.setDescription(savedImage.getComment());
             productPhotos.setMain(true);
-
-            // 將圖片存放到相簿中
             productPhotosDao.save(productPhotos);
+
+            // 打印保存的產品圖片
+            System.out.println("保存的產品圖片: " + productPhotos);
+        } else {
+            // 沒有圖片上傳的處理
+            System.out.println("沒有圖片上傳");
         }
 
-        return newProduct;
+        // 打印返回的產品
+        System.out.println("返回的產品: " + newProduct);
+
+        return savedProduct;
     }
+
 
 
     @Override
@@ -130,61 +149,52 @@ public class ProductServiceImpl implements ProductService {
                                  String productName,
                                  int roomPrice,
                                  byte[] photoByte,
-                                 Integer maxOccupancy,
+                                 Integer maxOccupancy,  // 檢查是否為 null
                                  int stock) {
 
-        // 參數檢查，確保 productId 有效，否則丟出一 (IllegalArgumentException)
+        // 參數檢查，確保 productId 有效，否則丟出 (IllegalArgumentException)
         if (productId == null || productId <= 0) {
             throw new IllegalArgumentException("參數異常：產品ID無效");
         }
 
         // 權限檢查，檢查用戶是否有權限更新產品信息
         UserAuth loginUser = UserHolder.getUser();
-        if (loginUser == null || !ROLE_COMPANY.equals(loginUser.getRole())) {
+        if (loginUser == null || !ROLE_ADMIN.equals(loginUser.getRole())) {
             throw new IllegalStateException("狀態異常：使用者未登入或身份不屬於商家");
         }
 
-        // 查詢產品是否存在，Optional方法如果其中有值，則返回該值
-        // 如果沒有值，則根據傳入的 lambda 表達式拋出一個異常 (ResourceNotFoundException)
+        // 查詢產品是否存在
         Product product = productDao
                 .findById(Math.toIntExact(productId))
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
 
-        // 更新產品名稱 (ProductName)，確保內容不為 null 且有效
-        // 用trim() 方法會去除 productName 字符串兩端的空白字符、制表字符
+        // 更新產品名稱
         if (productName != null && !productName.trim().isEmpty()) {
             product.setProductName(productName);
         }
 
-        // 更新房間價格 (ProductPrice) 確保有效且不小於 0
-        // 否則拋出一個異常 (IllegalArgumentException)
+        // 更新房間價格
         if (roomPrice > 0) {
             product.setPrice(roomPrice);
-        } else if (roomPrice < 0 ) {
+        } else if (roomPrice < 0) {
             throw new IllegalArgumentException("參數異常：房間價格無效");
-        }  else {
-            product.setPrice(roomPrice);
         }
 
-        // 更新最大入住人數 (maxOccupancy) 確保 maxOccupancy 不為 null 且不小於 0
-        // 否則拋出一個異常 (IllegalArgumentException)
+        // 檢查 maxOccupancy 是否為 null，並做相應的處理
         if (maxOccupancy != null && maxOccupancy > 0) {
             product.setMaxOccupancy(maxOccupancy);
-        } else if (maxOccupancy < 0) {
+        } else if (maxOccupancy != null && maxOccupancy < 0) {
             throw new IllegalArgumentException("參數異常：入住人數無效");
         }
 
-        // 更新庫存 (stock) 確保 stock 有效且不小於 0
-        // 否則拋出一個異常 (IllegalArgumentException)
+        // 更新庫存
         if (stock >= 0) {
             product.setStock(stock);
-        } else if (stock < 0) {
+        } else {
             throw new IllegalArgumentException("參數異常：庫存數量無效");
         }
 
-        // 處理照片 (photo) 更新，檢查照片的字節數組是否有內容。如果字節數組的長度為 0
-        // 則表示沒有有效的照片數據（空數據)，BLOB（Binary Large Object）
-        // setPhoto 將該數據轉換為一個 SerialBlob 對象
+        // 更新照片（如果有）
         if (photoByte != null && photoByte.length > 0) {
             try {
                 product.setPhoto(new SerialBlob(photoByte));
