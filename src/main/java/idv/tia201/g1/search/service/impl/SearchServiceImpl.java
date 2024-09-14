@@ -19,6 +19,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.sql.Date;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -136,13 +137,19 @@ public class SearchServiceImpl implements SearchService {
 
                     // 取得日期範圍的折扣列表
                     List<Double> discounts = orderDao.getDiscountByCompanyIdBetweenStartDateAnEndDate(companyId, startDate, endDate);
-                    boolean isPromotion = false;
+                    // 存在任何一筆資料表示折扣中
+                    boolean isPromotion = !discounts.isEmpty();
                     double totalPrice = 0;
+
+                    // 使用1.0(表示原價)補完日期間隔方便計算總金額
+                    long between = ChronoUnit.DAYS.between(startDate.toLocalDate(), endDate.toLocalDate());
+                    while (discounts.size() < between) {
+                        discounts.add(1.0);
+                    }
                     for (Double discount : discounts) {
-                        // 當其中一間存在打折, 則設為促銷中
-                        if (discount < 1.0) isPromotion = true;
                         totalPrice += discount * minPrice;
                     }
+                    
                     searchResponse.setIsPromotion(isPromotion);
                     searchResponse.setPrice((int) totalPrice);
 
