@@ -18,13 +18,18 @@ public class ProductDiscountController {
     @Autowired
     ProductDiscountService productDiscountService;
 
+    // 測試成功
     // 添加新的優惠
     @PostMapping("/add")
     public ResponseEntity<ProductDiscount> addDiscount(@RequestBody AddDiscountRequest addDiscountRequest) {
-        // 將 AddDiscountRequest 轉換為 ProductDiscount entity
+        // 確保 startDate 和 endDate 不為 null
+        if (addDiscountRequest.getStartDate() == null || addDiscountRequest.getEndDate() == null) {
+            throw new IllegalArgumentException("開始日期和結束日期不能為空！");
+        }
+
         ProductDiscount productDiscount = new ProductDiscount();
         productDiscount.setDiscountTitle(addDiscountRequest.getDiscountTitle());
-        productDiscount.setDiscountRate(addDiscountRequest.getDiscountRate());
+        productDiscount.setDiscountRate(Float.valueOf(addDiscountRequest.getDiscountRate()));
         productDiscount.setStartDateTime(Timestamp.valueOf(addDiscountRequest.getStartDate().atStartOfDay()));
         productDiscount.setEndDateTime(Timestamp.valueOf(addDiscountRequest.getEndDate().atStartOfDay()));
 
@@ -32,6 +37,7 @@ public class ProductDiscountController {
         return ResponseEntity.ok(savedDiscount);
     }
 
+    // 測試成功
     // 根據公司ID (company_id) 來查詢優惠
     @GetMapping("/company/{companyId}")
     public ResponseEntity<List<ProductDiscount>> getByCompanyId(@PathVariable Integer companyId) {
