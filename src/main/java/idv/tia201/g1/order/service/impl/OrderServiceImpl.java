@@ -11,16 +11,13 @@ import idv.tia201.g1.order.entity.Order;
 import idv.tia201.g1.order.entity.OrderDetail;
 import idv.tia201.g1.order.entity.OrderResidents;
 import idv.tia201.g1.order.service.OrderService;
+import idv.tia201.g1.order.uitls.OrderUitl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.sql.Date;
-import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 
 import static idv.tia201.g1.core.utils.Constants.ROLE_USER;
 
@@ -53,7 +50,6 @@ public class OrderServiceImpl implements OrderService {
         order.setEndDate((createOrderRequest.getEndDate()));
         Order save = orderDao.save(order);
         Integer orderId = save.getOrderId();
-        List<OrderDetail> orderDetails = new LinkedList<>();
 
         //處理房型列表:
         // 前端傳資料近來到ProductList,
@@ -65,7 +61,7 @@ public class OrderServiceImpl implements OrderService {
             Integer productId = requestProduct.getProductId();
             Integer count = requestProduct.getCount();
 
-            List<Date> datesBetween = getDatesBetween(order.getStartDate(), order.getEndDate());
+            List<Date> datesBetween = OrderUitl.getDatesBetween(order.getStartDate(), order.getEndDate());
             for (Date date : datesBetween) {
                 OrderDetail orderDetail = new OrderDetail();
                 orderDetail.setOrderId(orderId);
@@ -73,23 +69,23 @@ public class OrderServiceImpl implements OrderService {
                 orderDetail.setQuantity(count);
                 orderDetail.setBookedDate(date);
 
-                OrderDetail save1 = orderDetailDao.save(orderDetail);
-                orderDetails.add(save1);
+                orderDetailDao.save(orderDetail);
             }
         }
 
         // TODO: 處理優惠券 以及 金額
-        //  計算價格 => 根據日期以及商品編號計算總金額 稅金 服務費...等
-        //  更新訂單資訊
+
+        // 計算價格 => 根據日期以及商品編號計算總金額 稅金 服務費...等
+        // 更新訂單資訊
         Integer companyId = createOrderRequest.getCompanyId();
 
         Integer dailyPrice = orderDao.calculateTotalPrice(orderId);
-        List<Double> discount = getDiscountByCompanyIdBetweenStartDateAnEndDate(companyId, save.getStartDate(), save.getEndDate());
+        List<Double> discount = OrderUitl.getDiscountByCompanyIdBetweenStartDateAnEndDate(orderDao, companyId, save.getStartDate(), save.getEndDate());
 
         // 計算全價
         int fullPrice = dailyPrice * discount.size();
         // 計算折扣價
-        int discountedPrice = calculateTotalDiscountedPrice(dailyPrice, discount);
+        int discountedPrice = OrderUitl.calculateTotalDiscountedPrice(dailyPrice, discount);
 
         // 計算稅金與服務費
         int serviceFee = (int) Math.round(discountedPrice * SERVICE_FEE_PERCENT);
@@ -107,7 +103,6 @@ public class OrderServiceImpl implements OrderService {
         return save;
 
     }
-
 
     @Override
     public Order updateOrder(Integer orderId, UpdateOrderRequest request) {
@@ -185,47 +180,9 @@ public class OrderServiceImpl implements OrderService {
         }
         Integer userId = order.getUserId();
 
-         if (UserHolder.getId() != userId){
+         if (!Objects.equals(UserHolder.getId(), userId)){
              throw  new RuntimeException("該訂單不屬於你!!!");
          }
         return order;
-    }
-
-    private List<Double> getDiscountByCompanyIdBetweenStartDateAnEndDate(Integer companyId, Date startDate, Date endDate) {
-        long daysBetween = getDaysBetween(startDate, endDate);
-        List<Double> res = orderDao.getDiscountByCompanyIdBetweenStartDateAnEndDate(companyId, startDate, endDate);
-        while (res.size() < daysBetween) {
-            res.add(1.0);
-        }
-        return res;
-    }
-
-    private static long getDaysBetween(Date startDate, Date endDate) {
-        LocalDate startLocalDate = startDate.toLocalDate();
-        LocalDate endLocalDate = endDate.toLocalDate();
-        return ChronoUnit.DAYS.between(startLocalDate, endLocalDate);
-    }
-
-    private static int calculateTotalDiscountedPrice(int dailyPrice, List<Double> discounts) {
-        double totalDiscountedPrice = 0.0;
-
-        for (Double discount : discounts) {
-            totalDiscountedPrice += dailyPrice * discount;
-        }
-
-        return (int) Math.round(totalDiscountedPrice);
-    }
-
-    private static List<Date> getDatesBetween(Date startDate, Date endDate) {
-        List<Date> dates = new ArrayList<>();
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTime(startDate);
-
-        while (calendar.getTime().before(endDate)) {
-            dates.add(new Date(calendar.getTimeInMillis()));
-            calendar.add(Calendar.DATE, 1);
-        }
-
-        return dates;
     }
 }

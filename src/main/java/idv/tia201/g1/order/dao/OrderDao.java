@@ -28,12 +28,10 @@ public interface OrderDao extends JpaRepository<Order, Integer> {
     @Query("SELECT pd.discountRate " +
             "FROM ProductDiscount pd " +
             "WHERE pd.companyId = :companyId " +
-            "AND pd.startDateTime < :endDate " +
-            "AND pd.endDateTime >= :startDate " +
-            "AND pd.endDateTime < :endDate")
-    List<Double> getDiscountByCompanyIdBetweenStartDateAnEndDate(
+            "AND pd.startDateTime <= :date " +
+            "AND pd.endDateTime >= :date")
+    Double getDiscountByCompanyIdAndDate(
             @Param("companyId") Integer companyId,
-            @Param("startDate") Date startDate,
-            @Param("endDate") Date endDate);
+            @Param("date") Date date);
 
 }

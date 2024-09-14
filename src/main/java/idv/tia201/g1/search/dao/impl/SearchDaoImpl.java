@@ -103,7 +103,7 @@ public class SearchDaoImpl implements SearchDao {
         // 將結果封裝到 SearchResponse
         SearchResponse response = new SearchResponse();
 
-        // 假設結果是按順序映射到你的 SearchResponse 類的屬性
+        // 按順序映射到 SearchResponse
         response.setIncludesBreakfast(((Number) row[0]).intValue() == 1);
         response.setAllowDateChanges(((Number) row[1]).intValue() == 1);
         response.setAllowFreeCancellation(((Number) row[2]).intValue() == 1);

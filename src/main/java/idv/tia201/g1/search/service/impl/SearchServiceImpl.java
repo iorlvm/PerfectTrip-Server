@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import idv.tia201.g1.member.dao.CompanyDao;
 import idv.tia201.g1.member.entity.Company;
 import idv.tia201.g1.order.dao.OrderDao;
+import idv.tia201.g1.order.uitls.OrderUitl;
 import idv.tia201.g1.search.dao.SearchDao;
 import idv.tia201.g1.search.dto.ProductCalculation;
 import idv.tia201.g1.search.dto.SearchRequest;
@@ -22,10 +23,8 @@ import java.sql.Date;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
-import static idv.tia201.g1.core.utils.Constants.CACHE_SEARCH_PREFIX;
-import static idv.tia201.g1.core.utils.Constants.CACHE_SEARCH_TTL;
+import static idv.tia201.g1.core.utils.Constants.*;
 
 @Service
 public class SearchServiceImpl implements SearchService {
@@ -39,7 +38,6 @@ public class SearchServiceImpl implements SearchService {
     private StringRedisTemplate stringRedisTemplate;
     @Autowired
     private ObjectMapper objectMapper;
-
 
 
     @Override
@@ -119,6 +117,8 @@ public class SearchServiceImpl implements SearchService {
                     continue;
                 }
 
+                System.out.println(123);
+
                 SearchUtils.ProductSet minCost = SearchUtils.findMinCost(products, roomCount, adultCount);
                 int minPrice = minCost.getMinCost();
                 if (minPrice >= 0) {
@@ -132,24 +132,22 @@ public class SearchServiceImpl implements SearchService {
                     searchResponse.setCompanyName(company.getCompanyName());
                     searchResponse.setCity("台北");               // TODO: 靜態寫入 等entity更新
                     searchResponse.setCountry("台灣");            // TODO: 靜態寫入 等entity更新
+                    searchResponse.setPhoto(BASE_URL + "image/74721697827127301"); // TODO: 靜態寫入 等待其他組員更新
                     searchResponse.setScore(company.getScore());
                     searchResponse.setCommentCount(999);         // TODO: 靜態寫入 等待其他組員更新
 
                     // 取得日期範圍的折扣列表
-                    List<Double> discounts = orderDao.getDiscountByCompanyIdBetweenStartDateAnEndDate(companyId, startDate, endDate);
-                    // 存在任何一筆資料表示折扣中
-                    boolean isPromotion = !discounts.isEmpty();
-                    double totalPrice = 0;
+                    List<Double> discounts = OrderUitl.getDiscountByCompanyIdBetweenStartDateAnEndDate(orderDao, companyId, startDate, endDate);
 
-                    // 使用1.0(表示原價)補完日期間隔方便計算總金額
-                    long between = ChronoUnit.DAYS.between(startDate.toLocalDate(), endDate.toLocalDate());
-                    while (discounts.size() < between) {
-                        discounts.add(1.0);
-                    }
+                    System.out.println(discounts);
+
+                    boolean isPromotion = false;
+                    double totalPrice = 0;
                     for (Double discount : discounts) {
+                        if (discount < 1.0) isPromotion = true;
                         totalPrice += discount * minPrice;
                     }
-                    
+
                     searchResponse.setIsPromotion(isPromotion);
                     searchResponse.setPrice((int) totalPrice);
 
@@ -184,7 +182,7 @@ public class SearchServiceImpl implements SearchService {
                 else responses.sort(Comparator.comparingDouble(SearchResponse::getScore).reversed());
                 break;
             case "price":
-            default :
+            default:
                 if (!isDesc) responses.sort(Comparator.comparingDouble(SearchResponse::getPrice));
                 else responses.sort(Comparator.comparingDouble(SearchResponse::getPrice).reversed());
                 break;

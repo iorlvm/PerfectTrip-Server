@@ -13,8 +13,9 @@ import idv.tia201.g1.member.entity.Admin;
 import idv.tia201.g1.member.entity.Company;
 import idv.tia201.g1.member.entity.User;
 
+import static idv.tia201.g1.core.utils.Constants.BASE_URL;
+
 public class DtoConverter {
-    private static final String BASE_URL = "http://localhost:8080/";
 
     public static ChatRoomDTO toChatRoomDTO(ChatRoom chatRoom, ChatParticipant chatUser) {
         if (chatRoom == null || chatUser == null)

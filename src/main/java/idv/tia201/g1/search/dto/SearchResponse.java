@@ -17,4 +17,5 @@ public class SearchResponse {
     private Boolean allowFreeCancellation;  // 是否免費取消
     private Boolean isRefundable;           // 可否退款
     private Integer price;                  // 價格 (整數)
+    private String photo;
 }
