@@ -2,6 +2,8 @@ package idv.tia201.g1.search.dto;
 
 import lombok.Data;
 
+import java.util.List;
+
 
 @Data
 public class SearchResponse {
@@ -11,6 +13,7 @@ public class SearchResponse {
     private String city;                    // 位置
     private Float score;                   // 評分數值
     private Integer commentCount;           // 評價數量
+    private List<String> products;
     private Boolean isPromotion;            // 促銷中
     private Boolean includesBreakfast;      // 是否包含早餐
     private Boolean allowDateChanges;       // 可否修改日期

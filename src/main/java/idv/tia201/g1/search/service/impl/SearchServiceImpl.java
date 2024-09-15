@@ -86,7 +86,6 @@ public class SearchServiceImpl implements SearchService {
                     throw new RuntimeException(e);
                 }
             }
-
         } else {
             // 取得地點符合條件的商家id列表
             List<Integer> companyIds = searchDao.findCompanyIdsByCityOrCountry(destination);
@@ -119,7 +118,6 @@ public class SearchServiceImpl implements SearchService {
 
                 SearchUtils.ProductSet minCost = SearchUtils.findMinCost(products, adultCount, roomCount);
                 int minPrice = minCost.getMinCost();
-                System.out.println(minCost);
                 if (minPrice >= 0) {
                     // 合理的價格, 表示有找到資料
                     List<Integer> productIds = minCost.getProductIds();
@@ -127,6 +125,7 @@ public class SearchServiceImpl implements SearchService {
                     SearchResponse searchResponse = searchDao.getDetailsByProductIds(productIds);
                     Company company = companyDao.findByCompanyId(companyId);
 
+                    searchResponse.setProducts(minCost.getProductNames());
                     searchResponse.setCompanyId(companyId);
                     searchResponse.setCompanyName(company.getCompanyName());
                     searchResponse.setCity("台北");               // TODO: 靜態寫入 等entity更新

@@ -58,7 +58,8 @@ public class SearchDaoImpl implements SearchDao {
                 "                     ) AS daily " +
                 "            ), 0 " +
                 "    ) AS remaining_rooms, " +                                      // 剩餘房間數量
-                "    p.price AS price " +                                           // 價格 (原價)
+                "    p.price AS price, " +
+                "    p.product_name " +                                           // 價格 (原價)
                 "FROM product_master p " +
                 "WHERE p.company_id IN :companyIds";
 
@@ -119,12 +120,14 @@ public class SearchDaoImpl implements SearchDao {
         BigDecimal bigDecimalValue = (BigDecimal) res[3];
         Integer remainingRooms = bigDecimalValue.intValue();
         Integer price = (Integer) res[4];
+        String productName = (String) res[5];
 
         ProductCalculation productCalculation = new ProductCalculation();
         productCalculation.setProductId(productId);
         productCalculation.setMaxOccupancy(maxOccupancy);
         productCalculation.setRemainingRooms(remainingRooms);
         productCalculation.setPrice(price);
+        productCalculation.setProductName(productName);
         return productCalculation;
     }
 }

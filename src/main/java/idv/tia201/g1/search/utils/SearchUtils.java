@@ -1,22 +1,21 @@
 package idv.tia201.g1.search.utils;
 
 import idv.tia201.g1.search.dto.ProductCalculation;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class SearchUtils {
 
     @Data
+    @AllArgsConstructor
     public static class ProductSet {
         int minCost;
         List<Integer> productIds;
-
-        public ProductSet(int minCost, List<Integer> productIds) {
-            this.minCost = minCost;
-            this.productIds = productIds;
-        }
+        List<String> productNames;
     }
 
     public static ProductSet findMinCost(List<ProductCalculation> products, int minAdults, int requiredRooms) {
@@ -24,26 +23,27 @@ public class SearchUtils {
         int adultsAccommodated = 0;
         int roomsUsed = 0;
         List<Integer> selectedProductIds = new ArrayList<>();
+        List<String> selectedProducts = new ArrayList<>();
 
 
         // 每次選擇房間後重新排序
         while (adultsAccommodated < minAdults && roomsUsed < requiredRooms) {
             int remainingAdults = minAdults - adultsAccommodated;
             products.sort(((o1, o2) -> {
-                        // 計算房間容量與需求的差異
-                        int diff1 = Math.abs(o1.getMaxOccupancy() - remainingAdults);
-                        int diff2 = Math.abs(o2.getMaxOccupancy() - remainingAdults);
+                // 計算房間容量與需求的差異
+                int diff1 = Math.abs(o1.getMaxOccupancy() - remainingAdults);
+                int diff2 = Math.abs(o2.getMaxOccupancy() - remainingAdults);
 
-                        // 先比較差異大小
-                        if (diff1 != diff2) {
-                            return diff1 - diff2;
-                        } else {
-                            // 如果差異相同，根據性價比 (價格 / 可容納人數) 進行比較
-                            double ratio1 = (double) o1.getPrice() / o1.getMaxOccupancy();
-                            double ratio2 = (double) o2.getPrice() / o2.getMaxOccupancy();
-                            return Double.compare(ratio1, ratio2);
-                        }
-                    }));
+                // 先比較差異大小
+                if (diff1 != diff2) {
+                    return diff1 - diff2;
+                } else {
+                    // 如果差異相同，根據性價比 (價格 / 可容納人數) 進行比較
+                    double ratio1 = (double) o1.getPrice() / o1.getMaxOccupancy();
+                    double ratio2 = (double) o2.getPrice() / o2.getMaxOccupancy();
+                    return Double.compare(ratio1, ratio2);
+                }
+            }));
 
             // 2. 選擇排序後的第一間房間
             ProductCalculation bestProduct = products.get(0);
@@ -62,6 +62,7 @@ public class SearchUtils {
 
             // 記錄選擇的房間ID
             selectedProductIds.add(bestProduct.getProductId());
+            selectedProducts.add(bestProduct.getProductName());
 
             // 5. 更新剩餘房間數量
             bestProduct.setRemainingRooms(bestProduct.getRemainingRooms() - 1);
@@ -74,10 +75,10 @@ public class SearchUtils {
 
         // 7. 檢查是否滿足最小成人數的需求
         if (adultsAccommodated < minAdults) {
-            return new ProductSet(-1, new ArrayList<>());  // 無法滿足需求
+            return new ProductSet(-1, Collections.emptyList(), Collections.emptyList());  // 無法滿足需求
         }
 
         // 返回最小成本和選擇的房間ID
-        return new ProductSet(totalCost, selectedProductIds);
+        return new ProductSet(totalCost, selectedProductIds, selectedProducts);
     }
 }
