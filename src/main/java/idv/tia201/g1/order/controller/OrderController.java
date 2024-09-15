@@ -75,7 +75,7 @@ public class OrderController {
     @GetMapping("/{orderId}")
     public Result getOrderById(@PathVariable Integer orderId) {
         try {
-            Order order = orderService.getOrder(orderId);
+            OrderDTO order = orderService.getOrder(orderId);
             return Result.ok(order);
         } catch (Exception e) {
             return Result.fail(e.getMessage());

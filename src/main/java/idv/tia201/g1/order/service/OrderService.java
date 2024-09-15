@@ -31,6 +31,6 @@ public interface OrderService {
 
 
     //透過 orderId 取得訂單資料，並將結果以 OrderDTO
-    Order getOrder(Integer orderId);
+    OrderDTO getOrder(Integer orderId);
 
 }

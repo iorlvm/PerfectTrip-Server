@@ -2,20 +2,25 @@ package idv.tia201.g1.order.service.impl;
 
 import idv.tia201.g1.core.entity.UserAuth;
 import idv.tia201.g1.core.utils.UserHolder;
+import idv.tia201.g1.member.dao.CompanyDao;
+import idv.tia201.g1.member.entity.Company;
 import idv.tia201.g1.order.dao.OrderDao;
 import idv.tia201.g1.order.dao.OrderDetailDao;
 import idv.tia201.g1.order.dao.OrderResidentsDao;
 import idv.tia201.g1.order.dto.CreateOrderRequest;
+import idv.tia201.g1.order.dto.OrderDTO;
 import idv.tia201.g1.order.dto.UpdateOrderRequest;
 import idv.tia201.g1.order.entity.Order;
 import idv.tia201.g1.order.entity.OrderDetail;
 import idv.tia201.g1.order.entity.OrderResidents;
 import idv.tia201.g1.order.service.OrderService;
 import idv.tia201.g1.order.uitls.OrderUitl;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.sql.Date;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -33,6 +38,9 @@ public class OrderServiceImpl implements OrderService {
     private OrderDetailDao orderDetailDao;
     @Autowired
     private OrderResidentsDao orderResidentsDao;
+    @Autowired
+    private CompanyDao companyDao;
+
     @Override
     public Order createOrder(CreateOrderRequest createOrderRequest) {
         UserAuth user = UserHolder.getUser();
@@ -170,19 +178,30 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public Order getOrder(Integer orderId) {
-        if (! ROLE_USER.equals(UserHolder.getRole())){
-            throw new RuntimeException("權限異常!!");
+    public OrderDTO getOrder(Integer orderId) {
+        if (!ROLE_USER.equals(UserHolder.getRole())) {
+            throw new IllegalStateException("權限異常!!");
         }
         Order order = orderDao.findByOrderId(orderId);
         if (order == null) {
-            throw new RuntimeException("找不到訂單!!");
+            throw new IllegalArgumentException("找不到訂單!!");
         }
         Integer userId = order.getUserId();
 
-         if (!Objects.equals(UserHolder.getId(), userId)){
-             throw  new RuntimeException("該訂單不屬於你!!!");
-         }
-        return order;
+        if (!Objects.equals(UserHolder.getId(), userId)) {
+            throw new IllegalStateException("該訂單不屬於你!!!");
+        }
+        OrderDTO orderDTO = new OrderDTO();
+        BeanUtils.copyProperties(order, orderDTO);
+
+        Company company = companyDao.findByOrderId(orderId);
+        orderDTO.setCompanyId(company.getCompanyId());
+        orderDTO.setHotelName(company.getCompanyName());
+        orderDTO.setHotelAddress(company.getAddress());
+        orderDTO.setHotelScore(company.getScore());
+        //TODO: 等待組員
+        orderDTO.setHotelFacilities(new ArrayList<>());
+
+        return orderDTO;
     }
 }
