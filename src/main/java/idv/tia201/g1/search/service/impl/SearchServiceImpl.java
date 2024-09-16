@@ -6,12 +6,17 @@ import idv.tia201.g1.member.dao.CompanyDao;
 import idv.tia201.g1.member.entity.Company;
 import idv.tia201.g1.order.dao.OrderDao;
 import idv.tia201.g1.order.uitls.OrderUitl;
+import idv.tia201.g1.product.dao.ProductDetailsDao;
+import idv.tia201.g1.product.entity.Product;
+import idv.tia201.g1.product.entity.ProductDetails;
 import idv.tia201.g1.search.dao.SearchDao;
 import idv.tia201.g1.search.dto.ProductCalculation;
+import idv.tia201.g1.search.dto.SearchProductResponse;
 import idv.tia201.g1.search.dto.SearchRequest;
 import idv.tia201.g1.search.dto.SearchResponse;
 import idv.tia201.g1.search.service.SearchService;
 import idv.tia201.g1.search.utils.SearchUtils;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -22,6 +27,7 @@ import org.springframework.stereotype.Service;
 import java.sql.Date;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 
 import static idv.tia201.g1.core.utils.Constants.*;
 
@@ -34,6 +40,8 @@ public class SearchServiceImpl implements SearchService {
     @Autowired
     private OrderDao orderDao;
     @Autowired
+    private ProductDetailsDao productDetailsDao;
+    @Autowired
     private StringRedisTemplate stringRedisTemplate;
     @Autowired
     private ObjectMapper objectMapper;
@@ -41,8 +49,14 @@ public class SearchServiceImpl implements SearchService {
 
     @Override
     public Page<SearchResponse> search(SearchRequest request) {
-        // 驗證請求
+        // 標準請求驗證
         validateRequest(request);
+
+        // 追加驗證
+        if (request.getDestination() == null || request.getDestination().isEmpty()) {
+            throw new IllegalArgumentException("目的地(destination)為必填項");
+        }
+
 
         Integer page = request.getPage();
         Integer pageSize = request.getSize();
@@ -82,6 +96,55 @@ public class SearchServiceImpl implements SearchService {
         return getPageResponse(responses, page, pageSize, pageRequest);
     }
 
+    @Override
+    public List<SearchProductResponse> searchProductListByCompanyId(Integer companyId, SearchRequest searchRequest) {
+        // 驗證請求格式
+        validateRequest(searchRequest);
+
+        Date startDate = searchRequest.getStartDate();
+        Date endDate = searchRequest.getEndDate();
+        long daysBetween = OrderUitl.getDaysBetween(startDate, endDate);
+
+        Map<Integer, List<ProductCalculation>> res = searchDao.getProductCalculations(
+                Collections.singletonList(companyId),
+                startDate,
+                endDate
+        );
+        List<ProductCalculation> productCalculations = res.get(companyId);
+
+        // 把列表轉為Map方便進行後續的查詢操作
+        Map<Integer,ProductCalculation> productCalculationMap = new HashMap<>();
+        for (ProductCalculation productCalculation : productCalculations) {
+            productCalculationMap.put(productCalculation.getProductId(), productCalculation);
+        }
+
+        List<Integer> productIds = productCalculationMap.keySet().stream().toList();
+
+        List<ProductDetails> productDetails = productDetailsDao.findByProductIdIn(productIds);
+
+        List<SearchProductResponse> productResponses = new ArrayList<>(productDetails.size());
+        for (ProductDetails productDetail : productDetails) {
+            ProductCalculation productCalculation = productCalculationMap.get(productDetail.getProductId());
+            SearchProductResponse searchProductResponse = createSearchProductResponse(productDetail, productCalculation);
+            searchProductResponse.setDays((int) daysBetween);
+
+            productResponses.add(searchProductResponse);
+        }
+
+        // 將結果排序後回傳
+        productResponses.sort(Comparator
+                .comparing(SearchProductResponse::getMaxOccupancy)
+                .thenComparing(SearchProductResponse::getPrice));
+
+        return productResponses;
+    }
+
+    private SearchProductResponse createSearchProductResponse(ProductDetails productDetails, ProductCalculation productCalculation) {
+        SearchProductResponse searchProductResponse = new SearchProductResponse();
+        BeanUtils.copyProperties(productDetails, searchProductResponse);
+        BeanUtils.copyProperties(productCalculation, searchProductResponse);
+        return searchProductResponse;
+    }
 
     private void validateRequest(SearchRequest request) {
         if (request.getAdultCount() == null) {
@@ -93,14 +156,10 @@ public class SearchServiceImpl implements SearchService {
         if (request.getEndDate() == null) {
             throw new IllegalArgumentException("結束日期(endDate)為必填項");
         }
-        if (request.getDestination() == null || request.getDestination().isEmpty()) {
-            throw new IllegalArgumentException("目的地(destination)為必填項");
-        }
         if (request.getRoomCount() == null) {
             throw new IllegalArgumentException("房間數(roomCount)為必填項");
         }
     }
-
 
     private List<SearchResponse> getCachedResponses(String key) {
         List<SearchResponse> responses = new ArrayList<>();
@@ -167,7 +226,7 @@ public class SearchServiceImpl implements SearchService {
 
         return responses;
     }
-    
+
     private SearchResponse createSearchResponse(Integer companyId, SearchUtils.ProductSet minCost, Date startDate, Date endDate) {
         SearchResponse searchResponse = searchDao.getDetailsByProductIds(minCost.getProductIds());
         Company company = companyDao.findByCompanyId(companyId);
