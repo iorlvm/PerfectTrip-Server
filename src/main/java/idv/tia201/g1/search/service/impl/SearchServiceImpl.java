@@ -41,6 +41,49 @@ public class SearchServiceImpl implements SearchService {
 
     @Override
     public Page<SearchResponse> search(SearchRequest request) {
+        // 驗證請求
+        validateRequest(request);
+
+        Integer page = request.getPage();
+        Integer pageSize = request.getSize();
+
+        PageRequest pageRequest = PageRequest.of(page, pageSize);
+
+        int adultCount = request.getAdultCount();
+        int roomCount = request.getRoomCount();
+        Date startDate = request.getStartDate();
+        Date endDate = request.getEndDate();
+        String destination = request.getDestination();
+
+        String key = CACHE_SEARCH_PREFIX + destination + ":" + adultCount + ":" + roomCount + ":" + startDate + ":" + endDate;
+
+        List<SearchResponse> responses = getCachedResponses(key);
+
+        if (responses.isEmpty()) {
+            // 沒有緩存時查詢並計算
+            responses = searchAndCalculateProductDetails(
+                    request.getDestination(),
+                    request.getAdultCount(),
+                    request.getRoomCount(),
+                    request.getStartDate(),
+                    request.getEndDate()
+            );
+
+            // 將結果緩存
+            cacheResponses(key, responses);
+        }
+
+        stringRedisTemplate.expire(key, CACHE_SEARCH_TTL, TimeUnit.SECONDS);        // 十分鐘過期消失  (設定/重設過期時間)
+
+        // 排序
+        sortResponses(responses, request.getOrderBy(), request.getIsDesc());
+
+        // 分頁返回
+        return getPageResponse(responses, page, pageSize, pageRequest);
+    }
+
+
+    private void validateRequest(SearchRequest request) {
         if (request.getAdultCount() == null) {
             throw new IllegalArgumentException("成人數(adultCount)為必填項");
         }
@@ -56,20 +99,10 @@ public class SearchServiceImpl implements SearchService {
         if (request.getRoomCount() == null) {
             throw new IllegalArgumentException("房間數(roomCount)為必填項");
         }
+    }
 
-        Integer page = request.getPage();
-        Integer pageSize = request.getSize();
 
-        PageRequest pageRequest = PageRequest.of(page, pageSize);
-
-        int adultCount = request.getAdultCount();
-        int roomCount = request.getRoomCount();
-        Date startDate = request.getStartDate();
-        Date endDate = request.getEndDate();
-        String destination = request.getDestination();
-
-        String key = CACHE_SEARCH_PREFIX + destination + ":" + adultCount + ":" + roomCount + ":" + startDate + ":" + endDate;
-
+    private List<SearchResponse> getCachedResponses(String key) {
         List<SearchResponse> responses = new ArrayList<>();
         Long size = stringRedisTemplate.opsForList().size(key);
 
@@ -85,107 +118,109 @@ public class SearchServiceImpl implements SearchService {
                     throw new RuntimeException(e);
                 }
             }
-        } else {
-            // 取得地點符合條件的商家id列表
-            List<Integer> companyIds = searchDao.findCompanyIdsByCityOrCountry(destination);
+        }
 
-            if (companyIds.isEmpty()) return new PageImpl<>(Collections.emptyList(), pageRequest, 0);
+        return responses;
+    }
 
-            // 根據商家id列表取得剩餘的房間數量以及價格
-            Map<Integer, List<ProductCalculation>> productCalculations = searchDao.getProductCalculations(companyIds, startDate, endDate);
-
-
-            for (Map.Entry<Integer, List<ProductCalculation>> entry : productCalculations.entrySet()) {
-                Integer companyId = entry.getKey();
-                List<ProductCalculation> products = entry.getValue();
-
-                // 計算總剩餘房間數量和總可住宿人數 (先排除不可能的選項)
-                int totalRemainingRooms = products.stream()
-                        .mapToInt(ProductCalculation::getRemainingRooms)
-                        .sum();
-
-                int totalMaxOccupancy = products.stream()
-                        .mapToInt(product -> product.getMaxOccupancy() * product.getRemainingRooms())
-                        .sum();
-
-                boolean isValidCompany = totalRemainingRooms >= roomCount &&
-                        totalMaxOccupancy >= adultCount;
-
-                if (!isValidCompany) {
-                    continue;
-                }
-
-                SearchUtils.ProductSet minCost = SearchUtils.findMinCost(products, adultCount, roomCount);
-                int minPrice = minCost.getMinCost();
-                if (minPrice >= 0) {
-                    // 合理的價格, 表示有找到資料
-                    List<Integer> productIds = minCost.getProductIds();
-
-                    SearchResponse searchResponse = searchDao.getDetailsByProductIds(productIds);
-                    Company company = companyDao.findByCompanyId(companyId);
-
-                    searchResponse.setProducts(minCost.getProductNames());
-                    searchResponse.setCompanyId(companyId);
-                    searchResponse.setCompanyName(company.getCompanyName());
-                    searchResponse.setCity("台北");               // TODO: 靜態寫入 等entity更新
-                    searchResponse.setCountry("台灣");            // TODO: 靜態寫入 等entity更新
-                    searchResponse.setPhoto(BASE_URL + "image/74721697827127301"); // TODO: 靜態寫入 等待其他組員更新
-                    searchResponse.setScore(company.getScore());
-                    searchResponse.setCommentCount(999);         // TODO: 靜態寫入 等待其他組員更新
-
-                    // 取得日期範圍的折扣列表
-                    List<Double> discounts = OrderUitl.getDiscountByCompanyIdBetweenStartDateAnEndDate(orderDao, companyId, startDate, endDate);
-
-                    boolean isPromotion = false;
-                    double totalPrice = 0;
-                    for (Double discount : discounts) {
-                        if (discount < 1.0) isPromotion = true;
-                        totalPrice += discount * minPrice;
-                    }
-
-                    searchResponse.setIsPromotion(isPromotion);
-                    searchResponse.setPrice((int) totalPrice);
-
-                    responses.add(searchResponse);
-                }
-            }
-
-            // 將處理完的responses存到redis中緩存
-            if (!responses.isEmpty()) {
-                List<String> jsonList = new ArrayList<>(responses.size());
-                for (SearchResponse response : responses) {
-                    try {
-                        jsonList.add(objectMapper.writeValueAsString(response));
-                    } catch (JsonProcessingException e) {
-                        throw new RuntimeException(e);
-                    }
-                }
-                stringRedisTemplate.opsForList().leftPushAll(key, jsonList);            // 存到緩存避免短時間內重新查詢 (創建訂單時同時刪除緩存)
+    private void cacheResponses(String key, List<SearchResponse> responses) {
+        if (responses == null || responses.isEmpty()) return;
+        // 將處理完的responses存到redis中緩存
+        List<String> jsonList = new ArrayList<>(responses.size());
+        for (SearchResponse response : responses) {
+            try {
+                jsonList.add(objectMapper.writeValueAsString(response));
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
             }
         }
-        stringRedisTemplate.expire(key, CACHE_SEARCH_TTL, TimeUnit.SECONDS);        // 十分鐘過期消失  (設定/重設過期時間)
+        stringRedisTemplate.opsForList().leftPushAll(key, jsonList);            // 存到緩存避免短時間內重新查詢 (創建訂單時同時刪除緩存)
+    }
 
-        // 根據價格由低到高排序  回傳Page<SearchResponse>
-        String orderBy = request.getOrderBy();
-        Boolean isDesc = request.getIsDesc();
+    private List<SearchResponse> searchAndCalculateProductDetails(String destination, int adultCount, int roomCount, Date startDate, Date endDate) {
+        List<SearchResponse> responses = new ArrayList<>();
 
+        // 查詢符合目的地的商家
+        List<Integer> companyIds = searchDao.findCompanyIdsByCityOrCountry(destination);
+        if (companyIds.isEmpty()) return responses;
+
+        Map<Integer, List<ProductCalculation>> productCalculations = searchDao.getProductCalculations(companyIds, startDate, endDate);
+        Set<Integer> processedCompanies = new HashSet<>();
+
+        for (Map.Entry<Integer, List<ProductCalculation>> entry : productCalculations.entrySet()) {
+            Integer companyId = entry.getKey();
+
+            if (processedCompanies.contains(companyId)) continue;
+            processedCompanies.add(companyId);
+
+            List<ProductCalculation> products = entry.getValue();
+            int totalRemainingRooms = products.stream().mapToInt(ProductCalculation::getRemainingRooms).sum();
+            int totalMaxOccupancy = products.stream().mapToInt(product -> product.getMaxOccupancy() * product.getRemainingRooms()).sum();
+
+            if (totalRemainingRooms < roomCount || totalMaxOccupancy < adultCount) continue;
+
+            SearchUtils.ProductSet minCost = SearchUtils.findMinCost(products, adultCount, roomCount);
+            if (minCost.getMinCost() >= 0) {
+                responses.add(createSearchResponse(companyId, minCost, startDate, endDate));
+            }
+        }
+
+        return responses;
+    }
+    
+    private SearchResponse createSearchResponse(Integer companyId, SearchUtils.ProductSet minCost, Date startDate, Date endDate) {
+        SearchResponse searchResponse = searchDao.getDetailsByProductIds(minCost.getProductIds());
+        Company company = companyDao.findByCompanyId(companyId);
+
+        searchResponse.setProducts(minCost.getProductNames());
+        searchResponse.setCompanyId(companyId);
+        searchResponse.setCompanyName(company.getCompanyName());
+        searchResponse.setCity("台北");                                   // TODO: 靜態寫入 等entity更新
+        searchResponse.setCountry("台灣");                                // TODO: 靜態寫入 等entity更新
+        searchResponse.setPhoto(BASE_URL + "image/74721697827127301");   // TODO: 靜態寫入 等entity更新
+        searchResponse.setScore(company.getScore());
+        searchResponse.setCommentCount(999);                             // TODO: 靜態寫入 等entity更新
+
+        List<Double> discounts = OrderUitl.getDiscountByCompanyIdBetweenStartDateAnEndDate(orderDao, companyId, startDate, endDate);
+
+        boolean isPromotion = false;
+        double totalPrice = 0;
+        for (Double discount : discounts) {
+            if (discount < 1.0) isPromotion = true;
+            totalPrice += discount * minCost.getMinCost();
+        }
+
+        searchResponse.setIsPromotion(isPromotion);
+        searchResponse.setPrice((int) totalPrice);
+
+        return searchResponse;
+    }
+
+    private void sortResponses(List<SearchResponse> responses, String orderBy, Boolean isDesc) {
         if (orderBy == null) orderBy = "price";
+        Comparator<SearchResponse> comparator;
 
         switch (orderBy) {
             case "score":
-                if (!isDesc) responses.sort(Comparator.comparingDouble(SearchResponse::getScore));
-                else responses.sort(Comparator.comparingDouble(SearchResponse::getScore).reversed());
+                comparator = Comparator.comparingDouble(SearchResponse::getScore);
                 break;
             case "price":
             default:
-                if (!isDesc) responses.sort(Comparator.comparingDouble(SearchResponse::getPrice));
-                else responses.sort(Comparator.comparingDouble(SearchResponse::getPrice).reversed());
+                comparator = Comparator.comparingDouble(SearchResponse::getPrice);
                 break;
         }
 
+        if (isDesc != null && isDesc) {
+            comparator = comparator.reversed();
+        }
+
+        responses.sort(comparator);
+    }
+
+    private Page<SearchResponse> getPageResponse(List<SearchResponse> responses, int page, int pageSize, PageRequest pageRequest) {
         int total = responses.size();
         int offset = page * pageSize;
-        int end = Math.min(offset + pageSize, responses.size());
+        int end = Math.min(offset + pageSize, total);
 
         if (offset >= end) {
             return new PageImpl<>(Collections.emptyList(), pageRequest, total);
