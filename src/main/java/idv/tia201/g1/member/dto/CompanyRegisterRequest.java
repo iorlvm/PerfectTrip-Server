@@ -30,5 +30,11 @@ public class CompanyRegisterRequest {
     @NotBlank
     private String manager;
 
+    @NotBlank
+    private String city;
+
+    @NotBlank
+    private String country;
+
 
 }
