@@ -110,9 +110,9 @@ public class CompanyServiceImpl implements CompanyService {
             company.setTelephone(companyUpdateRequest.getTelephone());
         }
 
-        if (companyUpdateRequest.getChangeId()!=null && !companyUpdateRequest.getChangeId().equals(company.getChangeId())) {
-            company.setChangeId(companyUpdateRequest.getChangeId());
-        }
+//        if (companyUpdateRequest.getChangeId()!=null && !companyUpdateRequest.getChangeId().equals(company.getChangeId())) {
+//            company.setChangeId(companyUpdateRequest.getChangeId());
+//        }
 
         company.setLastModifiedDate(new Date());
 
