@@ -213,10 +213,7 @@ public class UserServiceImpl implements UserService {
         Optional.ofNullable(userUpdateRequest.getGender()).ifPresent(user::setGender);
 
         // Update the user's phone number if provided and validate it
-        Optional.ofNullable(userUpdateRequest.getPhoneNumber()).ifPresent(phoneNumber -> {
-            validatePhoneNumberExists(user);
-            user.setPhoneNumber(phoneNumber);
-        });
+        Optional.ofNullable(userUpdateRequest.getPhoneNumber()).ifPresent(user::setPhoneNumber);
 
         // Update the user's country if provided
         Optional.ofNullable(userUpdateRequest.getCountry()).ifPresent(user::setCountry);
