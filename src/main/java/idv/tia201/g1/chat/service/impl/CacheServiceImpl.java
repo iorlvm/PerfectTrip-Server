@@ -14,7 +14,9 @@ import idv.tia201.g1.chat.entity.ChatUserMapping;
 import idv.tia201.g1.core.utils.basic.JSONUtil;
 import idv.tia201.g1.core.utils.redis.CacheClient;
 import idv.tia201.g1.core.utils.redis.RedisIdWorker;
+import idv.tia201.g1.member.service.Impl.UserServiceImpl;
 import jakarta.annotation.PostConstruct;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
@@ -37,6 +39,8 @@ import static idv.tia201.g1.core.utils.Constants.*;
 
 @Service
 public class CacheServiceImpl implements CacheService {
+    private final static Logger log = LoggerFactory.getLogger(CacheServiceImpl.class);
+
     @Autowired
     private ChatUserMappingDao chatUserMappingDao;
     @Autowired
@@ -348,7 +352,6 @@ public class CacheServiceImpl implements CacheService {
                     // 處理完畢 (標記為已處理)
                     stringRedisTemplate.opsForStream().acknowledge(QUEUE_NAME, CHAT_GROUP, record.getId());
                 } catch (Exception e) {
-//                    e.printStackTrace();
                     // 異常重試
                     handlePendingList();
                 }
@@ -378,8 +381,8 @@ public class CacheServiceImpl implements CacheService {
 
                     // 處理完畢 (標記為已處理)
                     stringRedisTemplate.opsForStream().acknowledge(QUEUE_NAME, CHAT_GROUP, record.getId());
+                    return;  // 處理完成 結束
                 } catch (Exception e) {
-//                    e.printStackTrace();
                     try {
                         Thread.sleep(50);
                     } catch (InterruptedException ex) {
@@ -390,8 +393,9 @@ public class CacheServiceImpl implements CacheService {
 
             if (record != null) {
                 // 超出重試次數
-                LoggerFactory.getLogger(CacheServiceImpl.class).error(record.getValue().toString());
+                log.error("Error processing record: {}",record.getId());
                 // 超出預期的錯誤 (避免卡死, 先跳過這筆訊息)
+                // TODO: 應該要考慮增加一個異常隊列把卡死的部分丟去那邊處理
                 stringRedisTemplate.opsForStream().acknowledge(QUEUE_NAME, CHAT_GROUP, record.getId());
             }
         }
