@@ -88,7 +88,7 @@ public class UserServiceImpl implements UserService {
         User user = userDao.findByUsername(userLoginRequest.getUsername());
 
         // Validate that the username exists
-        validateUsernameNotExists(user);
+        validateUsernameNotExists(user, userLoginRequest);
 
         // Validate the user's password
         validateUserPassword(user, userLoginRequest.getPassword());
@@ -382,10 +382,10 @@ public class UserServiceImpl implements UserService {
      * @param user the User object to validate
      * @throws ResponseStatusException if the username does not exist
      */
-    private void validateUsernameNotExists(User user) {
+    private void validateUsernameNotExists(User user, UserLoginRequest userLoginRequest) {
 
         if (user == null) {
-            log.warn("該 username {} 尚未註冊", user.getUsername());
+            log.warn("該 username {} 尚未註冊", userLoginRequest.getUsername());
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Username not registered.");
         }
 

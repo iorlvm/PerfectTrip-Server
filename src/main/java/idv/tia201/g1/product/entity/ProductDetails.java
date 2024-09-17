@@ -42,4 +42,8 @@ public class ProductDetails {
                     referencedColumnName = "facility_id")
     )
     private List<Facility> facilities;
+
+    @OneToMany
+    @JoinColumn(name = "product_id", referencedColumnName = "product_id")
+    private List<ProductPhotos> photos;
 }

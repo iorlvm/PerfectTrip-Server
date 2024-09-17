@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
-public class OrderUitl {
+public class OrderUtil {
 
     public static List<Double> getDiscountByCompanyIdBetweenStartDateAnEndDate(OrderDao orderDao, Integer companyId, Date startDate, Date endDate) {
         List<Date> datesBetween = getDatesBetween(startDate, endDate);

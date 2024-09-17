@@ -25,7 +25,7 @@ public interface OrderDao extends JpaRepository<Order, Integer> {
             "WHERE o.orderId = :orderId")
     Integer calculateTotalPrice(@Param("orderId") Integer orderId);
 
-    @Query("SELECT pd.discountRate " +
+    @Query("SELECT MIN(pd.discountRate) " +
             "FROM ProductDiscount pd " +
             "WHERE pd.companyId = :companyId " +
             "AND pd.startDateTime <= :date " +

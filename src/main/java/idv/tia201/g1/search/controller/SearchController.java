@@ -1,6 +1,7 @@
 package idv.tia201.g1.search.controller;
 
 import idv.tia201.g1.core.dto.Result;
+import idv.tia201.g1.search.dto.SearchProductResponse;
 import idv.tia201.g1.search.dto.SearchRequest;
 import idv.tia201.g1.search.dto.SearchResponse;
 import idv.tia201.g1.search.service.SearchService;
@@ -10,6 +11,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/search")
@@ -25,7 +28,7 @@ public class SearchController {
 
     @GetMapping("{companyId}")
     public Result getProductList(@PathVariable Integer companyId, SearchRequest searchRequest) {
-
-        return Result.ok();
+        List<SearchProductResponse> productResponses = searchService.searchProductListByCompanyId(companyId, searchRequest);
+        return Result.ok(productResponses);
     }
 }
