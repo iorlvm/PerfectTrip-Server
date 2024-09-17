@@ -214,7 +214,8 @@ public class UserServiceImpl implements UserService {
 
         // Update the user's phone number if provided and validate it
         Optional.ofNullable(userUpdateRequest.getPhoneNumber()).ifPresent(phoneNumber -> {
-            validatePhoneNumberExists(user);
+            User phoneUser = userDao.findByPhoneNumber(userUpdateRequest.getPhoneNumber());
+            validatePhoneNumberExists(phoneUser);
             user.setPhoneNumber(phoneNumber);
         });
 
