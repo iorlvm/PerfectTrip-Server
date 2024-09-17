@@ -19,12 +19,11 @@ public class Company implements Serializable, UserAuth {
     @Column(name = "company_id")
     private int companyId;
 
-    @Setter
+
     @Column(name = "username", nullable = false, unique = true)
     private String username;
 
-    @Setter
-    @Getter
+
     @Column(name = "password", nullable = false)
     private String password;
 
@@ -57,6 +56,12 @@ public class Company implements Serializable, UserAuth {
 
     @Column(name = "manager", nullable = false)
     private String manager;
+
+    @Column(name = "country", nullable = false)
+    private String country;
+
+    @Column(name = "city", nullable = false)
+    private String city;
 
     @Transient
     private String token;
