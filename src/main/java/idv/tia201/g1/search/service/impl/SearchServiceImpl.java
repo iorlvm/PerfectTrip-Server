@@ -251,8 +251,8 @@ public class SearchServiceImpl implements SearchService {
         searchResponse.setProducts(minCost.getProductNames());
         searchResponse.setCompanyId(companyId);
         searchResponse.setCompanyName(company.getCompanyName());
-        searchResponse.setCity("台北");                                   // TODO: 靜態寫入 等entity更新
-        searchResponse.setCountry("台灣");                                // TODO: 靜態寫入 等entity更新
+        searchResponse.setCity(company.getCity());
+        searchResponse.setCountry(company.getCountry());
         searchResponse.setPhoto(BASE_URL + "image/74721697827127301");   // TODO: 靜態寫入 等entity更新
         searchResponse.setScore(company.getScore());
         searchResponse.setCommentCount(999);                             // TODO: 靜態寫入 等entity更新
