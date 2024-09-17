@@ -5,10 +5,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import idv.tia201.g1.member.dao.CompanyDao;
 import idv.tia201.g1.member.entity.Company;
 import idv.tia201.g1.order.dao.OrderDao;
-import idv.tia201.g1.order.uitls.OrderUitl;
+import idv.tia201.g1.order.uitls.OrderUtil;
 import idv.tia201.g1.product.dao.ProductDetailsDao;
-import idv.tia201.g1.product.entity.Product;
 import idv.tia201.g1.product.entity.ProductDetails;
+import idv.tia201.g1.product.entity.ProductPhotos;
 import idv.tia201.g1.search.dao.SearchDao;
 import idv.tia201.g1.search.dto.ProductCalculation;
 import idv.tia201.g1.search.dto.SearchProductResponse;
@@ -27,7 +27,6 @@ import org.springframework.stereotype.Service;
 import java.sql.Date;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
 
 import static idv.tia201.g1.core.utils.Constants.*;
 
@@ -103,7 +102,7 @@ public class SearchServiceImpl implements SearchService {
 
         Date startDate = searchRequest.getStartDate();
         Date endDate = searchRequest.getEndDate();
-        long daysBetween = OrderUitl.getDaysBetween(startDate, endDate);
+        long daysBetween = OrderUtil.getDaysBetween(startDate, endDate);
 
         Map<Integer, List<ProductCalculation>> res = searchDao.getProductCalculations(
                 Collections.singletonList(companyId),
@@ -112,9 +111,16 @@ public class SearchServiceImpl implements SearchService {
         );
         List<ProductCalculation> productCalculations = res.get(companyId);
 
+        List<Double> discount = OrderUtil.getDiscountByCompanyIdBetweenStartDateAnEndDate(orderDao, companyId, startDate, endDate);
+
         // 把列表轉為Map方便進行後續的查詢操作
         Map<Integer,ProductCalculation> productCalculationMap = new HashMap<>();
         for (ProductCalculation productCalculation : productCalculations) {
+            double totalPrice = 0;
+            for (Double v : discount) {
+                totalPrice += productCalculation.getPrice() * v;
+            }
+            productCalculation.setPrice((int) totalPrice);
             productCalculationMap.put(productCalculation.getProductId(), productCalculation);
         }
 
@@ -143,6 +149,13 @@ public class SearchServiceImpl implements SearchService {
         SearchProductResponse searchProductResponse = new SearchProductResponse();
         BeanUtils.copyProperties(productDetails, searchProductResponse);
         BeanUtils.copyProperties(productCalculation, searchProductResponse);
+        List<ProductPhotos> photos = searchProductResponse.getPhotos();
+        // 將主圖排到第一張
+        photos.sort((a,b) -> Boolean.compare(b.isMain(), a.isMain()));
+        // 對圖片添加前綴
+        for (ProductPhotos photo : photos) {
+            photo.setPhotoUrl(BASE_URL + photo.getPhotoUrl());
+        }
         return searchProductResponse;
     }
 
@@ -240,7 +253,7 @@ public class SearchServiceImpl implements SearchService {
         searchResponse.setScore(company.getScore());
         searchResponse.setCommentCount(999);                             // TODO: 靜態寫入 等entity更新
 
-        List<Double> discounts = OrderUitl.getDiscountByCompanyIdBetweenStartDateAnEndDate(orderDao, companyId, startDate, endDate);
+        List<Double> discounts = OrderUtil.getDiscountByCompanyIdBetweenStartDateAnEndDate(orderDao, companyId, startDate, endDate);
 
         boolean isPromotion = false;
         double totalPrice = 0;

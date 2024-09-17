@@ -14,7 +14,7 @@ import idv.tia201.g1.order.entity.Order;
 import idv.tia201.g1.order.entity.OrderDetail;
 import idv.tia201.g1.order.entity.OrderResidents;
 import idv.tia201.g1.order.service.OrderService;
-import idv.tia201.g1.order.uitls.OrderUitl;
+import idv.tia201.g1.order.uitls.OrderUtil;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -69,7 +69,7 @@ public class OrderServiceImpl implements OrderService {
             Integer productId = requestProduct.getProductId();
             Integer count = requestProduct.getCount();
 
-            List<Date> datesBetween = OrderUitl.getDatesBetween(order.getStartDate(), order.getEndDate());
+            List<Date> datesBetween = OrderUtil.getDatesBetween(order.getStartDate(), order.getEndDate());
             for (Date date : datesBetween) {
                 OrderDetail orderDetail = new OrderDetail();
                 orderDetail.setOrderId(orderId);
@@ -88,12 +88,12 @@ public class OrderServiceImpl implements OrderService {
         Integer companyId = createOrderRequest.getCompanyId();
 
         Integer dailyPrice = orderDao.calculateTotalPrice(orderId);
-        List<Double> discount = OrderUitl.getDiscountByCompanyIdBetweenStartDateAnEndDate(orderDao, companyId, save.getStartDate(), save.getEndDate());
+        List<Double> discount = OrderUtil.getDiscountByCompanyIdBetweenStartDateAnEndDate(orderDao, companyId, save.getStartDate(), save.getEndDate());
 
         // 計算全價
         int fullPrice = dailyPrice * discount.size();
         // 計算折扣價
-        int discountedPrice = OrderUitl.calculateTotalDiscountedPrice(dailyPrice, discount);
+        int discountedPrice = OrderUtil.calculateTotalDiscountedPrice(dailyPrice, discount);
 
         // 計算稅金與服務費
         int serviceFee = (int) Math.round(discountedPrice * SERVICE_FEE_PERCENT);
