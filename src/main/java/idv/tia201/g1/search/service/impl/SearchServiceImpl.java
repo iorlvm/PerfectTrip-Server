@@ -111,6 +111,10 @@ public class SearchServiceImpl implements SearchService {
         );
         List<ProductCalculation> productCalculations = res.get(companyId);
 
+        productCalculations = productCalculations.stream()
+                .filter(product -> product.getRemainingRooms() >= 1)
+                .toList();
+
         List<Double> discount = OrderUtil.getDiscountByCompanyIdBetweenStartDateAnEndDate(orderDao, companyId, startDate, endDate);
 
         // 把列表轉為Map方便進行後續的查詢操作
