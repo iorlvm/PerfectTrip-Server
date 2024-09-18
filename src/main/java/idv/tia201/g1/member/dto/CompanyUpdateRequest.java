@@ -12,8 +12,8 @@ public class CompanyUpdateRequest {
     @NotBlank
     private String username;
 
-    @NotBlank
-    private String password;
+//    @NotBlank
+//    private String password;
 
     @NotBlank
     private String companyName;
@@ -33,8 +33,8 @@ public class CompanyUpdateRequest {
     @NotBlank
     private  String telephone;
 
-    @NotNull
-    private Integer changeId;
+//    @NotNull
+//    private Integer changeId;
 
     @NotNull
     private String manager;

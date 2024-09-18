@@ -68,9 +68,15 @@ public class CompanyController {
 
     //修改資料
     @PutMapping("/{companyId}")
-    public Result updateCompany(@PathVariable Integer companyId, @RequestBody @Valid CompanyUpdateRequest companyUpdateRequest) {
+    public Result updateCompany(@RequestHeader("Authorization") String authorizationHeader, @PathVariable Integer companyId, @RequestBody @Valid CompanyUpdateRequest companyUpdateRequest) {
+        String token = null;
+        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+            token = authorizationHeader.substring(7);
+        }
         Company company = companyService.UpdateCompany(companyId, companyUpdateRequest);
+        company.setToken(token);
         return Result.ok(company);
+
     }
 
     //刪除資料

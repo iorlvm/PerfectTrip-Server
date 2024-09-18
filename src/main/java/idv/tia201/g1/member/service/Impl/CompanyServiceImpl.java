@@ -89,10 +89,10 @@ public class CompanyServiceImpl implements CompanyService {
             company.setUsername(companyUpdateRequest.getUsername());
         }
 
-        if (companyUpdateRequest.getPassword() !=null && !companyUpdateRequest.getPassword().equals(company.getPassword())) {
-             String hashedPassword = DigestUtils.md5DigestAsHex(company.getPassword().getBytes());
-            company.setPassword(hashedPassword);
-        }
+//        if (companyUpdateRequest.getPassword() !=null && !companyUpdateRequest.getPassword().equals(company.getPassword())) {
+//             String hashedPassword = DigestUtils.md5DigestAsHex(company.getPassword().getBytes());
+//            company.setPassword(hashedPassword);
+//        }
 
         if (companyUpdateRequest.getCompanyName()!=null && !companyUpdateRequest.getCompanyName().equals(company.getCompanyName())) {
             company.setCompanyName(companyUpdateRequest.getCompanyName());
