@@ -45,6 +45,7 @@ public class CompanyController {
             Company company = companyService.login(companyLoginRequest);
             String token = tokenService.createToken(company);
             company.setToken(token);
+            company.setPassword(null);
             return Result.ok(company);
         } catch (Exception e) {
             return Result.fail(e.getMessage());
@@ -73,8 +74,10 @@ public class CompanyController {
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
             token = authorizationHeader.substring(7);
         }
+
         Company company = companyService.UpdateCompany(companyId, companyUpdateRequest);
         company.setToken(token);
+        company.setPassword(null);
         return Result.ok(company);
 
     }
