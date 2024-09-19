@@ -118,7 +118,7 @@ public class SearchServiceImpl implements SearchService {
         List<Double> discount = OrderUtil.getDiscountByCompanyIdBetweenStartDateAnEndDate(orderDao, companyId, startDate, endDate);
 
         // 把列表轉為Map方便進行後續的查詢操作
-        Map<Integer,ProductCalculation> productCalculationMap = new HashMap<>();
+        Map<Integer, ProductCalculation> productCalculationMap = new HashMap<>();
         for (ProductCalculation productCalculation : productCalculations) {
             double totalPrice = 0;
             for (Double v : discount) {
@@ -149,13 +149,34 @@ public class SearchServiceImpl implements SearchService {
         return productResponses;
     }
 
+    @Override
+    public void deleteSearchCache(SearchRequest request) {
+        // 標準請求驗證
+        validateRequest(request);
+
+        // 追加驗證
+        if (request.getDestination() == null || request.getDestination().isEmpty()) {
+            throw new IllegalArgumentException("目的地(destination)為必填項");
+        }
+
+        int adultCount = request.getAdultCount();
+        int roomCount = request.getRoomCount();
+        Date startDate = request.getStartDate();
+        Date endDate = request.getEndDate();
+        String destination = request.getDestination();
+
+        String key = CACHE_SEARCH_PREFIX + destination + ":" + adultCount + ":" + roomCount + ":" + startDate + ":" + endDate;
+
+        stringRedisTemplate.delete(key);
+    }
+
     private SearchProductResponse createSearchProductResponse(ProductDetails productDetails, ProductCalculation productCalculation) {
         SearchProductResponse searchProductResponse = new SearchProductResponse();
         BeanUtils.copyProperties(productDetails, searchProductResponse);
         BeanUtils.copyProperties(productCalculation, searchProductResponse);
         List<ProductPhotos> photos = searchProductResponse.getPhotos();
         // 將主圖排到第一張
-        photos.sort((a,b) -> Boolean.compare(b.isMain(), a.isMain()));
+        photos.sort((a, b) -> Boolean.compare(b.isMain(), a.isMain()));
         // 對圖片添加前綴
         for (ProductPhotos photo : photos) {
             photo.setPhotoUrl(BASE_URL + photo.getPhotoUrl());
@@ -202,15 +223,13 @@ public class SearchServiceImpl implements SearchService {
     private void cacheResponses(String key, List<SearchResponse> responses) {
         if (responses == null || responses.isEmpty()) return;
         // 將處理完的responses存到redis中緩存
-        List<String> jsonList = new ArrayList<>(responses.size());
         for (SearchResponse response : responses) {
             try {
-                jsonList.add(objectMapper.writeValueAsString(response));
+                stringRedisTemplate.opsForList().leftPush(key, objectMapper.writeValueAsString(response));
             } catch (JsonProcessingException e) {
                 throw new RuntimeException(e);
             }
-        }
-        stringRedisTemplate.opsForList().leftPushAll(key, jsonList);            // 存到緩存避免短時間內重新查詢 (創建訂單時同時刪除緩存)
+        }          // 存到緩存避免短時間內重新查詢 (創建訂單時同時刪除緩存)
     }
 
     private List<SearchResponse> searchAndCalculateProductDetails(String destination, int adultCount, int roomCount, Date startDate, Date endDate) {
@@ -241,6 +260,7 @@ public class SearchServiceImpl implements SearchService {
             }
         }
 
+//        System.out.println(responses);
         return responses;
     }
 
