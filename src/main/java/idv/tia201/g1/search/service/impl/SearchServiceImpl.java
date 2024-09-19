@@ -32,6 +32,8 @@ import static idv.tia201.g1.core.utils.Constants.*;
 
 @Service
 public class SearchServiceImpl implements SearchService {
+    private static final Long LOCK_TTL = 10L;
+
     @Autowired
     private SearchDao searchDao;
     @Autowired
@@ -72,18 +74,39 @@ public class SearchServiceImpl implements SearchService {
 
         List<SearchResponse> responses = getCachedResponses(key);
 
+        // 緩存中不存在資料
         if (responses.isEmpty()) {
-            // 沒有緩存時查詢並計算
-            responses = searchAndCalculateProductDetails(
-                    request.getDestination(),
-                    request.getAdultCount(),
-                    request.getRoomCount(),
-                    request.getStartDate(),
-                    request.getEndDate()
-            );
+            // 嘗試取得鎖
+            while (!tryLock(key)) {
+                // 取得鎖成功失敗  休眠後重試
+                try {
+                    Thread.sleep(50);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            }
 
-            // 將結果緩存
-            cacheResponses(key, responses);
+            try {
+                // 取得鎖成功 重新檢查是否已重建緩存
+                responses = getCachedResponses(key);
+
+                if (responses.isEmpty()) {
+                    // 還是沒有緩存時, 查詢並計算
+                    responses = searchAndCalculateProductDetails(
+                            request.getDestination(),
+                            request.getAdultCount(),
+                            request.getRoomCount(),
+                            request.getStartDate(),
+                            request.getEndDate()
+                    );
+
+                    // 將結果緩存
+                    cacheResponses(key, responses);
+                }
+            } finally {
+                // 解鎖
+                unlock(key);
+            }
         }
 
         stringRedisTemplate.expire(key, CACHE_SEARCH_TTL, TimeUnit.SECONDS);        // 十分鐘過期消失  (設定/重設過期時間)
@@ -323,5 +346,14 @@ public class SearchServiceImpl implements SearchService {
         }
 
         return new PageImpl<>(responses.subList(offset, end), pageRequest, total);
+    }
+
+    private boolean tryLock(String key) {
+        Boolean flag = stringRedisTemplate.opsForValue().setIfAbsent("lock:" + key, "lock", LOCK_TTL, TimeUnit.SECONDS);
+        return flag != null && flag;
+    }
+
+    private void unlock(String key) {
+        stringRedisTemplate.delete("lock:" + key);
     }
 }
