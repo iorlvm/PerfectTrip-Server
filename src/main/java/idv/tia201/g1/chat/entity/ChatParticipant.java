@@ -1,5 +1,6 @@
 package idv.tia201.g1.chat.entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -15,6 +16,7 @@ public class ChatParticipant {
     @Column(name = "participant_id", nullable = false)
     private Long participantId;
 
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
     @Column(name = "chat_id", nullable = false)
     private Long chatId;
 

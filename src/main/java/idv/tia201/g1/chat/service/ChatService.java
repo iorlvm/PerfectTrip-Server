@@ -14,7 +14,7 @@ public interface ChatService {
     void updateUserInfo(UserAuth userAuth);
 
     @Transactional
-    ChatRoomDTO initChatRoom(Set<UserIdentifier> users);
+    Long initChatRoom(Set<UserIdentifier> users);
 
     @Transactional(readOnly = true)
     ChatRoomDTO getChatRoomById(Long chatId);

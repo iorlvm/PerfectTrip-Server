@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.sql.Timestamp;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -60,10 +61,11 @@ public class ChatController {
     }
 
     @PostMapping("/rooms")
-    public Result initChatRoom(Set<UserIdentifier> users) {
+    public Result initChatRoom(@RequestBody List<UserIdentifier> users) {
+        Set<UserIdentifier> userSet = new HashSet<>(users);
         try {
-            ChatRoomDTO chatRoomDTO = chatService.initChatRoom(users);
-            return Result.ok(chatRoomDTO);
+            Long chatId = chatService.initChatRoom(userSet);
+            return Result.ok(String.valueOf(chatId));
         } catch (Exception e) {
             // TODO: 也許需要log紀錄
             return Result.fail(e.getMessage());
