@@ -92,13 +92,12 @@ public class OrderServiceImpl implements OrderService {
         // 更新訂單資訊
         Integer companyId = createOrderRequest.getCompanyId();
 
-        Integer dailyPrice = orderDao.calculateTotalPrice(orderId);
+        // 計算全價
+        Integer fullPrice = orderDao.calculateTotalPrice(orderId);
         List<Double> discount = OrderUtil.getDiscountByCompanyIdBetweenStartDateAnEndDate(orderDao, companyId, save.getStartDate(), save.getEndDate());
 
-        // 計算全價
-        int fullPrice = dailyPrice * discount.size();
         // 計算折扣價
-        int discountedPrice = OrderUtil.calculateTotalDiscountedPrice(dailyPrice, discount);
+        int discountedPrice = OrderUtil.calculateTotalDiscountedPrice(fullPrice / discount.size(), discount);
 
         // 計算稅金與服務費
         int serviceFee = (int) Math.round(discountedPrice * SERVICE_FEE_PERCENT);
