@@ -22,4 +22,7 @@ public class UpdateOrderRequest {
 
     //備註欄位
     private String remark;
+
+
+    private String wishedTime;
 }
