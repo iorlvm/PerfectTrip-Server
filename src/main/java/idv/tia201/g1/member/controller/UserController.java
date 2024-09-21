@@ -140,11 +140,15 @@ public class UserController {
      * @return a Result object containing the updated User object
      */
     @PutMapping("/users/{userId}")
-    public Result updateUser(@PathVariable Integer userId, @RequestBody @Valid UserUpdateRequest userUpdateRequest) {
-
+    public Result updateUser(@RequestHeader("Authorization") String authorizationHeader,@PathVariable Integer userId, @RequestBody @Valid UserUpdateRequest userUpdateRequest) {
+        String token = null;
+        if(authorizationHeader != null && authorizationHeader.startsWith("Bearer")){
+            token = authorizationHeader.substring(7);
+        }
         // Update the user with the provided user ID and details
         User user = userService.updateUser(userId, userUpdateRequest);
-
+        user.setToken(token);
+        user.setPassword(null);
         // Return the updated user wrapped in a Result object
         return Result.ok(user);
 
