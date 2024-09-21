@@ -7,10 +7,7 @@ import idv.tia201.g1.search.dto.SearchResponse;
 import idv.tia201.g1.search.service.SearchService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -30,5 +27,11 @@ public class SearchController {
     public Result getProductList(@PathVariable Integer companyId, SearchRequest searchRequest) {
         List<SearchProductResponse> productResponses = searchService.searchProductListByCompanyId(companyId, searchRequest);
         return Result.ok(productResponses);
+    }
+
+    @DeleteMapping("delete-cache")
+    public Result deleteCache(@RequestBody SearchRequest searchRequest) {
+        searchService.deleteSearchCache(searchRequest);
+        return Result.ok();
     }
 }

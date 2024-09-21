@@ -32,6 +32,8 @@ import static idv.tia201.g1.core.utils.Constants.*;
 
 @Service
 public class SearchServiceImpl implements SearchService {
+    private static final Long LOCK_TTL = 10L;
+
     @Autowired
     private SearchDao searchDao;
     @Autowired
@@ -72,18 +74,39 @@ public class SearchServiceImpl implements SearchService {
 
         List<SearchResponse> responses = getCachedResponses(key);
 
+        // 緩存中不存在資料
         if (responses.isEmpty()) {
-            // 沒有緩存時查詢並計算
-            responses = searchAndCalculateProductDetails(
-                    request.getDestination(),
-                    request.getAdultCount(),
-                    request.getRoomCount(),
-                    request.getStartDate(),
-                    request.getEndDate()
-            );
+            // 嘗試取得鎖
+            while (!tryLock(key)) {
+                // 取得鎖成功失敗  休眠後重試
+                try {
+                    Thread.sleep(50);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            }
 
-            // 將結果緩存
-            cacheResponses(key, responses);
+            try {
+                // 取得鎖成功 重新檢查是否已重建緩存
+                responses = getCachedResponses(key);
+
+                if (responses.isEmpty()) {
+                    // 還是沒有緩存時, 查詢並計算
+                    responses = searchAndCalculateProductDetails(
+                            request.getDestination(),
+                            request.getAdultCount(),
+                            request.getRoomCount(),
+                            request.getStartDate(),
+                            request.getEndDate()
+                    );
+
+                    // 將結果緩存
+                    cacheResponses(key, responses);
+                }
+            } finally {
+                // 解鎖
+                unlock(key);
+            }
         }
 
         stringRedisTemplate.expire(key, CACHE_SEARCH_TTL, TimeUnit.SECONDS);        // 十分鐘過期消失  (設定/重設過期時間)
@@ -118,7 +141,7 @@ public class SearchServiceImpl implements SearchService {
         List<Double> discount = OrderUtil.getDiscountByCompanyIdBetweenStartDateAnEndDate(orderDao, companyId, startDate, endDate);
 
         // 把列表轉為Map方便進行後續的查詢操作
-        Map<Integer,ProductCalculation> productCalculationMap = new HashMap<>();
+        Map<Integer, ProductCalculation> productCalculationMap = new HashMap<>();
         for (ProductCalculation productCalculation : productCalculations) {
             double totalPrice = 0;
             for (Double v : discount) {
@@ -149,13 +172,34 @@ public class SearchServiceImpl implements SearchService {
         return productResponses;
     }
 
+    @Override
+    public void deleteSearchCache(SearchRequest request) {
+        // 標準請求驗證
+        validateRequest(request);
+
+        // 追加驗證
+        if (request.getDestination() == null || request.getDestination().isEmpty()) {
+            throw new IllegalArgumentException("目的地(destination)為必填項");
+        }
+
+        int adultCount = request.getAdultCount();
+        int roomCount = request.getRoomCount();
+        Date startDate = request.getStartDate();
+        Date endDate = request.getEndDate();
+        String destination = request.getDestination();
+
+        String key = CACHE_SEARCH_PREFIX + destination + ":" + adultCount + ":" + roomCount + ":" + startDate + ":" + endDate;
+
+        stringRedisTemplate.delete(key);
+    }
+
     private SearchProductResponse createSearchProductResponse(ProductDetails productDetails, ProductCalculation productCalculation) {
         SearchProductResponse searchProductResponse = new SearchProductResponse();
         BeanUtils.copyProperties(productDetails, searchProductResponse);
         BeanUtils.copyProperties(productCalculation, searchProductResponse);
         List<ProductPhotos> photos = searchProductResponse.getPhotos();
         // 將主圖排到第一張
-        photos.sort((a,b) -> Boolean.compare(b.isMain(), a.isMain()));
+        photos.sort((a, b) -> Boolean.compare(b.isMain(), a.isMain()));
         // 對圖片添加前綴
         for (ProductPhotos photo : photos) {
             photo.setPhotoUrl(BASE_URL + photo.getPhotoUrl());
@@ -202,15 +246,13 @@ public class SearchServiceImpl implements SearchService {
     private void cacheResponses(String key, List<SearchResponse> responses) {
         if (responses == null || responses.isEmpty()) return;
         // 將處理完的responses存到redis中緩存
-        List<String> jsonList = new ArrayList<>(responses.size());
         for (SearchResponse response : responses) {
             try {
-                jsonList.add(objectMapper.writeValueAsString(response));
+                stringRedisTemplate.opsForList().leftPush(key, objectMapper.writeValueAsString(response));
             } catch (JsonProcessingException e) {
                 throw new RuntimeException(e);
             }
-        }
-        stringRedisTemplate.opsForList().leftPushAll(key, jsonList);            // 存到緩存避免短時間內重新查詢 (創建訂單時同時刪除緩存)
+        }          // 存到緩存避免短時間內重新查詢 (創建訂單時同時刪除緩存)
     }
 
     private List<SearchResponse> searchAndCalculateProductDetails(String destination, int adultCount, int roomCount, Date startDate, Date endDate) {
@@ -241,6 +283,7 @@ public class SearchServiceImpl implements SearchService {
             }
         }
 
+//        System.out.println(responses);
         return responses;
     }
 
@@ -303,5 +346,14 @@ public class SearchServiceImpl implements SearchService {
         }
 
         return new PageImpl<>(responses.subList(offset, end), pageRequest, total);
+    }
+
+    private boolean tryLock(String key) {
+        Boolean flag = stringRedisTemplate.opsForValue().setIfAbsent("lock:" + key, "lock", LOCK_TTL, TimeUnit.SECONDS);
+        return flag != null && flag;
+    }
+
+    private void unlock(String key) {
+        stringRedisTemplate.delete("lock:" + key);
     }
 }

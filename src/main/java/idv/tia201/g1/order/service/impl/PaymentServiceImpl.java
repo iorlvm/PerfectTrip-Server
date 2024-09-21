@@ -3,6 +3,7 @@ package idv.tia201.g1.order.service.impl;
 import idv.tia201.g1.core.entity.UserAuth;
 import idv.tia201.g1.core.utils.UserHolder;
 import idv.tia201.g1.order.dao.OrderDao;
+import idv.tia201.g1.order.dao.OrderDetailDao;
 import idv.tia201.g1.order.dto.PaymentRequest;
 import idv.tia201.g1.order.dto.PaymentResponse;
 import idv.tia201.g1.order.entity.Order;
@@ -16,6 +17,8 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 
+import java.sql.Date;
+import java.sql.Timestamp;
 import java.util.Objects;
 
 import static idv.tia201.g1.core.utils.Constants.ROLE_USER;
@@ -32,6 +35,8 @@ public class PaymentServiceImpl implements PaymentService {
     private String MERCHANT_ID;
     @Autowired
     private OrderDao orderDao;
+    @Autowired
+    private OrderDetailDao orderDetailDao;
 
     @Override
     public PaymentResponse processPayment(Integer orderId, PaymentRequest paymentRequest) {
@@ -104,12 +109,17 @@ public class PaymentServiceImpl implements PaymentService {
             throw new IllegalStateException("支付異常: 支付網站服務異常，如已扣款請聯繫客服或支付平台處理。");
         }
 
+        System.out.println(paymentResponse);
+
         if (paymentResponse.getStatus() != PAY_STATE_SUCCESS) {
             // 付款不成功, 不進行後續操作
             throw new IllegalStateException("支付失敗: 請稍後重試。");
         }
 
-        order.setPayStatus(paymentResponse.getRecTradeId()); // TODO: 之後討論一下狀態的顯示對應
+        Date endDate = order.getEndDate();
+        Timestamp endTimestamp = new Timestamp(endDate.getTime());
+        order.setPayStatus(paymentResponse.getRec_trade_id());
+        orderDetailDao.updateExpiredTimeByOrderId(order.getOrderId(),endTimestamp);
         orderDao.save(order);
     }
 
@@ -134,7 +144,7 @@ public class PaymentServiceImpl implements PaymentService {
         if (cardholder == null) {
             throw new IllegalArgumentException("支付異常: 信用卡欄位填寫不完整");
         }
-        if (!StringUtils.hasText(cardholder.getPhoneNumber()) ||
+        if (!StringUtils.hasText(cardholder.getPhone_number()) ||
                 !StringUtils.hasText(cardholder.getName()) ||
                 !StringUtils.hasText(cardholder.getEmail())) {
             throw new IllegalArgumentException("支付異常: 信用卡欄位填寫不完整");
@@ -149,9 +159,9 @@ public class PaymentServiceImpl implements PaymentService {
      * @param order          訂單物件
      */
     private void populatePaymentRequest(PaymentRequest paymentRequest, Order order) {
-        paymentRequest.setPartnerKey(PARTNER_KEY);  // 使用從配置中讀取的值
-        paymentRequest.setMerchantId(MERCHANT_ID);  // 使用從配置中讀取的值
-        paymentRequest.setOrderNumber(WEB_ORDER_PREFIX + order.getOrderId());
+        paymentRequest.setPartner_key(PARTNER_KEY);  // 使用從配置中讀取的值
+        paymentRequest.setMerchant_id(MERCHANT_ID);  // 使用從配置中讀取的值
+        paymentRequest.setOrder_number(WEB_ORDER_PREFIX + order.getOrderId());
         paymentRequest.setAmount(order.getActualPrice());
         paymentRequest.getCardholder().setMemberId(String.valueOf(order.getUserId()));
     }

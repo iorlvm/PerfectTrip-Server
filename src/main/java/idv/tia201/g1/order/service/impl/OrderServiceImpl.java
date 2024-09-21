@@ -20,6 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.sql.Date;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -63,6 +64,10 @@ public class OrderServiceImpl implements OrderService {
         // 前端傳資料近來到ProductList,
         // 從ProductList中取得一個Product,
         // 而Product中含有orderId, productId和count
+
+        long thirtyMinutesInMillis = 30 * 60 * 1000;
+        Timestamp expiredTime = new Timestamp(System.currentTimeMillis() + thirtyMinutesInMillis);
+
         List<CreateOrderRequest.Product> requestProductList = createOrderRequest.getProductList();
         for (CreateOrderRequest.Product requestProduct : requestProductList) {
 
@@ -76,7 +81,7 @@ public class OrderServiceImpl implements OrderService {
                 orderDetail.setProductId(productId);
                 orderDetail.setQuantity(count);
                 orderDetail.setBookedDate(date);
-
+                orderDetail.setExpiredTime(expiredTime);
                 orderDetailDao.save(orderDetail);
             }
         }
@@ -87,13 +92,12 @@ public class OrderServiceImpl implements OrderService {
         // 更新訂單資訊
         Integer companyId = createOrderRequest.getCompanyId();
 
-        Integer dailyPrice = orderDao.calculateTotalPrice(orderId);
+        // 計算全價
+        Integer fullPrice = orderDao.calculateTotalPrice(orderId);
         List<Double> discount = OrderUtil.getDiscountByCompanyIdBetweenStartDateAnEndDate(orderDao, companyId, save.getStartDate(), save.getEndDate());
 
-        // 計算全價
-        int fullPrice = dailyPrice * discount.size();
         // 計算折扣價
-        int discountedPrice = OrderUtil.calculateTotalDiscountedPrice(dailyPrice, discount);
+        int discountedPrice = OrderUtil.calculateTotalDiscountedPrice(fullPrice / discount.size(), discount);
 
         // 計算稅金與服務費
         int serviceFee = (int) Math.round(discountedPrice * SERVICE_FEE_PERCENT);

@@ -32,6 +32,7 @@ public class ChatEndpoint extends TextWebSocketHandler {
     private static final Map<Long, Set<WebSocketSession>> SESSIONS_MAP = new ConcurrentHashMap<>();
     private static final Set<WebSocketSession> SESSIONS_BROADCAST = new CopyOnWriteArraySet<>();
 
+
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
         Integer id = (Integer) session.getAttributes().get("id");

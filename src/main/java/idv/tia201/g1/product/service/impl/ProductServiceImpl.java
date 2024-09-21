@@ -73,7 +73,7 @@ public class ProductServiceImpl implements ProductService {
 
         // changeId 跟 companyId 應該要從登入中的使用者取得 (也就是從 UserHolder 工具中取出)
         UserAuth loginUser = UserHolder.getUser();
-        if (loginUser == null || !ROLE_ADMIN.equals(loginUser.getRole())) {
+        if (loginUser == null || !ROLE_COMPANY.equals(loginUser.getRole())) {
             throw new IllegalStateException("狀態異常：使用者未登入或身份不屬於商家");
         }
 
@@ -260,9 +260,7 @@ public class ProductServiceImpl implements ProductService {
     /** 查看所有商品 **/
     @Override
     public List<Product> getAllProducts() {
-
-        // 權限檢查：確保用戶具有查看所有產品的權限
-        // 如果當前用戶沒有登錄或登錄的用戶角色不是管理員
+        
         UserAuth loginUser = UserHolder.getUser();
         if (loginUser == null || !ROLE_ADMIN.equals(loginUser.getRole())) {
             throw new IllegalStateException("狀態異常：未登入或無權限查看所有產品");

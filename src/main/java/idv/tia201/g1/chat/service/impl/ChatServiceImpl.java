@@ -75,7 +75,7 @@ public class ChatServiceImpl implements ChatService {
     }
 
     @Override
-    public ChatRoomDTO initChatRoom(Set<UserIdentifier> users) {
+    public Long initChatRoom(Set<UserIdentifier> users) {
         // 檢查參數
         if (users == null || users.isEmpty()) {
             throw new IllegalArgumentException("參數錯誤：沒有傳入任何使用者");
@@ -98,6 +98,17 @@ public class ChatServiceImpl implements ChatService {
 
         Long loginUserId = getOrCreateMappingUserId(type, id);
 
+        // TODO: 如果只有一對一聊天, 先檢查是否已經有聊天室的參與者符合
+        if (users.size() == 1) {
+            Long mappingUserId = null;
+            for (UserIdentifier user : users) {
+                mappingUserId = getOrCreateMappingUserId(user.getType(), user.getId());
+            }
+            Long chatId = chatParticipantDao.findChatIdByTwoUserIds(loginUserId, mappingUserId);
+            if (chatId != null)
+                return chatId;
+        }
+
         // 創造聊天室
         ChatRoom chatRoom = createChatRoom();
         Long chatId = chatRoom.getChatId();
@@ -111,8 +122,8 @@ public class ChatServiceImpl implements ChatService {
             addParticipantToChatRoom(chatId, mappingUserId);
         }
 
-        // 初始化完畢以後, 重新查詢並回傳 (這樣寫不太好, 但因為我DTO物件查詢有額外欄位所以不能直接使用回傳值)
-        return getChatRoomById(chatId);
+        // 初始化完畢以後
+        return chatId;
     }
 
     @Override
@@ -138,12 +149,17 @@ public class ChatServiceImpl implements ChatService {
         Long chatId = idWorker.nextId("chat");
         ChatRoom chatRoom = new ChatRoom();
         chatRoom.setChatId(chatId);
+        chatRoom.setLastMessage("");
+        chatRoom.setLastMessageAt(new Timestamp(System.currentTimeMillis()));
         return chatRoomDao.save(chatRoom);
     }
 
     private void addParticipantToChatRoom(Long chatId, Long mappingUserId) {
         ChatParticipant chatParticipant = new ChatParticipant();
         chatParticipant.setChatId(chatId);
+        chatParticipant.setNotify("on");
+        chatParticipant.setPinned(false);
+        chatParticipant.setLastReadingAt(new Timestamp(System.currentTimeMillis()));
         chatParticipant.setMappingUserId(mappingUserId);
         chatParticipantDao.save(chatParticipant);
     }

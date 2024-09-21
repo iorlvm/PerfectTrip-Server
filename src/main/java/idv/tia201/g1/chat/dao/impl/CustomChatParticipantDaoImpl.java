@@ -3,6 +3,7 @@ package idv.tia201.g1.chat.dao.impl;
 import idv.tia201.g1.chat.dao.CustomChatParticipantDao;
 import idv.tia201.g1.chat.entity.ChatParticipant;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.NoResultException;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
 import org.springframework.stereotype.Repository;
@@ -113,6 +114,26 @@ public class CustomChatParticipantDaoImpl implements CustomChatParticipantDao {
                     }
                 })
                 .toList();
+    }
+
+    @Override
+    public Long findChatIdByTwoUserIds(Long userId1, Long userId2) {
+        String queryStr = "SELECT cp.chat_id " +
+                "FROM chat_participants cp " +
+                "JOIN chat_user_mappings cm ON cp.mapping_user_id = cm.mapping_user_id " +
+                "WHERE cp.mapping_user_id = :uid1 OR cp.mapping_user_id = :uid2 " +
+                "GROUP BY cp.chat_id " +
+                "HAVING COUNT(DISTINCT cp.mapping_user_id) = 2 " +
+                "LIMIT 1";
+        Query query = entityManager.createNativeQuery(queryStr);
+        query.setParameter("uid1", userId1);
+        query.setParameter("uid2", userId2);
+
+        try {
+            return (Long) query.getSingleResult();
+        } catch (NoResultException e) {
+            return null;
+        }
     }
 
     private static ChatParticipant getParticipant(Object[] result) {
