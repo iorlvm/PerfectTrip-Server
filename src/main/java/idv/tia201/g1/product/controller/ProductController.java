@@ -1,5 +1,6 @@
 package idv.tia201.g1.product.controller;
 
+import idv.tia201.g1.core.dto.Result;
 import idv.tia201.g1.image.dto.ImageUploadRequest;
 import idv.tia201.g1.product.dto.AddProductRequest;
 import idv.tia201.g1.product.dto.ProductResponse;
@@ -26,7 +27,7 @@ import java.util.List;
 
 /* Spring MVC 的註解，定義 HTTP 請求的 URL映射，表示這個類的所有方法將對應 /product 路徑
  * 的 HTTP 請求，包含 GET, POST, PUT, DELETE */
-@RequestMapping("/product")
+@RequestMapping("api/product")
 
 /* Spring MVC 的註解，為 @Controller 與 @ResponseBody 的結合體，
  * 標記一個類為 RESTful 網絡服務的控制器，並且它的所有方法返回的結果，
@@ -48,7 +49,7 @@ public class ProductController {
      * 處理 HTTP POST 請求的方法，調用來向服務器發送新產品添加請求的操作
      */
     @PostMapping("/add")
-    public ResponseEntity<Object> handleAddProduct(@RequestBody AddProductRequest request) {
+    public Result handleAddProduct(@RequestBody AddProductRequest request) {
         // 現在可以從 request 中提取 companyId 和其他字段
         Product savedProduct = productService.handleAddProduct(request);
 
@@ -61,7 +62,7 @@ public class ProductController {
                 savedProduct.getStock(),
                 savedProduct.getCompanyId()
         );
-        return ResponseEntity.ok(productResponse);
+        return Result.ok(productResponse);
     }
 
 
