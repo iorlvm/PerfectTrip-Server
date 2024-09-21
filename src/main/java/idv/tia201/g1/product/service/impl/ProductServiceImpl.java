@@ -1,10 +1,12 @@
 package idv.tia201.g1.product.service.impl;
 
+import idv.tia201.g1.core.dto.Result;
 import idv.tia201.g1.core.entity.UserAuth;
 import idv.tia201.g1.core.utils.UserHolder;
 import idv.tia201.g1.image.dto.ImageUploadRequest;
 import idv.tia201.g1.image.entity.Image;
 import idv.tia201.g1.image.service.ImageService;
+import idv.tia201.g1.order.entity.Order;
 import idv.tia201.g1.product.dao.*;
 import idv.tia201.g1.product.dto.AddProductRequest;
 import idv.tia201.g1.product.entity.ProductDetails;
@@ -26,8 +28,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static idv.tia201.g1.core.utils.Constants.ROLE_ADMIN;
-import static idv.tia201.g1.core.utils.Constants.ROLE_COMPANY;
+import static idv.tia201.g1.core.utils.Constants.*;
 
 @Service
 @RequiredArgsConstructor
@@ -45,6 +46,64 @@ public class ProductServiceImpl implements ProductService {
     ImageService imageService;
     @Autowired
     Product product;
+
+
+    @Override
+    public Product updateProduct(Long productId,
+                                 String productName,
+                                 int roomPrice,
+                                 byte[] photoByte,
+                                 Integer maxOccupancy,
+                                 int stock) {
+
+        // 参数检查，确保 productId 有效
+        if (productId == null || productId <= 0) {
+            throw new IllegalArgumentException("參數異常：產品ID無效");
+        }
+
+        // 权限检查，确保当前用户是商家角色
+        UserAuth loginUser = UserHolder.getUser();
+        if (loginUser == null || !ROLE_COMPANY.equals(loginUser.getRole())) {
+            throw new IllegalStateException("狀態異常：使用者未登入或身份不屬於商家");
+        }
+
+        // 查找产品，确保产品存在
+        Product product = productDao
+                .findById(Math.toIntExact(productId))
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
+
+        // 更新产品名称
+        if (productName != null && !productName.trim().isEmpty()) {
+            product.setProductName(productName);
+        }
+
+        // 更新房间价格，确保价格为正数
+        if (roomPrice > 0) {
+            product.setPrice(roomPrice);
+        } else {
+            throw new IllegalArgumentException("參數異常：房間價格無效");
+        }
+
+        // 更新最大入住人数（如果存在并且有效）
+        if (maxOccupancy != null) {
+            if (maxOccupancy > 0) {
+                product.setMaxOccupancy(maxOccupancy);
+            } else {
+                throw new IllegalArgumentException("參數異常：最大入住人數無效");
+            }
+        }
+
+        // 更新库存，确保库存为非负数
+        if (stock >= 0) {
+            product.setStock(stock);
+        } else {
+            throw new IllegalArgumentException("參數異常：庫存數量無效");
+        }
+
+        // 保存更新后的产品信息
+        productDao.save(product);
+        return product;
+    }
 
 
     /*** 新增 Product 方法 ***/
@@ -143,73 +202,6 @@ public class ProductServiceImpl implements ProductService {
     }
 
 
-
-    @Override
-    public Product updateProduct(Long productId,
-                                 String productName,
-                                 int roomPrice,
-                                 byte[] photoByte,
-                                 Integer maxOccupancy,  // 檢查是否為 null
-                                 int stock) {
-
-        // 參數檢查，確保 productId 有效，否則丟出 (IllegalArgumentException)
-        if (productId == null || productId <= 0) {
-            throw new IllegalArgumentException("參數異常：產品ID無效");
-        }
-
-        // 權限檢查，檢查用戶是否有權限更新產品信息
-        UserAuth loginUser = UserHolder.getUser();
-        if (loginUser == null || !ROLE_ADMIN.equals(loginUser.getRole())) {
-            throw new IllegalStateException("狀態異常：使用者未登入或身份不屬於商家");
-        }
-
-        // 查詢產品是否存在
-        Product product = productDao
-                .findById(Math.toIntExact(productId))
-                .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
-
-        // 更新產品名稱
-        if (productName != null && !productName.trim().isEmpty()) {
-            product.setProductName(productName);
-        }
-
-        // 更新房間價格
-        if (roomPrice > 0) {
-            product.setPrice(roomPrice);
-        } else if (roomPrice < 0) {
-            throw new IllegalArgumentException("參數異常：房間價格無效");
-        }
-
-        // 檢查 maxOccupancy 是否為 null，並做相應的處理
-        if (maxOccupancy != null && maxOccupancy > 0) {
-            product.setMaxOccupancy(maxOccupancy);
-        } else if (maxOccupancy != null && maxOccupancy < 0) {
-            throw new IllegalArgumentException("參數異常：入住人數無效");
-        }
-
-        // 更新庫存
-        if (stock >= 0) {
-            product.setStock(stock);
-        } else {
-            throw new IllegalArgumentException("參數異常：庫存數量無效");
-        }
-
-        // 更新照片（如果有）
-        if (photoByte != null && photoByte.length > 0) {
-            try {
-                product.setPhoto(new SerialBlob(photoByte));
-            } catch (SQLException e) {
-                throw new InternalServerException("Error updating photo", e);
-            }
-        }
-
-        productDao.save(product);
-        return product;
-    }
-
-
-
-
     /**
      * 查看全部的商品型態
      **/
@@ -218,7 +210,7 @@ public class ProductServiceImpl implements ProductService {
 
         // 權限檢查，如果當前用戶沒有登錄或登錄的用戶角色不是管理員
         UserAuth loginUser = UserHolder.getUser();
-        if (loginUser == null || !ROLE_ADMIN.equals(loginUser.getRole())) {
+        if (loginUser == null || !ROLE_COMPANY.equals(loginUser.getRole())) {
             throw new IllegalStateException("狀態異常：未登入或無查看所有產品類型的權限");
         }
         // 查詢數據庫獲取所有產品信息
@@ -246,7 +238,7 @@ public class ProductServiceImpl implements ProductService {
 
         // 權限檢查
         UserAuth loginUser = UserHolder.getUser();
-        if ( loginUser == null || !ROLE_ADMIN.equals(loginUser.getRole())) {
+        if ( loginUser == null || !ROLE_COMPANY.equals(loginUser.getRole())) {
             throw new IllegalStateException("狀態異常：未登入或無查看所有產品類型的權限");
         }
 
@@ -257,25 +249,32 @@ public class ProductServiceImpl implements ProductService {
         return product;
     }
 
-    /** 查看所有商品 **/
+    /**
+     * 查看所有商品
+     **/
     @Override
-    public List<Product> getAllProducts() {
-        
+    public Result getAllProducts() {
+        // 取得登录的用户
         UserAuth loginUser = UserHolder.getUser();
-        if (loginUser == null || !ROLE_ADMIN.equals(loginUser.getRole())) {
-            throw new IllegalStateException("狀態異常：未登入或無權限查看所有產品");
+        if (loginUser == null) {
+            return Result.fail("用戶未登錄!");
         }
-
-        // 查詢數據庫獲取所有產品列表
-        List<Product> products = productDao.findAll();
-
-        // 確認查詢結果不為空：如果結果為空，返回空列表
-        if (products == null || products.isEmpty()) {
-            return new ArrayList<>();
+        try {
+            List<Product> res = null;
+            switch (loginUser.getRole()) {
+                case ROLE_COMPANY:
+                    res = productDao.getProductsByCompanyId(loginUser.getId());
+                    break;
+                case ROLE_ADMIN:
+                    res = productDao.findAll();
+                    break;
+                default:
+                    return Result.fail("用戶角色怪怪的");
+            }
+            return Result.ok(res, res == null ? 0L : (long) res.size());
+        } catch (Exception e) {
+            return Result.fail(e.getMessage());
         }
-
-        // 返回查詢結果
-        return products;
     }
 
     @Override
@@ -294,7 +293,7 @@ public class ProductServiceImpl implements ProductService {
 
         // 權限檢查：確保用戶具有刪除產品的權限
         UserAuth loginUser = UserHolder.getUser();
-        if (loginUser == null || !ROLE_ADMIN.equals(loginUser.getRole())) {
+        if (loginUser == null || !ROLE_COMPANY.equals(loginUser.getRole())) {
             throw new IllegalStateException("狀態異常：未登入或無刪除產品的權限");
         }
 

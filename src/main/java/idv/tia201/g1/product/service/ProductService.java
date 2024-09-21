@@ -1,6 +1,7 @@
 package idv.tia201.g1.product.service;
 
 
+import idv.tia201.g1.core.dto.Result;
 import idv.tia201.g1.product.dto.AddProductRequest;
 import idv.tia201.g1.product.entity.Product;
 import org.springframework.stereotype.Service;
@@ -27,7 +28,7 @@ public interface ProductService {
 
     Optional<Product> getProductById(Long productId);
 
-    List<Product> getAllProducts();
+    Result getAllProducts();
 
     byte[] getRoomPhotoByRoomId(Integer id);
 
