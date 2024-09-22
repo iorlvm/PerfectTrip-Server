@@ -17,6 +17,8 @@ import idv.tia201.g1.order.service.OrderService;
 import idv.tia201.g1.order.uitls.OrderUtil;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.sql.Date;
@@ -168,18 +170,18 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public List<Order> getOrdersByUserId(Integer userId) {
-        return orderDao.findByUserId(userId);
+    public Page<Order> getOrdersByUserId(Integer userId, Pageable pageable) {
+        return orderDao.findByUserId(userId, pageable);
     }
 
     @Override
-    public List<Order> getOrdersByCompanyId(Integer companyId) {
-        return orderDao.findByCompanyId(companyId);
+    public Page<Order> getOrdersByCompanyId(Integer companyId, Pageable pageable) {
+        return orderDao.findByCompanyId(companyId, pageable);
     }
 
     @Override
-    public List<Order> getOrders() {
-        return orderDao.findAll();
+    public Page<Order> getValidOrders(Pageable pageable) {
+        return orderDao.findValidOrders(pageable);
     }
 
     @Override

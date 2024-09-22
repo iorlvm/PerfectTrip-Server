@@ -10,6 +10,10 @@ import idv.tia201.g1.order.entity.Order;
 import idv.tia201.g1.order.service.OrderService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Collections;
@@ -34,34 +38,42 @@ public class OrderController {
     }
 
     @GetMapping
-    public Result getOrders() {
+    public Result getOrders(
+            @RequestParam(defaultValue = "0") Integer page,
+            @RequestParam(defaultValue = "20") Integer size,
+            @RequestParam(defaultValue = "createdDate") String orderBy
+    ) {
         //取得登入的使用者
         UserAuth loginUser = UserHolder.getUser();
         if (loginUser == null) {
             return Result.fail("使用者未登入!");
         }
+
+        Sort sortBy = Sort.by(Sort.Direction.DESC, "createdDate");
+        //TODO: 未來也許可以根據orderBy增加新的排序規則
+
+        Pageable pageable = PageRequest.of(page, size, sortBy);
         try {
-            List<Order> res = null;
+            Page<Order> res = null;
             switch (loginUser.getRole()) {
                 case ROLE_USER:
-                    res = orderService.getOrdersByUserId(loginUser.getId());
+                    res = orderService.getOrdersByUserId(loginUser.getId(), pageable);
                     break;
                 case ROLE_COMPANY:
-                    res = orderService.getOrdersByCompanyId(loginUser.getId());
+                    res = orderService.getOrdersByCompanyId(loginUser.getId(), pageable);
                     break;
                 case ROLE_ADMIN:
-                    res = orderService.getOrders();
+                    res = orderService.getValidOrders(pageable);
                     break;
                 default:
             }
-            if(res == null || res.isEmpty()) {
-                return Result.ok(Collections.emptyList(),0L);
+            if (res == null || res.getContent().isEmpty()) {
+                return Result.ok(Collections.emptyList(), 0L);
             }
 
-            List<OrderDTO> orderDTOs = orderService.getOrderDTOs(res);
+            List<OrderDTO> orderDTOs = orderService.getOrderDTOs(res.getContent());
 
-            return Result.ok(orderDTOs, (long)orderDTOs.size());
-
+            return Result.ok(orderDTOs, res.getTotalElements());
         } catch (Exception e) {
             return Result.fail(e.getMessage());
         }

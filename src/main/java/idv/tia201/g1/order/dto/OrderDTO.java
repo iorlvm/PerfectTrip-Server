@@ -18,6 +18,7 @@ public class OrderDTO {
     private List<String> hotelFacilities;
 
     private Integer orderId;
+    private String payStatus;
     private Date startDate;
     private Date endDate;
     private List<String> productList;
