@@ -1,5 +1,6 @@
 package idv.tia201.g1.order.dto;
 
+import idv.tia201.g1.product.entity.Product;
 import jakarta.persistence.Column;
 import lombok.Data;
 
@@ -29,4 +30,5 @@ public class OrderDTO {
     private Integer actualPrice;//實際金額
     private Timestamp createdDate;
 
+    private List<Product> products;
 }

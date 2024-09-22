@@ -15,6 +15,8 @@ import idv.tia201.g1.order.entity.OrderDetail;
 import idv.tia201.g1.order.entity.OrderResidents;
 import idv.tia201.g1.order.service.OrderService;
 import idv.tia201.g1.order.uitls.OrderUtil;
+import idv.tia201.g1.product.dao.ProductDao;
+import idv.tia201.g1.product.entity.Product;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -44,6 +46,8 @@ public class OrderServiceImpl implements OrderService {
     private OrderResidentsDao orderResidentsDao;
     @Autowired
     private CompanyDao companyDao;
+    @Autowired
+    private ProductDao productDao;
 
     @Override
     public Order createOrder(CreateOrderRequest createOrderRequest) {
@@ -75,6 +79,7 @@ public class OrderServiceImpl implements OrderService {
         for (CreateOrderRequest.Product requestProduct : requestProductList) {
 
             Integer productId = requestProduct.getProductId();
+            String productName = productDao.getProductNameByProductId(productId);
             Integer count = requestProduct.getCount();
 
             List<Date> datesBetween = OrderUtil.getDatesBetween(order.getStartDate(), order.getEndDate());
@@ -82,6 +87,7 @@ public class OrderServiceImpl implements OrderService {
                 OrderDetail orderDetail = new OrderDetail();
                 orderDetail.setOrderId(orderId);
                 orderDetail.setProductId(productId);
+                orderDetail.setProductName(productName);
                 orderDetail.setQuantity(count);
                 orderDetail.setBookedDate(date);
                 orderDetail.setExpiredTime(expiredTime);
@@ -219,6 +225,7 @@ public class OrderServiceImpl implements OrderService {
         for (Order order : orderList) {
             OrderDTO orderDTO = new OrderDTO();
             BeanUtils.copyProperties(order, orderDTO);
+
 
             Company company = companyDao.findByOrderId(order.getOrderId());
             orderDTO.setCompanyId(company.getCompanyId());

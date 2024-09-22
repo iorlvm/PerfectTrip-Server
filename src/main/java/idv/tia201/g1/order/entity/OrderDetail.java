@@ -22,6 +22,9 @@ public class OrderDetail {
     @Column(name = "product_id")
     private Integer productId;
 
+    @Column(name = "product_name")
+    private String productName;
+
     @Column(name = "quantity")
     private Integer quantity = 1; // default value
 
@@ -30,12 +33,4 @@ public class OrderDetail {
 
     @Column(name = "expired_time")
     private Timestamp expiredTime;
-
-//    @ManyToOne
-//    @JoinColumn(name = "order_id", insertable = false, updatable = false)
-//    private Order order;
-
-//    @ManyToOne
-//    @JoinColumn(name = "product_id", insertable = false, updatable = false)
-//    private Product product;
 }
