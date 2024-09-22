@@ -12,6 +12,7 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collections;
 import java.util.List;
 
 import static idv.tia201.g1.core.utils.Constants.*;
@@ -53,8 +54,13 @@ public class OrderController {
                     break;
                 default:
             }
+            if(res == null || res.isEmpty()) {
+                return Result.ok(Collections.emptyList(),0L);
+            }
 
-            return Result.ok(res, res == null ? 0L : res.size());
+            List<OrderDTO> orderDTOs = orderService.getOrderDTOs(res);
+
+            return Result.ok(orderDTOs, (long)orderDTOs.size());
 
         } catch (Exception e) {
             return Result.fail(e.getMessage());
