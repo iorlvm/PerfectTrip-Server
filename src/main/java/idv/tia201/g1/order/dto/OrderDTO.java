@@ -1,7 +1,6 @@
 package idv.tia201.g1.order.dto;
 
-import idv.tia201.g1.product.entity.Product;
-import jakarta.persistence.Column;
+import idv.tia201.g1.order.entity.OrderDetail;
 import lombok.Data;
 
 import java.sql.Date;
@@ -19,6 +18,7 @@ public class OrderDTO {
     private List<String> hotelFacilities;
 
     private Integer orderId;
+    private Integer guestCount;
     private String payStatus;
     private Date startDate;
     private Date endDate;
@@ -30,5 +30,5 @@ public class OrderDTO {
     private Integer actualPrice;//實際金額
     private Timestamp createdDate;
 
-    private List<Product> products;
+    private List<OrderProductDTO> products;
 }

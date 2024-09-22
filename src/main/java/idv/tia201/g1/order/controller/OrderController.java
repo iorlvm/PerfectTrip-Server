@@ -99,6 +99,16 @@ public class OrderController {
             return Result.fail(e.getMessage());
         }
     }
+
+    @DeleteMapping("/{orderId}")
+    public Result deleteByOrderId(@PathVariable Integer orderId) {
+        try {
+            orderService.deleteByOrderId(orderId);
+            return Result.ok();
+        } catch (Exception e) {
+            return Result.fail(e.getMessage());
+        }
+    }
 }
 
 

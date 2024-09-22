@@ -1,5 +1,6 @@
 package idv.tia201.g1.order.dao;
 
+import idv.tia201.g1.order.dto.OrderProductDTO;
 import idv.tia201.g1.order.entity.OrderDetail;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -17,4 +18,8 @@ public interface OrderDetailDao extends JpaRepository<OrderDetail, Integer>{
     void updateExpiredTimeByOrderId(
             @Param("orderId") Integer orderId,
             @Param("expiredTime") Timestamp expiredTime);
+
+    @Query("SELECT DISTINCT new idv.tia201.g1.order.dto.OrderProductDTO(od.productId, od.productName, od.quantity) FROM OrderDetail od " +
+            "WHERE od.orderId = :orderId ")
+    List<OrderProductDTO> getOrderProductByOrderId(@Param("orderId") Integer orderId);
 }

@@ -36,4 +36,6 @@ public interface OrderService {
     OrderDTO getOrder(Integer orderId);
    //傳入我們找到的訂單 把訂單細節補完
    List<OrderDTO> getOrderDTOs(List<Order> orderList);
+
+   void deleteByOrderId(Integer orderId);
 }

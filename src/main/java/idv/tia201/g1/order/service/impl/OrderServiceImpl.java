@@ -9,6 +9,7 @@ import idv.tia201.g1.order.dao.OrderDetailDao;
 import idv.tia201.g1.order.dao.OrderResidentsDao;
 import idv.tia201.g1.order.dto.CreateOrderRequest;
 import idv.tia201.g1.order.dto.OrderDTO;
+import idv.tia201.g1.order.dto.OrderProductDTO;
 import idv.tia201.g1.order.dto.UpdateOrderRequest;
 import idv.tia201.g1.order.entity.Order;
 import idv.tia201.g1.order.entity.OrderDetail;
@@ -16,7 +17,6 @@ import idv.tia201.g1.order.entity.OrderResidents;
 import idv.tia201.g1.order.service.OrderService;
 import idv.tia201.g1.order.uitls.OrderUtil;
 import idv.tia201.g1.product.dao.ProductDao;
-import idv.tia201.g1.product.entity.Product;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -29,8 +29,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-import static idv.tia201.g1.core.utils.Constants.BASE_URL;
-import static idv.tia201.g1.core.utils.Constants.ROLE_USER;
+import static idv.tia201.g1.core.utils.Constants.*;
 
 @Service
 public class OrderServiceImpl implements OrderService {
@@ -62,6 +61,7 @@ public class OrderServiceImpl implements OrderService {
         //訂單資訊
         order.setUserId(customId); //這張訂單屬於誰的
         order.setPayStatus("未付款");
+        order.setGuestCount(createOrderRequest.getGuestCount());
         order.setStartDate(createOrderRequest.getBeginDate());
         order.setEndDate((createOrderRequest.getEndDate()));
         Order save = orderDao.save(order);
@@ -72,6 +72,7 @@ public class OrderServiceImpl implements OrderService {
         // 從ProductList中取得一個Product,
         // 而Product中含有orderId, productId和count
 
+        // 設定過期時間三十分鐘
         long thirtyMinutesInMillis = 30 * 60 * 1000;
         Timestamp expiredTime = new Timestamp(System.currentTimeMillis() + thirtyMinutesInMillis);
 
@@ -207,6 +208,9 @@ public class OrderServiceImpl implements OrderService {
         OrderDTO orderDTO = new OrderDTO();
         BeanUtils.copyProperties(order, orderDTO);
 
+        List<OrderProductDTO> details = orderDetailDao.getOrderProductByOrderId(order.getOrderId());
+        orderDTO.setProducts(details);
+
         Company company = companyDao.findByOrderId(orderId);
         orderDTO.setCompanyId(company.getCompanyId());
         orderDTO.setHotelName(company.getCompanyName());
@@ -214,6 +218,7 @@ public class OrderServiceImpl implements OrderService {
         orderDTO.setHotelScore(company.getScore());
         //TODO: 等待組員
         orderDTO.setHotelFacilities(new ArrayList<>());
+
 
         return orderDTO;
     }
@@ -226,6 +231,8 @@ public class OrderServiceImpl implements OrderService {
             OrderDTO orderDTO = new OrderDTO();
             BeanUtils.copyProperties(order, orderDTO);
 
+            List<OrderProductDTO> details = orderDetailDao.getOrderProductByOrderId(order.getOrderId());
+            orderDTO.setProducts(details);
 
             Company company = companyDao.findByOrderId(order.getOrderId());
             orderDTO.setCompanyId(company.getCompanyId());
@@ -235,7 +242,24 @@ public class OrderServiceImpl implements OrderService {
             orderDTO.setPhoto(BASE_URL + "image/74502663084965891"); // TODO: 靜態寫死 等待組員
             result.add(orderDTO);
         }
-
         return result;
+    }
+
+    @Override
+    public void deleteByOrderId(Integer orderId) {
+        Order order = orderDao.findByOrderId(orderId);
+        if (order == null) return;
+
+        UserAuth loginUser = UserHolder.getUser();
+        if (ROLE_ADMIN.equals(loginUser.getRole())) {
+            // 管理者有權限刪除所有訂單
+            orderDao.delete(order);
+        } else if (ROLE_USER.equals(loginUser.getRole())
+                && order.getUserId().equals(loginUser.getId())
+                && order.getPayStatus().equals("未付款")) {
+            // 顧客只有權限刪除自己未付款的臨時訂單
+            orderDao.delete(order);
+        }
+        // 其他情況都沒有權限刪除 不做任何事情
     }
 }
