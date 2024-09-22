@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import static idv.tia201.g1.core.utils.Constants.BASE_URL;
 import static idv.tia201.g1.core.utils.Constants.ROLE_USER;
 
 @Service
@@ -208,5 +209,25 @@ public class OrderServiceImpl implements OrderService {
         orderDTO.setHotelFacilities(new ArrayList<>());
 
         return orderDTO;
+    }
+
+    @Override
+    public List<OrderDTO> getOrderDTOs(List<Order> orderList) {
+        List<OrderDTO> result = new ArrayList<>();
+
+        for (Order order : orderList) {
+            OrderDTO orderDTO = new OrderDTO();
+            BeanUtils.copyProperties(order, orderDTO);
+
+            Company company = companyDao.findByOrderId(order.getOrderId());
+            orderDTO.setCompanyId(company.getCompanyId());
+            orderDTO.setHotelName(company.getCompanyName());
+            orderDTO.setHotelAddress(company.getAddress());
+            orderDTO.setHotelScore(company.getScore());
+            orderDTO.setPhoto(BASE_URL + "image/74502663084965891"); // TODO: 靜態寫死 等待組員
+            result.add(orderDTO);
+        }
+
+        return result;
     }
 }
