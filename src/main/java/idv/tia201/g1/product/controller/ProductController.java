@@ -1,6 +1,7 @@
 package idv.tia201.g1.product.controller;
 
 import idv.tia201.g1.core.dto.Result;
+import idv.tia201.g1.product.dao.FacilityDao;
 import idv.tia201.g1.product.dto.AddProductRequest;
 import idv.tia201.g1.product.dto.ProductResponse;
 import idv.tia201.g1.product.dto.RoomResponse;
@@ -20,7 +21,14 @@ import java.util.List;
 public class ProductController {
 
     @Autowired
-    private final ProductService productService;
+    private ProductService productService;
+    @Autowired
+    private FacilityDao facilityDao;
+
+    @GetMapping("facility")
+    public Result getFacility() {
+        return Result.ok(facilityDao.findAll());
+    }
 
     @PostMapping("/add")
     public Result handleAddProduct(@RequestBody AddProductRequest request) {

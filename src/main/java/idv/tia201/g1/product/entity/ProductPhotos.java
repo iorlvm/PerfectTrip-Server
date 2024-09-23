@@ -28,9 +28,5 @@ public class ProductPhotos {
 
     @Column(name = "is_main", nullable = false, columnDefinition = "TINYINT(1) DEFAULT 0")
     private boolean isMain;
-
-//    @ManyToOne
-//    @JoinColumn(name = "product_id", insertable = false, updatable = false)
-//    private Product product;
 }
 

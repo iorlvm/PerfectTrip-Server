@@ -57,7 +57,4 @@ public class Product {
             lastModifiedDate = new Date();
 
     }
-
-    public void setPhoto(SerialBlob serialBlob) {
-    }
 }

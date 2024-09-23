@@ -173,26 +173,15 @@ public class ProductServiceImpl implements ProductService {
         }
 
         // 處理圖片上傳
-        ImageUploadRequest imageUploadRequest = addProductRequest.getImageUploadRequest();
-        if (imageUploadRequest != null && imageUploadRequest.getFile() != null && !imageUploadRequest.getFile().isEmpty()) {
-            // 確認圖片存在且非空才處理上傳
-            Image image = imageService.upload(imageUploadRequest);
-            Image savedImage = imageService.save(image);
-            String url = "image/" + savedImage.getId();
-
-            // 保存圖片到 ProductPhotos
-            ProductPhotos productPhotos = new ProductPhotos();
-            productPhotos.setProductId(productId);
-            productPhotos.setPhotoUrl(url);
-            productPhotos.setDescription(savedImage.getComment());
-            productPhotos.setMain(true);
-            productPhotosDao.save(productPhotos);
-
+        List<ProductPhotos> productPhotos = addProductRequest.getProductPhotos();
+        if (productPhotos != null && !productPhotos.isEmpty()) {
+            productPhotos.get(0).setMain(true); // 簡化邏輯 (第一張就是主圖)
+            for (ProductPhotos productPhoto : productPhotos) {
+                productPhoto.setProductId(productId);
+                productPhotosDao.save(productPhoto);
+            }
             // 打印保存的產品圖片
             System.out.println("保存的產品圖片: " + productPhotos);
-        } else {
-            // 沒有圖片上傳的處理
-            System.out.println("沒有圖片上傳");
         }
 
         // 打印返回的產品

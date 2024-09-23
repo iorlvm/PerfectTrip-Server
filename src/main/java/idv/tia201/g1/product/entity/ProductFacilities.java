@@ -21,12 +21,4 @@ public class ProductFacilities {
 
     @Column(name = "facility_id")
     private int facilityId;
-
-//    @ManyToOne
-//    @JoinColumn(name = "product_id")
-//    private Product product;
-//
-//    @ManyToOne
-//    @JoinColumn(name = "facility_id")
-//    private Facility facility;
 }
