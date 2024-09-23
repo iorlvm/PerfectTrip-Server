@@ -54,6 +54,9 @@ public class Company implements Serializable, UserAuth {
     @Column(name = "pass", nullable = false)
     private String pass;
 
+    @Column(name = "introduce")
+    private String introduce;
+
     @Column(name = "manager", nullable = false)
     private String manager;
 
