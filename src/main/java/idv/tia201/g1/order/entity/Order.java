@@ -19,6 +19,8 @@ public class Order {
     //使用者id
     @Column(name = "user_id")
     private Integer userId;
+    @Column(name = "guest_count")
+    private Integer guestCount;
     //訂單狀態
     @Column(name = "pay_status")  //未付款unpaid((臨時訂單) ; 已付款的情況下放入退款碼(萬一客人要退費)
     private String payStatus;

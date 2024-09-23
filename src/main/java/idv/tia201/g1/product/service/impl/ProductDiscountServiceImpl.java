@@ -66,24 +66,23 @@ public class ProductDiscountServiceImpl implements ProductDiscountService {
                 discountId <= 0) {
             throw new IllegalArgumentException("填寫錯誤：優惠ID為無效！");
         }
-
-        ProductDiscount existingDiscount = productDiscountDao.findById(discountId)
+        ProductDiscount discount = productDiscountDao.findById(discountId)
                 .orElseThrow(() -> new ResourceNotFoundException("未找到相關優惠！"));
 
         if (StringUtils.hasText(productDiscount.getDiscountTitle())) {
-            existingDiscount.setDiscountTitle(productDiscount.getDiscountTitle());
+            discount.setDiscountTitle(productDiscount.getDiscountTitle());
         }
         if (productDiscount.getDiscountRate() != null && productDiscount.getDiscountRate() > 0) {
-            existingDiscount.setDiscountRate(productDiscount.getDiscountRate());
+            discount.setDiscountRate(productDiscount.getDiscountRate()/100);
         }
         if (productDiscount.getStartDateTime() != null) {
-            existingDiscount.setStartDateTime(productDiscount.getStartDateTime());
+            discount.setStartDateTime(productDiscount.getStartDateTime());
         }
         if (productDiscount.getEndDateTime() != null) {
-            existingDiscount.setEndDateTime(productDiscount.getEndDateTime());
+            discount.setEndDateTime(productDiscount.getEndDateTime());
         }
 
-        return productDiscountDao.save(existingDiscount);
+        return productDiscountDao.save(discount);
     }
 
     @Override

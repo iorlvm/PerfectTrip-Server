@@ -13,7 +13,7 @@ import java.util.List;
 @NoArgsConstructor
 public class CreateOrderRequest {
 //在這裡收到請求 1.優惠卷是否使用,2.選擇了哪些房間 (同時順便傳是哪一間旅館的)
-
+    private Integer guestCount;
     //優惠倦代碼
     private Integer couponId;
     //優惠卷效期開始日
@@ -30,6 +30,4 @@ public class CreateOrderRequest {
         private Integer productId;
         private Integer count;
     }
-
-
 }
