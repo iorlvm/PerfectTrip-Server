@@ -15,10 +15,10 @@ public class ProductPhotos {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "photo_id", nullable = false)
-    private int photoId;
+    private Integer photoId;
 
     @Column(name = "product_id", nullable = false)
-    private int productId;
+    private Integer productId;
 
     @Column(name = "photo_url", nullable = false, length = 255)
     private String photoUrl;
@@ -27,6 +27,6 @@ public class ProductPhotos {
     private String description;
 
     @Column(name = "is_main", nullable = false, columnDefinition = "TINYINT(1) DEFAULT 0")
-    private boolean isMain;
+    private Boolean isMain;
 }
 

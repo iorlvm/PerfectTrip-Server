@@ -3,27 +3,18 @@ package idv.tia201.g1.product.service.impl;
 import idv.tia201.g1.core.dto.Result;
 import idv.tia201.g1.core.entity.UserAuth;
 import idv.tia201.g1.core.utils.UserHolder;
-import idv.tia201.g1.image.dto.ImageUploadRequest;
-import idv.tia201.g1.image.entity.Image;
 import idv.tia201.g1.image.service.ImageService;
-import idv.tia201.g1.order.entity.Order;
 import idv.tia201.g1.product.dao.*;
-import idv.tia201.g1.product.dto.AddProductRequest;
-import idv.tia201.g1.product.entity.ProductDetails;
-import idv.tia201.g1.product.entity.ProductFacilities;
-import idv.tia201.g1.product.entity.ProductPhotos;
-import idv.tia201.g1.product.exception.InternalServerException;
+import idv.tia201.g1.product.dto.ProductRequest;
+import idv.tia201.g1.product.entity.*;
 import idv.tia201.g1.product.exception.ResourceNotFoundException;
 import idv.tia201.g1.product.service.ProductService;
-import idv.tia201.g1.product.entity.Product;
 import io.micrometer.common.util.StringUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.sql.rowset.serial.SerialBlob;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -49,15 +40,11 @@ public class ProductServiceImpl implements ProductService {
 
 
     @Override
-    public Product updateProduct(Long productId,
-                                 String productName,
-                                 int roomPrice,
-                                 byte[] photoByte,
-                                 Integer maxOccupancy,
-                                 int stock) {
+    public Product updateProduct(ProductRequest request) {
+        Integer productId = request.getProductId();
 
         // 参数检查，确保 productId 有效
-        if (productId == null || productId <= 0) {
+        if (request.getProductId() == null || request.getProductId() <= 0) {
             throw new IllegalArgumentException("參數異常：產品ID無效");
         }
 
@@ -69,21 +56,24 @@ public class ProductServiceImpl implements ProductService {
 
         // 查找产品，确保产品存在
         Product product = productDao
-                .findById(Math.toIntExact(productId))
+                .findById(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
 
+        String productName = request.getProductName();
         // 更新产品名称
         if (productName != null && !productName.trim().isEmpty()) {
             product.setProductName(productName);
         }
 
         // 更新房间价格，确保价格为正数
-        if (roomPrice > 0) {
-            product.setPrice(roomPrice);
+        Integer price = request.getPrice();
+        if (price > 0) {
+            product.setPrice(price);
         } else {
             throw new IllegalArgumentException("參數異常：房間價格無效");
         }
 
+        Integer maxOccupancy = request.getMaxOccupancy();
         // 更新最大入住人数（如果存在并且有效）
         if (maxOccupancy != null) {
             if (maxOccupancy > 0) {
@@ -93,6 +83,7 @@ public class ProductServiceImpl implements ProductService {
             }
         }
 
+        Integer stock = request.getStock();
         // 更新库存，确保库存为非负数
         if (stock >= 0) {
             product.setStock(stock);
@@ -102,31 +93,91 @@ public class ProductServiceImpl implements ProductService {
 
         // 保存更新后的产品信息
         productDao.save(product);
+
+        ProductDetails productDetails = request.getProductDetails();
+        if (productDetails != null) {
+            ProductDetails details = productDetailsDao.findByProductId(productId);
+            details.setIncludesBreakfast(productDetails.isIncludesBreakfast());
+            details.setRefundable(productDetails.isRefundable());
+            details.setAllowDateChanges(productDetails.isAllowDateChanges());
+            details.setAllowFreeCancellation(productDetails.isAllowFreeCancellation());
+            productDetailsDao.save(details);
+        }
+
+        List<ProductFacilities> productFacilities = request.getProductFacilities();
+        if (productFacilities != null) {
+            // 取得資料庫中的 facilityId 列表
+            List<Integer> facilityIdsFromDb = productFacilitiesDao.findFacilityIdsByProductId(productId);
+
+            // 取得請求中的 facilityId 列表
+            List<Integer> facilityIdsFromRequest = productFacilities.stream()
+                    .map(ProductFacilities::getFacilityId)
+                    .toList();
+
+            // 過濾出需要新增的設施關聯
+            List<ProductFacilities> facilitiesToAdd = productFacilities.stream()
+                    .filter(facility -> !facilityIdsFromDb.contains(facility.getFacilityId()))
+                    .peek(facility -> facility.setProductId(productId))
+                    .toList();
+
+            // 刪除所有不在列表中的關聯表資料
+            productFacilitiesDao.deleteByProductIdAAndFacilityIdNotIn(productId, facilityIdsFromRequest);
+
+            System.out.println(facilitiesToAdd);
+            // 將新增的設施保存到資料庫
+            if (!facilitiesToAdd.isEmpty()) {
+                productFacilitiesDao.saveAll(facilitiesToAdd);
+            }
+        }
+
+        List<ProductPhotos> productPhotos = request.getProductPhotos();
+        if (productPhotos != null) {
+            List<String> photoUrlsFromDb = productPhotosDao.findPhotoUrlsByProductId(productId);
+
+            List<String> photoUrlsFromRequest = productPhotos.stream()
+                    .map(ProductPhotos::getPhotoUrl)
+                    .toList();
+
+            List<ProductPhotos> photosToAdd = productPhotos.stream()
+                    .filter(photo -> !photoUrlsFromDb.contains(photo.getPhotoUrl()))
+                    .peek(photo -> {
+                        photo.setProductId(productId);
+                        photo.setIsMain(false);
+                    })
+                    .toList();
+
+            productPhotosDao.deleteByProductIdAndPhotoUrlNotIn(productId, photoUrlsFromRequest);
+
+            if (!photosToAdd.isEmpty()) {
+                productPhotosDao.saveAll(photosToAdd);
+            }
+        }
+
         return product;
     }
 
 
     /*** 新增 Product 方法 ***/
     @Override
-    public Product handleAddProduct(AddProductRequest addProductRequest) {
+    public Product handleAddProduct(ProductRequest productRequest) {
         // 請求參數檢查
-        if (addProductRequest == null) {
+        if (productRequest == null) {
             throw new IllegalArgumentException("參數異常：請求對象為 null");
         }
 
-        if (StringUtils.isBlank(addProductRequest.getProductName())) {
+        if (StringUtils.isBlank(productRequest.getProductName())) {
             throw new IllegalArgumentException("參數異常：商品名稱未填寫");
         }
 
-        if (addProductRequest.getPrice() == null) {
+        if (productRequest.getPrice() == null) {
             throw new IllegalArgumentException("參數異常：價格未填寫");
         }
 
-        if (addProductRequest.getStock() == null) {
+        if (productRequest.getStock() == null) {
             throw new IllegalArgumentException("參數異常：庫存未填寫");
         }
 
-        if (addProductRequest.getMaxOccupancy() == null) {
+        if (productRequest.getMaxOccupancy() == null) {
             throw new IllegalArgumentException("參數異常：最大入住人數未填寫");
         }
 
@@ -141,7 +192,7 @@ public class ProductServiceImpl implements ProductService {
 
         // 將商品存入資料庫
         Product newProduct = new Product();
-        BeanUtils.copyProperties(addProductRequest, newProduct);
+        BeanUtils.copyProperties(productRequest, newProduct);
         newProduct.setCompanyId(loginUser.getId());
         newProduct.setChangeId(loginUser.getId());
 
@@ -155,7 +206,7 @@ public class ProductServiceImpl implements ProductService {
         Integer productId = savedProduct.getProductId();
 
         // 處理 ProductDetails（商品詳細信息）
-        ProductDetails productDetails = addProductRequest.getProductDetails();
+        ProductDetails productDetails = productRequest.getProductDetails();
         if (productDetails != null) {
             // 設定 productId 並存入資料庫
             productDetails.setProductId(productId);
@@ -164,7 +215,7 @@ public class ProductServiceImpl implements ProductService {
         }
 
         // 處理 ProductFacilities（商品設施）
-        List<ProductFacilities> productFacilities = addProductRequest.getProductFacilities();
+        List<ProductFacilities> productFacilities = productRequest.getProductFacilities();
         if (productFacilities != null && !productFacilities.isEmpty()) {
             // 設定 productId 並批量保存設施
             productFacilities.forEach(facility -> facility.setProductId(productId));
@@ -173,13 +224,14 @@ public class ProductServiceImpl implements ProductService {
         }
 
         // 處理圖片上傳
-        List<ProductPhotos> productPhotos = addProductRequest.getProductPhotos();
+        List<ProductPhotos> productPhotos = productRequest.getProductPhotos();
         if (productPhotos != null && !productPhotos.isEmpty()) {
-            productPhotos.get(0).setMain(true); // 簡化邏輯 (第一張就是主圖)
             for (ProductPhotos productPhoto : productPhotos) {
                 productPhoto.setProductId(productId);
-                productPhotosDao.save(productPhoto);
+                productPhoto.setIsMain(false);
             }
+            productPhotos.get(0).setIsMain(true); // 簡化邏輯 (第一張就是主圖)
+            productPhotosDao.saveAll(productPhotos);
             // 打印保存的產品圖片
             System.out.println("保存的產品圖片: " + productPhotos);
         }
@@ -213,12 +265,9 @@ public class ProductServiceImpl implements ProductService {
         return productTypes;
     }
 
-    /** 尋找資料 ById  **/
-    // Optional 可以解決可能出現的空指針異常（NullPointerException）問題，Optional<T>
-    // 作為泛型表示一個可能包含或不包含非 null 值的對象。還可以結合返回特定值 orElse()
 
     @Override
-    public Optional<Product> getProductById(Long productId) {
+    public ProductDetails getProductById(Integer productId) {
 
         // 參數檢查：確保 productId 不為空或無效
         if (productId == null || productId <= 0) {
@@ -227,15 +276,12 @@ public class ProductServiceImpl implements ProductService {
 
         // 權限檢查
         UserAuth loginUser = UserHolder.getUser();
-        if ( loginUser == null || !ROLE_COMPANY.equals(loginUser.getRole())) {
+        if (loginUser == null || !ROLE_COMPANY.equals(loginUser.getRole())) {
             throw new IllegalStateException("狀態異常：未登入或無查看所有產品類型的權限");
         }
 
-        // 從資料庫中根據 productId 查詢產品
-        Optional<Product> product = productDao.findById(Math.toIntExact(productId));
-
         // 直接返回查詢結果
-        return product;
+        return productDetailsDao.findByProductId(productId);
     }
 
     /**
@@ -266,11 +312,6 @@ public class ProductServiceImpl implements ProductService {
         }
     }
 
-    @Override
-    public byte[] getRoomPhotoByRoomId(Integer id) {
-        return new byte[0];
-    }
-
 
     @Override
     public void deleteProduct(Long productId) {
@@ -296,6 +337,4 @@ public class ProductServiceImpl implements ProductService {
         // 執行刪除操作
         productDao.deleteById(Math.toIntExact(productId));
     }
-
-
 }

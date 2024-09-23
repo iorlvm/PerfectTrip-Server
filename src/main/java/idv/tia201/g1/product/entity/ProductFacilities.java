@@ -14,11 +14,11 @@ public class ProductFacilities {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
-    private int id;
+    private Integer id;
 
     @Column(name = "product_id")
-    private int productId;
+    private Integer productId;
 
     @Column(name = "facility_id")
-    private int facilityId;
+    private Integer facilityId;
 }

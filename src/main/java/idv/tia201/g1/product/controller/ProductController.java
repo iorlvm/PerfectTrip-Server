@@ -2,11 +2,12 @@ package idv.tia201.g1.product.controller;
 
 import idv.tia201.g1.core.dto.Result;
 import idv.tia201.g1.product.dao.FacilityDao;
-import idv.tia201.g1.product.dto.AddProductRequest;
+import idv.tia201.g1.product.dto.ProductRequest;
 import idv.tia201.g1.product.dto.ProductResponse;
 import idv.tia201.g1.product.dto.RoomResponse;
 import idv.tia201.g1.product.dto.UpdateProductRequest; // 新增导入
 import idv.tia201.g1.product.entity.Product;
+import idv.tia201.g1.product.entity.ProductDetails;
 import idv.tia201.g1.product.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,7 +32,7 @@ public class ProductController {
     }
 
     @PostMapping("/add")
-    public Result handleAddProduct(@RequestBody AddProductRequest request) {
+    public Result handleAddProduct(@RequestBody ProductRequest request) {
         try {
             Product savedProduct = productService.handleAddProduct(request);
             ProductResponse productResponse = new ProductResponse(
@@ -62,6 +63,12 @@ public class ProductController {
         }
     }
 
+    @GetMapping("/{productId}")
+    public Result getProductById(@PathVariable Integer productId) {
+        ProductDetails productDetails = productService.getProductById(productId);
+        return Result.ok(productDetails);
+    }
+
     @DeleteMapping("/delete/room/{roomId}")
     public Result deleteRoom(@PathVariable Long roomId) {
         try {
@@ -74,25 +81,12 @@ public class ProductController {
 
     @PutMapping("/update/{roomId}")
     public Result updateRoom(
-            @PathVariable Long roomId,
-            @RequestBody UpdateProductRequest updateProductRequest) {
+            @PathVariable Integer roomId,
+            @RequestBody ProductRequest updateProductRequest) {
 
+        updateProductRequest.setProductId(roomId);
         try {
-
-            System.out.println("Product ID: " + roomId);
-            System.out.println("Product Name: " + updateProductRequest.getProductName());
-            System.out.println("Room Price: " + updateProductRequest.getRoomPrice());
-            System.out.println("Stock: " + updateProductRequest.getStock());
-
-
-            Product updatedProduct = productService.updateProduct(
-                    roomId,
-                    updateProductRequest.getProductName(),
-                    updateProductRequest.getRoomPrice(),
-                    null,  // photoBytes
-                    null,  // 其他参数
-                    updateProductRequest.getStock()
-            );
+            Product updatedProduct = productService.updateProduct(updateProductRequest);
 
             RoomResponse roomResponse = new RoomResponse(
                     updatedProduct.getProductId(),
@@ -102,6 +96,7 @@ public class ProductController {
 
             return Result.ok(roomResponse);
         } catch (Exception e) {
+            e.printStackTrace();
             return Result.fail(e.getMessage());
         }
     }
@@ -115,7 +110,7 @@ public class ProductController {
         }
 
         Object data = result.getData();
-        if (data == null ) {
+        if (data == null) {
             return Result.fail("沒有搜尋到可用產品");
         }
 

@@ -199,7 +199,7 @@ public class SearchServiceImpl implements SearchService {
         BeanUtils.copyProperties(productCalculation, searchProductResponse);
         List<ProductPhotos> photos = searchProductResponse.getPhotos();
         // 將主圖排到第一張
-        photos.sort((a, b) -> Boolean.compare(b.isMain(), a.isMain()));
+        photos.sort((a, b) -> Boolean.compare(b.getIsMain(), a.getIsMain()));
         // 對圖片添加前綴
         for (ProductPhotos photo : photos) {
             photo.setPhotoUrl(BASE_URL + photo.getPhotoUrl());
