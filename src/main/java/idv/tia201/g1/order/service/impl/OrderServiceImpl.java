@@ -216,6 +216,7 @@ public class OrderServiceImpl implements OrderService {
         orderDTO.setHotelName(company.getCompanyName());
         orderDTO.setHotelAddress(company.getAddress());
         orderDTO.setHotelScore(company.getScore());
+        orderDTO.setCity(company.getCity());
         //TODO: 等待組員
         orderDTO.setHotelFacilities(new ArrayList<>());
 
@@ -239,6 +240,7 @@ public class OrderServiceImpl implements OrderService {
             orderDTO.setHotelName(company.getCompanyName());
             orderDTO.setHotelAddress(company.getAddress());
             orderDTO.setHotelScore(company.getScore());
+            orderDTO.setCity(company.getCity());
             orderDTO.setPhoto(BASE_URL + "image/74502663084965891"); // TODO: 靜態寫死 等待組員
             result.add(orderDTO);
         }

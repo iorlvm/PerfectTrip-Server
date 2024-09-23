@@ -13,6 +13,7 @@ public class OrderDTO {
     private String hotelName;
     private  String hotelAddress;
     private  float hotelScore;
+    private String city;
     private String photo;
     //TODO: 等待組員新增 <3<3
     private List<String> hotelFacilities;
