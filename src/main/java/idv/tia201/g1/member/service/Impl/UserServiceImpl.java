@@ -133,10 +133,17 @@ public class UserServiceImpl implements UserService {
         int page = offset / limit;
         int pageOffset = offset % limit;
 
+        Sort sort = null;
+        if (userQueryParams.getOrderBy() == "desc") {
+            sort = Sort.by(userQueryParams.getOrderBy()).descending();
+        } else {
+            sort = Sort.by(userQueryParams.getOrderBy()).ascending();
+        }
+
         Pageable pageable = PageRequest.of(
                 page,
                 limit,
-                Sort.by("createdDate").descending()
+                sort
         );
 
         List<User> users = userDao.findAll(pageable).getContent();
