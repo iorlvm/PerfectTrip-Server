@@ -36,4 +36,7 @@ public class OrderDTO {
 
     private List<OrderProductDTO> products;
     private List<OrderResidents> residents;
+
+    private String subscriber;  //訂購人
+    private Integer subscriberId;  //訂購人Id
 }
