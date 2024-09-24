@@ -220,6 +220,10 @@ public class OrderServiceImpl implements OrderService {
         //TODO: 等待組員
         orderDTO.setHotelFacilities(new ArrayList<>());
 
+        List<OrderResidents> residents = orderResidentsDao.findByOrderId(orderId);
+        if (residents != null && !residents.isEmpty()) {
+            orderDTO.setResidents(residents);
+        }
 
         return orderDTO;
     }
