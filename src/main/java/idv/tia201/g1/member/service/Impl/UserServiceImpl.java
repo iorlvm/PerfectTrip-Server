@@ -127,13 +127,27 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<User> findAll(UserQueryParams userQueryParams) {
 
+        int offset = userQueryParams.getOffset();
+        int limit = userQueryParams.getLimit();
+
+        int page = offset / limit;
+        int pageOffset = offset % limit;
+
         Pageable pageable = PageRequest.of(
-                userQueryParams.getOffset(),
+                userQueryParams.getOffset() / userQueryParams.getLimit(),
                 userQueryParams.getLimit(),
-                Sort.by("createdDate").ascending()
+                Sort.by("createdDate").descending()
         );
 
-        return userDao.findAll(pageable).getContent();
+        List<User> users = userDao.findAll(pageable).getContent();
+
+        // 如果 pageOffset 不為 0，則需要跳過該頁的一部分數據
+        if (pageOffset > 0) {
+            // 確保不超過數據總量後，從 pageOffset 開始返回剩餘數據
+            users = users.subList(pageOffset, Math.min(users.size(), limit));
+        }
+
+        return users;
 
     }
 
