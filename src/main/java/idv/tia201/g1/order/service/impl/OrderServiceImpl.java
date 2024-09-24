@@ -3,7 +3,9 @@ package idv.tia201.g1.order.service.impl;
 import idv.tia201.g1.core.entity.UserAuth;
 import idv.tia201.g1.core.utils.UserHolder;
 import idv.tia201.g1.member.dao.CompanyDao;
+import idv.tia201.g1.member.dao.UserDao;
 import idv.tia201.g1.member.entity.Company;
+import idv.tia201.g1.member.entity.User;
 import idv.tia201.g1.order.dao.OrderDao;
 import idv.tia201.g1.order.dao.OrderDetailDao;
 import idv.tia201.g1.order.dao.OrderResidentsDao;
@@ -47,6 +49,8 @@ public class OrderServiceImpl implements OrderService {
     private CompanyDao companyDao;
     @Autowired
     private ProductDao productDao;
+    @Autowired
+    private UserDao userDao;
 
     @Override
     public Order createOrder(CreateOrderRequest createOrderRequest) {
@@ -220,17 +224,27 @@ public class OrderServiceImpl implements OrderService {
         //TODO: 等待組員
         orderDTO.setHotelFacilities(new ArrayList<>());
 
+        List<OrderResidents> residents = orderResidentsDao.findByOrderId(orderId);
+        if (residents != null && !residents.isEmpty()) {
+            orderDTO.setResidents(residents);
+        }
 
         return orderDTO;
     }
 
     @Override
     public List<OrderDTO> getOrderDTOs(List<Order> orderList) {
+        //宣告一個List名字叫result,這個List的類型是OrderDTO
         List<OrderDTO> result = new ArrayList<>();
 
         for (Order order : orderList) {
             OrderDTO orderDTO = new OrderDTO();
             BeanUtils.copyProperties(order, orderDTO);
+
+            Integer userId = order.getUserId( );
+            User user = userDao.findByUserId(userId);
+            orderDTO.setSubscriber(user.getFirstName()+user.getLastName());
+            orderDTO.setSubscriberId(userId);
 
             List<OrderProductDTO> details = orderDetailDao.getOrderProductByOrderId(order.getOrderId());
             orderDTO.setProducts(details);

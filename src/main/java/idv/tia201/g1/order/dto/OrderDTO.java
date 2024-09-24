@@ -1,6 +1,7 @@
 package idv.tia201.g1.order.dto;
 
 import idv.tia201.g1.order.entity.OrderDetail;
+import idv.tia201.g1.order.entity.OrderResidents;
 import lombok.Data;
 
 import java.sql.Date;
@@ -30,6 +31,12 @@ public class OrderDTO {
     private Integer tax;   //稅金
     private Integer actualPrice;//實際金額
     private Timestamp createdDate;
+    private String orderNotes;
+    private String wishedTime;
 
     private List<OrderProductDTO> products;
+    private List<OrderResidents> residents;
+
+    private String subscriber;  //訂購人
+    private Integer subscriberId;  //訂購人Id
 }
