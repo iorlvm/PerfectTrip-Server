@@ -134,8 +134,8 @@ public class UserServiceImpl implements UserService {
         int pageOffset = offset % limit;
 
         Pageable pageable = PageRequest.of(
-                userQueryParams.getOffset() / userQueryParams.getLimit(),
-                userQueryParams.getLimit(),
+                page,
+                limit,
                 Sort.by("createdDate").descending()
         );
 
