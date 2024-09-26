@@ -17,7 +17,7 @@ public class Company implements Serializable, UserAuth {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "company_id")
-    private int companyId;
+    private Integer companyId;
 
 
     @Column(name = "username", nullable = false, unique = true)

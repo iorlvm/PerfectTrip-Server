@@ -23,7 +23,7 @@ public class CompanyPhotos {
     private String description;
 
     @Column(name = "is_main")
-    private boolean isMain;
+    private Boolean isMain;
 
 
 }
