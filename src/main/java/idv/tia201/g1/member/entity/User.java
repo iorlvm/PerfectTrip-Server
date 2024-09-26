@@ -38,6 +38,14 @@ public class User implements UserAuth {
     @Column(name = "tax_id")
     private String taxId;
 
+    public String getAvatar() {
+        return avatar;
+    }
+
+    public void setAvatar(String avatar) {
+        this.avatar = avatar;
+    }
+
     @Enumerated(EnumType.STRING)
     @Column(name = "gender")
     private Gender gender;
@@ -57,6 +65,9 @@ public class User implements UserAuth {
 
     @Column(name = "address")
     private String address;
+
+    @Column(name = "avatar")
+    private String avatar;
 
     @Column(name = "change_id")
     private Integer changeId;
@@ -93,6 +104,7 @@ public class User implements UserAuth {
         private String country;
         private Date birthday;
         private String address;
+        private String avatar;
         private Integer changeId;
         private Date createdDate;
         private Date lastModifiedDate;
@@ -162,6 +174,11 @@ public class User implements UserAuth {
             return this;
         }
 
+        public Builder avatar(String avatar) {
+            this.avatar = avatar;
+            return this;
+        }
+
         public Builder changeId(Integer changeId) {
             this.changeId = changeId;
             return this;
@@ -192,6 +209,7 @@ public class User implements UserAuth {
             user.country = this.country;
             user.birthday = this.birthday;
             user.address = this.address;
+            user.avatar = this.avatar;
             user.changeId = this.changeId;
             user.createdDate = this.createdDate;
             user.lastModifiedDate = this.lastModifiedDate;

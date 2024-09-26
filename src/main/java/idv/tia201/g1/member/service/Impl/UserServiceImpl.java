@@ -243,6 +243,8 @@ public class UserServiceImpl implements UserService {
 
         Optional.ofNullable(userUpdateRequest.getAddress()).ifPresent(user::setAddress);
 
+        Optional.ofNullable(userUpdateRequest.getAvatar()).ifPresent(user::setAvatar);
+
         // Update the user's change ID if provided
         UserAuth loginUser = UserHolder.getUser();
         Optional.ofNullable(loginUser.getId()).ifPresent(user::setChangeId);

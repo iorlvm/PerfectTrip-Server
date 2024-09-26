@@ -27,6 +27,16 @@ public class UserUpdateRequest {
 
     private String address;
 
+    public String getAvatar() {
+        return avatar;
+    }
+
+    public void setAvatar(String avatar) {
+        this.avatar = avatar;
+    }
+
+    private String avatar;
+
     public UserUpdateRequest() {
 
     }
