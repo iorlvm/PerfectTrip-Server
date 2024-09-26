@@ -5,6 +5,7 @@ import idv.tia201.g1.chat.entity.ChatMessage;
 import idv.tia201.g1.chat.entity.ChatParticipant;
 import idv.tia201.g1.chat.entity.ChatRoom;
 import idv.tia201.g1.chat.entity.ChatUserMapping;
+import idv.tia201.g1.core.entity.UserAuth;
 
 import java.sql.Timestamp;
 import java.util.List;
@@ -57,6 +58,8 @@ public interface CacheService {
      * @return 參與中的聊天室id列表
      */
     Set<Long> getChatRoomIdsByRoleAndId(String role, Integer id);
+
+    void updateUserInfo(UserAuth userAuth);
 
     /**
      * 更新聊天室參與者的最後閱讀時間

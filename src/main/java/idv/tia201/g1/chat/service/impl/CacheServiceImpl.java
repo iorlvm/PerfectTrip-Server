@@ -11,9 +11,14 @@ import idv.tia201.g1.chat.entity.ChatMessage;
 import idv.tia201.g1.chat.entity.ChatParticipant;
 import idv.tia201.g1.chat.entity.ChatRoom;
 import idv.tia201.g1.chat.entity.ChatUserMapping;
+import idv.tia201.g1.core.entity.UserAuth;
+import idv.tia201.g1.core.utils.Constants;
 import idv.tia201.g1.core.utils.basic.JSONUtil;
 import idv.tia201.g1.core.utils.redis.CacheClient;
 import idv.tia201.g1.core.utils.redis.RedisIdWorker;
+import idv.tia201.g1.member.entity.Admin;
+import idv.tia201.g1.member.entity.Company;
+import idv.tia201.g1.member.entity.User;
 import idv.tia201.g1.member.service.Impl.UserServiceImpl;
 import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
@@ -158,6 +163,53 @@ public class CacheServiceImpl implements CacheService {
     @Override
     public Set<Long> getChatRoomIdsByRoleAndId(String role, Integer id) {
         return chatParticipantDao.findChatIdByTypeAndRefId(role, id);
+    }
+
+    @Override
+    public void updateUserInfo(UserAuth userAuth) {
+        Integer id = userAuth.getId();
+        String role = userAuth.getRole();
+        Long mappingUserId = findMappingUserId(role, id);
+        Set<Long> chatIds = chatParticipantDao.findChatIdByTypeAndRefId(role, id);
+
+        String avatar = "";
+        String name = "";
+        switch (role) {
+            case Constants.ROLE_USER:
+                if (userAuth instanceof User user) {
+                    avatar = user.getAvatar();
+                    name = user.getNickname();
+                }
+                break;
+            case Constants.ROLE_COMPANY:
+                if (userAuth instanceof Company company) {
+                    // TODO: 靜態寫死 之後要改
+                    avatar ="image/74502663084965891";
+                    name = company.getCompanyName();
+                }
+                break;
+            case Constants.ROLE_ADMIN:
+                // TODO: 先暫時給預設值 未來修正
+                if (userAuth instanceof Admin admin) {
+                    avatar ="image/74502663084965891";
+                    name = admin.getAdminGroup();
+                }
+                break;
+        }
+
+        for (Long chatId : chatIds) {
+            ChatParticipant participant = findParticipantByChatIdAndMappingUserId(chatId, mappingUserId);
+            participant.setName(name);
+            participant.setAvatar(avatar);
+
+            // 修改緩存中的資料
+            chatCacheClient.mapPut(
+                    CACHE_CHAT_PARTICIPANT + chatId,
+                    mappingUserId.toString(),
+                    participant,
+                    CACHE_CHAT_TTL,
+                    TimeUnit.SECONDS);
+        }
     }
 
     @Override
@@ -393,7 +445,7 @@ public class CacheServiceImpl implements CacheService {
 
             if (record != null) {
                 // 超出重試次數
-                log.error("Error processing record: {}",record.getId());
+                log.error("Error processing record: {}", record.getId());
                 // 超出預期的錯誤 (避免卡死, 先跳過這筆訊息)
                 // TODO: 應該要考慮增加一個異常隊列把卡死的部分丟去那邊處理
                 stringRedisTemplate.opsForStream().acknowledge(QUEUE_NAME, CHAT_GROUP, record.getId());

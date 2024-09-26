@@ -1,5 +1,6 @@
 package idv.tia201.g1.member.service.Impl;
 
+import idv.tia201.g1.chat.service.ChatService;
 import idv.tia201.g1.core.entity.UserAuth;
 import idv.tia201.g1.core.utils.UserHolder;
 import idv.tia201.g1.member.constant.UserGroup;
@@ -39,6 +40,8 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     public UserDao userDao;
+    @Autowired
+    private ChatService chatService;
 
     /**
      * Registers a new user.
@@ -254,6 +257,7 @@ public class UserServiceImpl implements UserService {
 
         // Save the updated User object to the database
         User userSaved = userDao.save(user);
+        chatService.updateUserInfo(userSaved);
 
         // Return the updated User object
         return userSaved;

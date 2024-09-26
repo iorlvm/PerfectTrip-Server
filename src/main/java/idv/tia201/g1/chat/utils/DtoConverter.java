@@ -75,12 +75,13 @@ public class DtoConverter {
         switch (userAuth.getRole()) {
             case Constants.ROLE_USER:
                 if (userAuth instanceof User user) {
-                    userInfo.setAvatar(BASE_URL + "image/74502663084965891");
+                    userInfo.setAvatar(BASE_URL + user.getAvatar());
                     userInfo.setName(user.getNickname());
                 }
                 break;
             case Constants.ROLE_COMPANY:
                 if (userAuth instanceof Company company) {
+                    // TODO: 靜態寫死 之後要改
                     userInfo.setAvatar(BASE_URL +"image/74502663084965891");
                     userInfo.setName(company.getCompanyName());
                 }

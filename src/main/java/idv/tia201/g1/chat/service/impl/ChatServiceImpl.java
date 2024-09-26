@@ -58,6 +58,8 @@ public class ChatServiceImpl implements ChatService {
             return;
         }
 
+        cacheService.updateUserInfo(userAuth);
+
         PayloadDTO payloadDTO = new PayloadDTO();
         payloadDTO.setAuthorId(loginUserId);
         payloadDTO.setTimestamp(Timestamp.from(Instant.now()).toString());

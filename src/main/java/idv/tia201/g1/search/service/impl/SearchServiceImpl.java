@@ -321,7 +321,7 @@ public class SearchServiceImpl implements SearchService {
 
         switch (orderBy) {
             case "score":
-                comparator = Comparator.comparingDouble(SearchResponse::getScore);
+                comparator = Comparator.comparingDouble(SearchResponse::getScore).reversed();
                 break;
             case "price":
             default:

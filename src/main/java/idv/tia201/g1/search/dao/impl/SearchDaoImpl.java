@@ -25,7 +25,8 @@ public class SearchDaoImpl implements SearchDao {
         String queryStr = "SELECT c.company_id " +
                 "FROM company_master c " +
                 "WHERE c.city LIKE :destination " +
-                "OR c.country LIKE :destination;";
+                "OR c.country LIKE :destination " +
+                "OR c.company_name LIKE :destination;";
 
         Query query = entityManager.createNativeQuery(queryStr);
 
