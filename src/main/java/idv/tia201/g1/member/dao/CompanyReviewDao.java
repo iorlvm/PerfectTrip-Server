@@ -15,4 +15,6 @@ public interface CompanyReviewDao extends JpaRepository<CompanyReview, Integer> 
             "JOIN User u ON u.userId = cr.userId " +
             "WHERE cr.companyId = :companyId")
     Page<CompanyReviewDTO> findByCompanyId(@Param("companyId") Integer companyId, Pageable pageable);
+
+    Integer countByCompanyId(Integer companyId);
 }
