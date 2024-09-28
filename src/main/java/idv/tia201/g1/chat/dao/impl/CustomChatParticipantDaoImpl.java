@@ -32,8 +32,11 @@ public class CustomChatParticipantDaoImpl implements CustomChatParticipantDao {
                 "    END AS name, " +
                 "    CASE " +
                 "        WHEN m.user_type = '" + ROLE_USER + "' THEN u.avatar " +
-                "        WHEN m.user_type = '" + ROLE_COMPANY + "' THEN '' " +
-                "        WHEN m.user_type = '" + ROLE_ADMIN + "' THEN '' " +
+                "        WHEN m.user_type = '" + ROLE_COMPANY + "' THEN " +
+                "            (SELECT cp.photo_url FROM company_photos cp " +
+                "             WHERE cp.company_id = c.company_id " +
+                "             ORDER BY cp.is_main DESC LIMIT 1) " +
+                "        WHEN m.user_type = '" + ROLE_ADMIN + "' THEN '' " + // TODO: 給預設值頭像
                 "    END AS avatar, " +
                 "    m.user_type AS type, " +
                 "    p.pinned, " +

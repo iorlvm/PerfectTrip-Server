@@ -1,9 +1,13 @@
 package idv.tia201.g1.member.entity;
 
 import jakarta.persistence.*;
+import lombok.Data;
 
 import java.util.Date;
 
+@Data
+@Entity
+@Table(name = "company_reviews")
 public class CompanyReview {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
