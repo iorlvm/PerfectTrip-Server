@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Validated
 @RestController
-@RequestMapping("/api/storeEdit")
+@RequestMapping("/api/storeDetail")
 public class CompanyManageController {
     @Autowired
     private CompanyManagerService companyManagerService;
@@ -28,10 +28,11 @@ public class CompanyManageController {
 
     //取得編輯資訊
     @GetMapping("/{companyId}")
-    public Result getCompanyDetail( @PathVariable Integer companyId,@RequestParam @Valid CompanyEditDetailResponse companyEditDetailResponse){
+    public Result getCompanyDetail( @PathVariable Integer companyId){
         CompanyEditDetailResponse companyDetail = companyManagerService.getCompanyDetail(companyId);
         return Result.ok(companyDetail);
     }
+
 
 
 
