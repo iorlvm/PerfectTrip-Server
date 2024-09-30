@@ -114,6 +114,71 @@ public class SearchDaoImpl implements SearchDao {
         return response;
     }
 
+    @Override
+    public List<Integer> getHotCompanyIds(Integer size) {
+        String queryStr = "SELECT cm.company_id " +
+                "FROM company_master cm " +
+                "ORDER BY cm.score DESC LIMIT :size";
+
+        Query query = entityManager.createNativeQuery(queryStr);
+        query.setParameter("size", size);
+
+        @SuppressWarnings("unchecked")
+        List<Object> results = query.getResultList();
+
+        List<Integer> companyIds = new ArrayList<>();
+        for (Object result : results) {
+            companyIds.add(((Number) result).intValue());
+        }
+
+        return companyIds;
+    }
+
+    @Override
+    public List<Integer> getRandCompanyIds(Integer size) {
+        String queryStr = "SELECT cm.company_id " +
+                "FROM company_master cm " +
+                "ORDER BY RAND() LIMIT :size";
+
+        Query query = entityManager.createNativeQuery(queryStr);
+        query.setParameter("size", size);
+
+        @SuppressWarnings("unchecked")
+        List<Object> results = query.getResultList();
+
+        List<Integer> companyIds = new ArrayList<>();
+        for (Object result : results) {
+            companyIds.add(((Number) result).intValue());
+        }
+
+        return companyIds;
+    }
+
+    @Override
+    public List<Integer> getDiscountCompanyIds(Date date, Integer size) {
+        String queryStr = "SELECT cm.company_id " +
+                "FROM company_master cm " +
+                "JOIN product_discount pd ON cm.company_id = pd.company_id " +
+                "WHERE :date BETWEEN pd.start_date_time AND pd.end_date_time " +
+                "GROUP BY cm.company_id " +
+                "ORDER BY MIN(pd.discount_rate) " +
+                "LIMIT :size";
+
+        Query query = entityManager.createNativeQuery(queryStr);
+        query.setParameter("size", size);
+        query.setParameter("date", date);
+
+        @SuppressWarnings("unchecked")
+        List<Object> results = query.getResultList();
+
+        List<Integer> companyIds = new ArrayList<>();
+        for (Object result : results) {
+            companyIds.add(((Number) result).intValue());
+        }
+
+        return companyIds;
+    }
+
     // 封裝轉換用回傳格式
     private static ProductCalculation getProductCalculation(Object[] res) {
         Integer productId = (Integer) res[1];
