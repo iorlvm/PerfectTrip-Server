@@ -14,4 +14,10 @@ public interface SearchDao {
     Map<Integer, List<ProductCalculation>> getProductCalculations(List<Integer> companyIds, Date startDate, Date endDate);
 
     SearchResponse getDetailsByProductIds(List<Integer> productIds);
+
+    List<Integer> getHotCompanyIds(Integer size);
+
+    List<Integer> getRandCompanyIds(Integer size);
+
+    List<Integer> getDiscountCompanyIds(Date date, Integer size);
 }

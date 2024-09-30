@@ -3,6 +3,8 @@ package idv.tia201.g1.search.service.impl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import idv.tia201.g1.member.dao.CompanyDao;
+import idv.tia201.g1.member.dao.CompanyPhotosDao;
+import idv.tia201.g1.member.dao.CompanyReviewDao;
 import idv.tia201.g1.member.entity.Company;
 import idv.tia201.g1.order.dao.OrderDao;
 import idv.tia201.g1.order.uitls.OrderUtil;
@@ -38,6 +40,10 @@ public class SearchServiceImpl implements SearchService {
     private SearchDao searchDao;
     @Autowired
     private CompanyDao companyDao;
+    @Autowired
+    private CompanyPhotosDao companyPhotosDao;
+    @Autowired
+    private CompanyReviewDao companyReviewDao;
     @Autowired
     private OrderDao orderDao;
     @Autowired
@@ -296,9 +302,13 @@ public class SearchServiceImpl implements SearchService {
         searchResponse.setCompanyName(company.getCompanyName());
         searchResponse.setCity(company.getCity());
         searchResponse.setCountry(company.getCountry());
-        searchResponse.setPhoto(BASE_URL + "image/74721697827127301");   // TODO: 靜態寫入 等entity更新
         searchResponse.setScore(company.getScore());
-        searchResponse.setCommentCount(999);                             // TODO: 靜態寫入 等entity更新
+        String photo = companyPhotosDao.findMainPhotoByCompanyId(companyId);
+        if (photo != null) {
+            searchResponse.setPhoto(BASE_URL + photo);
+        }
+        Integer count = companyReviewDao.countByCompanyId(companyId);
+        searchResponse.setCommentCount(count);
 
         List<Double> discounts = OrderUtil.getDiscountByCompanyIdBetweenStartDateAnEndDate(orderDao, companyId, startDate, endDate);
 

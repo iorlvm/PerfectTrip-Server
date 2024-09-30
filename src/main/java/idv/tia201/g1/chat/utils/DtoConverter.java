@@ -63,7 +63,7 @@ public class DtoConverter {
         messageDTO.setTimestamp(message.getCreatedDate().toString());
         if (message.getImg() != null) {
             MessageDTO.ImageDTO imageDTO = new MessageDTO.ImageDTO();
-            imageDTO.setSrc(message.getImg());
+            imageDTO.setSrc(BASE_URL + message.getImg());
             messageDTO.setImg(imageDTO);
         }
 
