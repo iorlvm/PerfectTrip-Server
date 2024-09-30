@@ -87,6 +87,12 @@ public class WebSocketServiceImpl implements WebSocketService {
 
         cacheService.saveMessage(payloadDTO.getAuthorId(), payloadDTO.getChatId(), messageDTO);
         try {
+            MessageDTO.ImageDTO img = messageDTO.getImg();
+            if (!isImageEmpty(img)) {
+                // 補充為完整的網址
+                img.setSrc(BASE_URL + img.getSrc());
+                messageDTO.setImg(img);
+            }
             payloadDTO.setContent(objectMapper.writeValueAsString(messageDTO));
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
