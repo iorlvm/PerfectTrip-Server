@@ -15,9 +15,9 @@ import idv.tia201.g1.member.service.CompanyManagerService;
 import idv.tia201.g1.product.dao.FacilityDao;
 import idv.tia201.g1.product.entity.Facility;
 import lombok.extern.apachecommons.CommonsLog;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -39,16 +39,21 @@ public class CompanyManagerServiceImpl implements CompanyManagerService {
 
 
 
+
     @Override
     public CompanyPhotos deleteCompanyPhoto(Integer photoId) {
-        return null;
+        CompanyPhotos photo = companyPhotosDao.findById(photoId)
+                .orElseThrow(() -> new IllegalArgumentException("照片不存在，ID: " + photoId));
+        companyPhotosDao.delete(photo);
+        return photo;
     }
+
 
     @Override
     public List<CompanyPhotos> getCompanyPhotos(Company companyId) {
         return List.of();
     }
-
+    @Transactional//+
     @Override
     public void handleEditCompanyInfo(CompanyEditDetailRequest companyEditDetailRequest) {
 
@@ -94,15 +99,34 @@ public class CompanyManagerServiceImpl implements CompanyManagerService {
             }
 
         }
-        //存入圖片
-        CompanyPhotos photos = companyEditDetailRequest.getPhotos();
-        if (photos != null && photos.getPhotoUrl() != null){
-            photos.setCompanyId(companyId);
-            photos.setDescription("商家圖片:" + company.getCompanyName());
-            photos.setIsMain(false);
-            companyPhotosDao.save(photos);
+        // 存入圖片
+        List<CompanyPhotos> photos = companyEditDetailRequest.getPhotos();
+        if (photos != null && !photos.isEmpty()) {
+            for (CompanyPhotos photo : photos) {
+                if (photo.getPhotoUrl() != null) {
+                    photo.setCompanyId(companyId);
+                    photo.setDescription("商家圖片:" + company.getCompanyName());
+                    photo.setIsMain(false);
+                }
+            }
+            // 使用 saveAll 保存列表
+            companyPhotosDao.saveAll(photos);
         }
 
+//        // 存入圖片
+//        List<CompanyPhotos> photos = companyEditDetailRequest.getPhotos();
+//        if (photos != null && !photos.isEmpty()) {  // 確保列表不為空
+//            for (CompanyPhotos photo : photos) {
+//                if (photo.getPhotoUrl() != null) {  // 確保每個照片的 URL 不為空
+//                    photo.setCompanyId(companyId);  // 設置公司 ID
+//                    photo.setDescription("商家圖片:" + company.getCompanyName()); // 設置描述
+//                    photo.setIsMain(false); // 設置為非主圖
+//
+//                    // 保存每個 photo
+//                    companyPhotosDao.save(photo);
+//                }
+//            }
+//        }
     }
 
     @Override
@@ -121,5 +145,14 @@ public class CompanyManagerServiceImpl implements CompanyManagerService {
         res.setCompany(company);
         return res;
     }
+
+    @Override
+    @Transactional
+    public void deleteCompanyDetail(Integer companyId) {
+        companyFacilityDao.deleteByCompanyId(companyId);
+        companyPhotosDao.deleteAll(companyPhotosDao.findByCompanyId(companyId));
+        companyDao.deleteById(companyId);
+    }
+
 
 }

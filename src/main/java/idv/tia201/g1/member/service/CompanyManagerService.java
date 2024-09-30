@@ -25,5 +25,7 @@ public interface CompanyManagerService {
 
     CompanyEditDetailResponse getCompanyDetail (Integer companyId);
 
+    //刪除公司資訊
+    void deleteCompanyDetail(Integer companyId);
 
 }
