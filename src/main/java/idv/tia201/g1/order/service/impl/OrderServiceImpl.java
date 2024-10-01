@@ -2,9 +2,9 @@ package idv.tia201.g1.order.service.impl;
 
 import idv.tia201.g1.core.entity.UserAuth;
 import idv.tia201.g1.core.utils.UserHolder;
-import idv.tia201.g1.member.dao.CompanyDao;
-import idv.tia201.g1.member.dao.UserDao;
+import idv.tia201.g1.member.dao.*;
 import idv.tia201.g1.member.entity.Company;
+import idv.tia201.g1.member.entity.CompanyFacility;
 import idv.tia201.g1.member.entity.User;
 import idv.tia201.g1.order.dao.OrderDao;
 import idv.tia201.g1.order.dao.OrderDetailDao;
@@ -18,7 +18,9 @@ import idv.tia201.g1.order.entity.OrderDetail;
 import idv.tia201.g1.order.entity.OrderResidents;
 import idv.tia201.g1.order.service.OrderService;
 import idv.tia201.g1.order.uitls.OrderUtil;
+import idv.tia201.g1.product.dao.FacilityDao;
 import idv.tia201.g1.product.dao.ProductDao;
+import idv.tia201.g1.product.entity.Facility;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -51,6 +53,12 @@ public class OrderServiceImpl implements OrderService {
     private ProductDao productDao;
     @Autowired
     private UserDao userDao;
+    @Autowired
+    private FacilityDao facilityDao;
+    @Autowired
+    private CompanyReviewDao companyReviewDao;
+    @Autowired
+    private CompanyPhotosDao companyPhotosDao;
 
     @Override
     public Order createOrder(CreateOrderRequest createOrderRequest) {
@@ -221,8 +229,12 @@ public class OrderServiceImpl implements OrderService {
         orderDTO.setHotelAddress(company.getAddress());
         orderDTO.setHotelScore(company.getScore());
         orderDTO.setCity(company.getCity());
-        //TODO: 等待組員
-        orderDTO.setHotelFacilities(new ArrayList<>());
+
+        List<Facility> facilities = facilityDao.findByCompanyId(company.getCompanyId());
+        List<String> list = facilities.stream().map(Facility::getFacilityName).toList();
+        orderDTO.setHotelFacilities(list);
+        Integer count = companyReviewDao.countByCompanyId(company.getCompanyId());
+        orderDTO.setRateCount(count);
 
         List<OrderResidents> residents = orderResidentsDao.findByOrderId(orderId);
         if (residents != null && !residents.isEmpty()) {
@@ -255,7 +267,8 @@ public class OrderServiceImpl implements OrderService {
             orderDTO.setHotelAddress(company.getAddress());
             orderDTO.setHotelScore(company.getScore());
             orderDTO.setCity(company.getCity());
-            orderDTO.setPhoto(BASE_URL + "image/74502663084965891"); // TODO: 靜態寫死 等待組員
+            String photo = companyPhotosDao.findMainPhotoByCompanyId(company.getCompanyId());
+            orderDTO.setPhoto(BASE_URL + photo);
             result.add(orderDTO);
         }
         return result;

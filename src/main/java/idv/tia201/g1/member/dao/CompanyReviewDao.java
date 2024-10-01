@@ -22,4 +22,7 @@ public interface CompanyReviewDao extends JpaRepository<CompanyReview, Integer> 
     CompanyReview findByCompanyIdAndUserId(Integer companyId, Integer userId);
 
     Integer countByCompanyId(Integer companyId);
+
+    @Query("SELECT AVG(cr.starRank) FROM CompanyReview cr WHERE cr.companyId = :companyId")
+    Float avgStarRankByCompanyId(@Param("companyId") Integer companyId);
 }

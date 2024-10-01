@@ -60,7 +60,13 @@ public class CompanyReviewServiceImpl implements CompanyReviewService {
         companyReview.setCompanyId(companyId);
         companyReview.setUserId(loginUser.getId());
         companyReview.setChangeId(loginUser.getId());
-        return companyReviewDao.save(companyReview);
+        CompanyReview save = companyReviewDao.save(companyReview);
+
+        Float avg = companyReviewDao.avgStarRankByCompanyId(companyId);
+        company.setScore(avg * 2);
+
+        companyDao.save(company);
+        return save;
     }
 
     @Override
@@ -109,7 +115,16 @@ public class CompanyReviewServiceImpl implements CompanyReviewService {
         if (flag) {
             reviewFromDb.setChangeId(loginUser.getId());
         }
-        return companyReviewDao.save(reviewFromDb);
+
+        CompanyReview save = companyReviewDao.save(reviewFromDb);
+        Integer companyId = reviewFromDb.getCompanyId();
+
+        Company company = companyDao.findByCompanyId(companyId);
+        Float avg = companyReviewDao.avgStarRankByCompanyId(companyId);
+        company.setScore(avg * 2);
+
+        companyDao.save(company);
+        return save;
     }
 
     @Override
