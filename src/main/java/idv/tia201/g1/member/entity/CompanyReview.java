@@ -29,7 +29,7 @@ public class CompanyReview {
     @Column(name = "change_id")
     private Integer changeId;
 
-    @Column(name = "created_date", insertable = false)
+    @Column(name = "created_date", updatable = false)
     private Date createdDate;
 
     @Column(name = "last_modified_date")

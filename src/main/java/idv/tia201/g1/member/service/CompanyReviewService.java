@@ -12,4 +12,6 @@ public interface CompanyReviewService {
     void deleteById(Integer companyReviewId);
 
     CompanyReview editReviews(Integer companyReviewId, CompanyReview companyReview);
+
+    CompanyReview getUserReviews(Integer companyId);
 }

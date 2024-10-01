@@ -21,7 +21,20 @@ public class CompanyReviewController {
             @RequestParam(defaultValue = "20") Integer size
     ) {
         Page<CompanyReviewDTO> reviews = companyReviewService.getReviews(companyId, page, size);
-        return Result.ok(reviews.getContent(), reviews.getTotalElements());
+        Long total = reviews.getTotalElements();
+        CompanyReview userReviews = companyReviewService.getUserReviews(companyId);
+
+        if (userReviews != null) {
+            total++;
+        }
+
+        return Result.ok(reviews.getContent(), total);
+    }
+
+    @GetMapping("{companyId}/user")
+    public Result getUserReviews(@PathVariable Integer companyId) {
+        CompanyReview userReviews = companyReviewService.getUserReviews(companyId);
+        return Result.ok(userReviews);
     }
 
     @PostMapping("{companyId}")
@@ -33,8 +46,17 @@ public class CompanyReviewController {
         return Result.ok(saved);
     }
 
+    @PutMapping("{companyReviewId}")
+    public Result editReview(
+            @PathVariable Integer companyReviewId,
+            @RequestBody CompanyReview companyReview
+    ) {
+        CompanyReview editReviews = companyReviewService.editReviews(companyReviewId, companyReview);
+        return Result.ok(editReviews);
+    }
+
     @DeleteMapping("{companyReviewId}")
-    public Result deleteReview (@PathVariable Integer companyReviewId) {
+    public Result deleteReview(@PathVariable Integer companyReviewId) {
         companyReviewService.deleteById(companyReviewId);
         return Result.ok();
     }
