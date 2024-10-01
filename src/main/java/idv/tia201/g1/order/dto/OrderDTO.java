@@ -16,8 +16,10 @@ public class OrderDTO {
     private  float hotelScore;
     private String city;
     private String photo;
-    //TODO: 等待組員新增 <3<3
+
+    private Integer rateCount;
     private List<String> hotelFacilities;
+
 
     private Integer orderId;
     private Integer guestCount;

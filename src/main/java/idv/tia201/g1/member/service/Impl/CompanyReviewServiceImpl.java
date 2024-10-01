@@ -8,17 +8,12 @@ import idv.tia201.g1.member.dao.UserDao;
 import idv.tia201.g1.member.dto.CompanyReviewDTO;
 import idv.tia201.g1.member.entity.Company;
 import idv.tia201.g1.member.entity.CompanyReview;
-import idv.tia201.g1.member.entity.User;
 import idv.tia201.g1.member.service.CompanyReviewService;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
 
 import static idv.tia201.g1.core.utils.Constants.*;
 
@@ -28,14 +23,19 @@ public class CompanyReviewServiceImpl implements CompanyReviewService {
     private CompanyReviewDao companyReviewDao;
     @Autowired
     private CompanyDao companyDao;
-    @Autowired
-    private UserDao userDao;
 
 
     @Override
     public Page<CompanyReviewDTO> getReviews(Integer companyId, Integer page, Integer size) {
         PageRequest pageRequest = PageRequest.of(page, size);
-        return companyReviewDao.findByCompanyId(companyId, pageRequest);
+
+        // 取得自己以外的所有評論
+        Integer userId = -1;
+        if (ROLE_USER.equals(UserHolder.getRole())) {
+            userId = UserHolder.getId();
+        }
+
+        return companyReviewDao.findByCompanyId(companyId,userId, pageRequest);
     }
 
     @Override
@@ -60,7 +60,13 @@ public class CompanyReviewServiceImpl implements CompanyReviewService {
         companyReview.setCompanyId(companyId);
         companyReview.setUserId(loginUser.getId());
         companyReview.setChangeId(loginUser.getId());
-        return companyReviewDao.save(companyReview);
+        CompanyReview save = companyReviewDao.save(companyReview);
+
+        Float avg = companyReviewDao.avgStarRankByCompanyId(companyId);
+        company.setScore(avg * 2);
+
+        companyDao.save(company);
+        return save;
     }
 
     @Override
@@ -109,6 +115,22 @@ public class CompanyReviewServiceImpl implements CompanyReviewService {
         if (flag) {
             reviewFromDb.setChangeId(loginUser.getId());
         }
-        return companyReviewDao.save(reviewFromDb);
+
+        CompanyReview save = companyReviewDao.save(reviewFromDb);
+        Integer companyId = reviewFromDb.getCompanyId();
+
+        Company company = companyDao.findByCompanyId(companyId);
+        Float avg = companyReviewDao.avgStarRankByCompanyId(companyId);
+        company.setScore(avg * 2);
+
+        companyDao.save(company);
+        return save;
+    }
+
+    @Override
+    public CompanyReview getUserReviews(Integer companyId) {
+        if (!ROLE_USER.equals(UserHolder.getRole())) return null;
+
+        return companyReviewDao.findByCompanyIdAndUserId(companyId, UserHolder.getId());
     }
 }
