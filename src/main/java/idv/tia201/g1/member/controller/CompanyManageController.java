@@ -35,14 +35,14 @@ public class CompanyManageController {
         return Result.ok(companyDetail);
     }
 
-    //刪除公司資訊
+    //刪除公司編輯資訊
     @DeleteMapping("/{companyId}")
     public Result deleteCompanyDetail(@PathVariable Integer companyId) {
         companyManagerService.deleteCompanyDetail(companyId);
         return Result.ok("公司資訊已刪除");
     }
 
-    //刪除單張照片  先寫著  還不知道怎麼用??
+    //刪除單張照片
     @DeleteMapping("/photo/{photoId}")
     public Result deleteCompanyPhoto(@PathVariable Integer photoId) {
         CompanyPhotos photo = companyManagerService.deleteCompanyPhoto(photoId);

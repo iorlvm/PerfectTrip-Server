@@ -61,9 +61,9 @@ public class CompanyManagerServiceImpl implements CompanyManagerService {
             throw new IllegalArgumentException("參數異常：請求對象為 null");
         }
 
-        if(companyEditDetailRequest.getIntroduce() == null){
-            throw new IllegalArgumentException("參數異常：商家介紹未填");
-        }
+//        if(companyEditDetailRequest.getIntroduce() == null){
+//            throw new IllegalArgumentException("參數異常：商家介紹未填");
+//        }
         UserAuth loginUser = UserHolder.getUser();
 
         //驗證登入狀態
@@ -99,7 +99,9 @@ public class CompanyManagerServiceImpl implements CompanyManagerService {
             }
 
         }
-        // 存入圖片
+
+
+        // 整包存入圖片
         List<CompanyPhotos> photos = companyEditDetailRequest.getPhotos();
         if (photos != null && !photos.isEmpty()) {
             for (CompanyPhotos photo : photos) {

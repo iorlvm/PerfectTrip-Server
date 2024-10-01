@@ -11,7 +11,9 @@ import java.util.List;
 public class CompanyEditDetailRequest {
     // 照片
     private Integer companyId;
-    // 一張張加
+//    // 一張張加
+//    private CompanyPhotos photos;
+    //整包加
     private List<CompanyPhotos> photos;
 
     // 設施
