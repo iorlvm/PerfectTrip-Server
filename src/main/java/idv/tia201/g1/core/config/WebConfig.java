@@ -43,17 +43,26 @@ public class WebConfig implements WebMvcConfigurer {
                 .addPathPatterns("/**");
 
         registry.addInterceptor(new LoginInterceptor())
-                .addPathPatterns("/chat/**");
+                .addPathPatterns(
+                        "/api/users/**",
+                        "/api/chat/**",
+                        "/api/orders/**",
+                        "/api/pay/**",
+                        "/api/product/**",
+                        "/api/discount/**",
+                        "/api/image")
+                .excludePathPatterns("/api/users/login", "/api/users/register");
 
-        registry.addInterceptor(new UserLoginInterceptor())
-                .addPathPatterns("/user/**");   // TODO: 討論後修改
+//        registry.addInterceptor(new UserLoginInterceptor())
+//                .addPathPatterns("/api/users/**")   // TODO: 討論後修改
+//                .excludePathPatterns("/api/users/login", "/api/users/register");
 
         registry.addInterceptor(new CompanyLoginInterceptor())
-                .addPathPatterns("/company/**")
-                .excludePathPatterns("/company/login", "/company/register");    // TODO: 討論後修改
+                .addPathPatterns("/api/store/**")
+                .excludePathPatterns("/api/store/login", "/api/store/register");    // TODO: 討論後修改
 
         registry.addInterceptor(new AdminLoginInterceptor())
                 .addPathPatterns("/admin/**")  // TODO: 討論後修改
-                .excludePathPatterns("/admin/login");
+                .excludePathPatterns("/admin/login", "/admin/logout");
     }
 }
