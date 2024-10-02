@@ -110,7 +110,7 @@ public class UserController {
      */
     @GetMapping("/users")
     public Result getUsers(
-            @RequestParam(defaultValue = "created_date") String orderBy,
+            @RequestParam(defaultValue = "createdDate") String orderBy,
             @RequestParam(defaultValue = "desc") String sort,
             @RequestParam(defaultValue = "10") @Max(1000) @Min(0) Integer limit,
             @RequestParam(defaultValue = "0") @Min(0) Integer offset) {

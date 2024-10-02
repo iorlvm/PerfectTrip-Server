@@ -18,7 +18,7 @@
         if (size) params.push('size=' + size);
         if (earliest) params.push('earliest=' + earliest);
 
-        let url = '/chat/rooms?' + params.join('&');
+        let url = '/api/chat/rooms?' + params.join('&');
         return fetch(url, {
             method: 'GET'
         }).then(response => {
@@ -35,7 +35,7 @@
     };
 
     const getUidAPI = () => {
-        return fetch('/chat/uid', {
+        return fetch('/api/chat/uid', {
             method: 'GET'
         }).then(response => {
             if (!response.ok) {
@@ -60,7 +60,7 @@
         if (messageId) params.push('messageId=' + messageId);
         if (size) params.push('size=' + size);
 
-        let url = '/chat/rooms/' + chatId + '/messages?' + params.join('&')
+        let url = '/api/chat/rooms/' + chatId + '/messages?' + params.join('&')
 
         return fetch(url, {
             method: 'GET'
@@ -83,7 +83,7 @@
             throw new Error("chatId is required but was not provided.");
         }
 
-        let url = '/chat/rooms/' + chatId + '/notify';
+        let url = '/api/chat/rooms/' + chatId + '/notify';
 
         return fetch(url, {
             method: 'PUT',
@@ -110,7 +110,7 @@
             throw new Error("chatId is required but was not provided.");
         }
 
-        let url = '/chat/rooms/' + chatId + '/pinned';
+        let url = '/api/chat/rooms/' + chatId + '/pinned';
 
         return fetch(url, {
             method: 'PUT',
@@ -160,8 +160,15 @@
 
     actionHandlers.loadMoreChatRooms = async (type) => {
         let lastChat = chat.getLastChat();
-        console.log(type, lastChat);
-        const res = await getChatRoomsAPI(20, lastChat.value.lastModifiedAt);
+        const date = new Date(lastChat.value.lastModifiedAt);
+        date.setTime(date.getTime() + (8 * 60 * 60 * 1000))
+
+        // 日期格式化
+        const formattedDate = date.toISOString().replace('T', ' ').substring(0, 19);
+        const milliseconds = date.getMilliseconds().toString().padStart(3, '0');
+        const finalOutput = `\${formattedDate}.\${milliseconds}`;
+
+        const res = await getChatRoomsAPI(20, finalOutput);
         // TODO: 可能要檢查有沒有回傳重複的值 (萬一時間完全相同的時候可能會出現問題)
         return res.data;
     }

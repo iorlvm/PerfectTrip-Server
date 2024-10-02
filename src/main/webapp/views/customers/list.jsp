@@ -179,7 +179,7 @@
     };
 
     const getCustomersListAPI = (offset = 0) => {
-        let url = '/api/users?limit=' + 5 + '&offset=' + offset;
+        let url = '/api/users?orderBy=userId&sort=asc&limit=' + 20 + '&offset=' + offset;
         return fetch(url, {
             method: 'GET'
         }).then(response => {
