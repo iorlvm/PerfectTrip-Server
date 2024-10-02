@@ -129,6 +129,16 @@ public class ChatServiceImpl implements ChatService {
     }
 
     @Override
+    public void initChatRoomWithAdmin(UserAuth userAuth) {
+        ChatRoom chatRoom = createChatRoom();
+        Long chatId = chatRoom.getChatId();
+
+        Long loginUserId = getOrCreateMappingUserId(userAuth.getRole(), userAuth.getId());
+        addParticipantToChatRoom(chatId, loginUserId);
+        addParticipantToChatRoom(chatId,1L);
+    }
+
+    @Override
     public Long getOrCreateMappingUserId(String type, Integer id) {
         if (type == null || id == null) {
             throw new IllegalStateException("不合法的訪問: 請檢查您的登入狀態");

@@ -16,6 +16,9 @@ public interface ChatService {
     @Transactional
     Long initChatRoom(Set<UserIdentifier> users);
 
+    @Transactional
+    void initChatRoomWithAdmin(UserAuth userAuth);
+
     @Transactional(readOnly = true)
     ChatRoomDTO getChatRoomById(Long chatId);
 
