@@ -5,6 +5,7 @@ import idv.tia201.g1.product.dto.ProductRequest;
 import idv.tia201.g1.product.entity.Product;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 
 /**
@@ -24,7 +25,9 @@ public interface ProductInventoryService {
 
     void deleteProduct(Integer id);
 
-    Result getInventoriesByStatus(String status);
+    List<Product> getInventoriesByStatus(String status);
 
     Product addInventory(ProductRequest productRequest);
+
+    List<Product> getInventoryByDateRange(LocalDate start, LocalDate end);
 }
