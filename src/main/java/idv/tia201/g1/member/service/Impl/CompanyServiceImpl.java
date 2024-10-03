@@ -1,4 +1,5 @@
 package idv.tia201.g1.member.service.Impl;
+import idv.tia201.g1.chat.service.ChatService;
 import idv.tia201.g1.member.dto.CompanyLoginRequest;
 import idv.tia201.g1.member.dao.CompanyDao;
 import idv.tia201.g1.member.service.CompanyService;
@@ -24,6 +25,8 @@ import java.util.Date;
 public class CompanyServiceImpl implements CompanyService {
     @Autowired
     private CompanyDao companyDao;
+    @Autowired
+    private ChatService chatService;
 
     @Override
     public Company login(CompanyLoginRequest companyLoginRequest) {
@@ -66,6 +69,9 @@ public class CompanyServiceImpl implements CompanyService {
             newcompany.setPassword(hashedPassword);
             // 創建帳號
             companyDao.save(newcompany);
+
+
+            chatService.initChatRoomWithAdmin(newcompany);
             return newcompany;
 
     }

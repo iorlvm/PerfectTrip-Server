@@ -95,7 +95,7 @@ public class CustomChatParticipantDaoImpl implements CustomChatParticipantDao {
                 "      WHERE m.ref_id = :refId " +
                 "        AND m.user_type = :type " +
                 "        AND p.pinned = false " +
-                "        AND p.last_modified_date <= :earliestTimestamp " +
+                "        AND p.last_modified_date < :earliestTimestamp " +
                 "      ORDER BY p.last_modified_date DESC " +
                 "      LIMIT :size OFFSET 0) unpinned;";
 
@@ -104,7 +104,6 @@ public class CustomChatParticipantDaoImpl implements CustomChatParticipantDao {
         query.setParameter("type", type);
         query.setParameter("earliestTimestamp", earliestTimestamp);
         query.setParameter("size", size);
-
 
         List<?> resultList = query.getResultList();
 

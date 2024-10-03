@@ -29,10 +29,6 @@ public class TokenParsingInterceptor implements HandlerInterceptor {
             UserAuth userAuth = tokenService.validateToken(token);
             if (userAuth != null) {
                 UserHolder.saveUser(userAuth);
-                // TODO: 未來刪除 測試用token 避免過期
-                if (ROLE_ADMIN.equals(token) || ROLE_COMPANY.equals(token) || "customer".equals(token)) {
-                    return true;
-                }
                 tokenService.flashLoginExpire(token);
             }
             return true;
@@ -45,10 +41,6 @@ public class TokenParsingInterceptor implements HandlerInterceptor {
             UserAuth userAuth = tokenService.validateToken(token);
             if (userAuth != null) {
                 UserHolder.saveUser(userAuth);
-                // TODO: 未來刪除 測試用token 避免過期
-                if (ROLE_ADMIN.equals(token)) {
-                    return true;
-                }
                 tokenService.flashLoginExpire(token);
             }
         }

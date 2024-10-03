@@ -1,7 +1,10 @@
 package idv.tia201.g1.member.controller;
 
+import idv.tia201.g1.chat.dto.UserIdentifier;
+import idv.tia201.g1.chat.service.ChatService;
 import idv.tia201.g1.core.dto.Result;
 import idv.tia201.g1.core.service.TokenService;
+import idv.tia201.g1.core.utils.UserHolder;
 import idv.tia201.g1.member.constant.Gender;
 import idv.tia201.g1.member.dto.UserLoginRequest;
 import idv.tia201.g1.member.dto.UserQueryParams;
@@ -27,6 +30,9 @@ public class UserController {
     private UserService userService;
 
     @Autowired
+    private ChatService chatService;
+
+    @Autowired
     private TokenService tokenService;
 
     /**
@@ -47,9 +53,10 @@ public class UserController {
         // Find the user by their user ID
         User user = userService.findByUserId(userId);
 
+        chatService.initChatRoomWithAdmin(user);
+
         // Return the newly registered user wrapped in a Result object
         return Result.ok(user);
-
     }
 
     /**
@@ -103,7 +110,7 @@ public class UserController {
      */
     @GetMapping("/users")
     public Result getUsers(
-            @RequestParam(defaultValue = "created_date") String orderBy,
+            @RequestParam(defaultValue = "createdDate") String orderBy,
             @RequestParam(defaultValue = "desc") String sort,
             @RequestParam(defaultValue = "10") @Max(1000) @Min(0) Integer limit,
             @RequestParam(defaultValue = "0") @Min(0) Integer offset) {

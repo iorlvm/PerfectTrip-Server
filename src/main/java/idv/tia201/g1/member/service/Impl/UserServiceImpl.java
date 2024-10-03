@@ -137,7 +137,7 @@ public class UserServiceImpl implements UserService {
         int pageOffset = offset % limit;
 
         Sort sort = null;
-        if (userQueryParams.getOrderBy() == "desc") {
+        if ("desc".equals(userQueryParams.getSort())) {
             sort = Sort.by(userQueryParams.getOrderBy()).descending();
         } else {
             sort = Sort.by(userQueryParams.getOrderBy()).ascending();
