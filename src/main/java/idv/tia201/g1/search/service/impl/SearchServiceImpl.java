@@ -140,6 +140,9 @@ public class SearchServiceImpl implements SearchService {
         );
         List<ProductCalculation> productCalculations = res.get(companyId);
 
+        if (productCalculations == null) {
+            return Collections.emptyList();
+        }
         productCalculations = productCalculations.stream()
                 .filter(product -> product.getRemainingRooms() >= 1)
                 .toList();
