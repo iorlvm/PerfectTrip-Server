@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -45,8 +46,19 @@ public class ProductInventoryController {
 
     @GetMapping("/status")
     public Result getInventoryByStatus(@RequestParam String status) {
-        List<Product> products = (List<Product>)
-                productInventoryService.getInventoriesByStatus(status);
+        // 獲取產品列表
+        List<Product> products = productInventoryService.getInventoriesByStatus(status);
+        // 將結果封裝到 Result 中，然後返回
+        return Result.ok(products, (long) products.size());
+    }
+
+    // 根據日期篩選房型庫存
+    @GetMapping("/filter-by-date")
+    public Result getInventoryByDate(@RequestParam("startDate") String startDate) {
+        LocalDate start = LocalDate.parse(startDate);
+        LocalDate end = start.plusDays(1); // 結束日期為開始日期 + 1 天
+
+        List<Product> products = productInventoryService.getInventoryByDateRange(start, end);
         return Result.ok(products);
     }
 

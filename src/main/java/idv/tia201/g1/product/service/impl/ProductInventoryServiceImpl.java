@@ -7,17 +7,20 @@ import idv.tia201.g1.product.dao.ProductDao;
 import idv.tia201.g1.product.dao.ProductInventoryDao;
 import idv.tia201.g1.product.dto.ProductRequest;
 import idv.tia201.g1.product.entity.Product;
-import idv.tia201.g1.product.entity.ProductDetails;
-import idv.tia201.g1.product.entity.ProductFacilities;
-import idv.tia201.g1.product.entity.ProductPhotos;
 import idv.tia201.g1.product.exception.ResourceNotFoundException;
 import idv.tia201.g1.product.service.ProductInventoryService;
+import idv.tia201.g1.search.dto.ProductCalculation;
 import io.micrometer.common.util.StringUtils;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.sql.Date;
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static idv.tia201.g1.core.utils.Constants.ROLE_ADMIN;
 import static idv.tia201.g1.core.utils.Constants.ROLE_COMPANY;
@@ -25,8 +28,14 @@ import static idv.tia201.g1.core.utils.Constants.ROLE_COMPANY;
 @Service
 public class ProductInventoryServiceImpl implements ProductInventoryService {
 
+    @Autowired
     protected ProductInventoryDao productInventoryDao;
     protected ProductDao productDao;
+
+    // 使用構造函數注入
+    public ProductInventoryServiceImpl(ProductDao productDao) {
+        this.productDao = productDao;
+    }
 
     @Override
     public Result getAllInventories() {
@@ -112,7 +121,7 @@ public class ProductInventoryServiceImpl implements ProductInventoryService {
     }
 
     @Override
-    public Result getInventoriesByStatus(String status) {
+    public List<Product> getInventoriesByStatus(String status) {
         UserAuth loginUser = UserHolder.getUser();
 
         if (loginUser == null || !ROLE_COMPANY.equals(loginUser.getRole())) {
@@ -128,8 +137,9 @@ public class ProductInventoryServiceImpl implements ProductInventoryService {
             products = productInventoryDao.findAll();  // 查詢所有房間
         }
 
-        return Result.ok(products, (long) products.size());
+        return products;
     }
+
 
 
     @Override
@@ -177,6 +187,45 @@ public class ProductInventoryServiceImpl implements ProductInventoryService {
 
         return savedProduct;
     }
+
+    @Override
+    public List<Product> getInventoryByDateRange(LocalDate startDate, LocalDate endDate) {
+        // 確保正確的日期範圍
+        Date start = java.sql.Date.valueOf(startDate);
+        Date end = java.sql.Date.valueOf(endDate);
+
+        System.out.println("查詢範圍: " + start + " 到 " + end);
+
+        // 獲取當前登入用戶的 companyId
+        UserAuth loginUser = UserHolder.getUser();
+        if (loginUser == null || !ROLE_COMPANY.equals(loginUser.getRole())) {
+            throw new IllegalArgumentException("未符合查閱資格");
+        }
+        Integer companyId = loginUser.getId();  // 獲取當前商家的 companyId
+
+        // 如果有有效的公司 ID，將其添加到列表中
+        List<Integer> companyIds = List.of(companyId);  // 傳遞商家ID到查詢
+        Map<Integer, List<ProductCalculation>> productCalculationsMap = productInventoryDao.getProductCalculations(companyIds, start, end);
+
+        // 確認查詢結果
+        System.out.println("查詢到的產品數量: " + productCalculationsMap.size());
+
+        // 將 Map 中的所有 ProductCalculation 對象轉換成 Product 對象
+        return productCalculationsMap.values().stream()
+                .flatMap(List::stream)
+                .map(pc -> {
+                    Product product = new Product();
+                    product.setProductId(pc.getProductId());
+                    product.setProductName(pc.getProductName());
+                    product.setMaxOccupancy(pc.getMaxOccupancy());
+                    product.setStock(pc.getRemainingRooms());  // 使用 remainingRooms 作為庫存數量
+                    product.setPrice(pc.getPrice());
+                    return product;
+                })
+                .collect(Collectors.toList());
+    }
+
+
 }
 
 
