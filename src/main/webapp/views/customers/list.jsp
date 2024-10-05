@@ -48,9 +48,13 @@
                     <label for="modalCustomerId" class="form-label">客戶編號</label>
                     <input type="text" class="form-control" id="modalCustomerId" readonly>
                 </div>
-                <div class="mb-3">
-                    <label for="modalCustomerName" class="form-label">客戶名稱</label>
-                    <input type="text" class="form-control" id="modalCustomerName">
+                <div class="d-flex">
+                    <label for="modalCustomerFirstName" class="form-label flex-grow-1">姓</label>
+                    <label for="modalCustomerLastName" class="form-label flex-grow-1">名</label>
+                </div>
+                <div class="mb-3 d-flex">
+                    <input type="text" class="form-control flex-grow-1" id="modalCustomerFirstName">
+                    <input type="text" class="form-control flex-grow-1" id="modalCustomerLastName">
                 </div>
                 <div class="mb-3">
                     <label for="modalCustomerEmail" class="form-label">電子郵件</label>
@@ -59,10 +63,6 @@
                 <div class="mb-3">
                     <label for="modalCustomerPhone" class="form-label">電話</label>
                     <input type="text" class="form-control" id="modalCustomerPhone">
-                </div>
-                <div class="mb-3">
-                    <label for="modalCustomerDate" class="form-label">註冊日期</label>
-                    <input type="date" class="form-control" id="modalCustomerDate">
                 </div>
             </div>
             <div class="modal-footer">
@@ -163,7 +163,7 @@
 
         customers.forEach((customer, index) => {
             const row = `
-            <tr>
+            <tr data-user-id="\${customer.userId}">
                 <th scope="row">\${customer.userId}</th>
                 <td>\${customer.firstName+customer.lastName}</td>
                 <td>\${customer.username}</td>
@@ -171,7 +171,6 @@
                 <td>\${customer.createdDate}</td>
                 <td>
                     <button class="btn btn-sm btn-warning">編輯</button>
-                    <button class="btn btn-sm btn-danger">刪除</button>
                 </td>
             </tr>`;
             tableBody.insertAdjacentHTML('beforeend', row);
@@ -196,14 +195,42 @@
     };
 
     const getCustomerDetailsAPI = (customerId) => {
-        // Simulated data for demonstration purposes
-        const mockData = {
-            'C001': { userId: 'C001', firstName: '張', lastName: '三', username: 'zhangsan@example.com', phoneNumber: '0987654321', createdDate: '2024-07-01' },
-            'C002': { userId: 'C002', firstName: '李', lastName: '四', username: 'lisi@example.com', phoneNumber: '0912345678', createdDate: '2024-07-15' },
-            'C003': { userId: 'C003', firstName: '王', lastName: '五', username: 'wangwu@example.com', phoneNumber: '0922333444', createdDate: '2024-08-05' }
-        };
+        let url = '/api/users/'+ customerId;
+        return fetch(url, {
+            method: 'GET'
+        }).then(response => {
+            if (!response.ok) {
+                return Promise.reject(new Error(`HTTP error! Status: \${response.status}`));
+            }
+            return response.json();
+        }).then(res => {
+            console.log(res.data)
+            return res.data;
+        }).catch(error => {
+            showAlert('取得使用者失敗', 'warning');
+            throw error;
+        });
+    };
 
-        return mockData[customerId] || {};
+    const updateCustomerAPI = (customerId, userUpdateRequest) => {
+        let url = '/api/users/'+ customerId;
+        return fetch(url, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(userUpdateRequest)
+        }).then(response => {
+            if (!response.ok) {
+                return Promise.reject(new Error(`HTTP error! Status: \${response.status}`));
+            }
+            return response.json();
+        }).then(res => {
+            return res;
+        }).catch(error => {
+            showAlert('更新使用者失敗', 'warning');
+            throw error;
+        });
     };
 
     const loadCustomers = async (offset = 0) => {
@@ -233,33 +260,49 @@
         document.getElementById('saveCustomerButton').addEventListener('click', saveCustomerDetails);
     });
 
-    const showCustomerModal = (row) => {
+    const showCustomerModal = async (row) => {
         const customerId = row.children[0].innerText; // Retrieve customer ID from the row
 
         // Fetch customer details using customerId (for now, we use mock data)
-        const customerDetails = getCustomerDetailsAPI(customerId);
+        const customerDetails = await getCustomerDetailsAPI(customerId);
 
         // Populate the modal with customer details
         document.getElementById('modalCustomerId').value = customerDetails.userId;
-        document.getElementById('modalCustomerName').value = customerDetails.firstName + customerDetails.lastName;
+        document.getElementById('modalCustomerFirstName').value = customerDetails.firstName;
+        document.getElementById('modalCustomerLastName').value = customerDetails.lastName;
         document.getElementById('modalCustomerEmail').value = customerDetails.username;
         document.getElementById('modalCustomerPhone').value = customerDetails.phoneNumber;
-        document.getElementById('modalCustomerDate').value = customerDetails.createdDate;
 
         // Show the modal
         const modal = new bootstrap.Modal(document.getElementById('customerDetailModal'));
         modal.show();
     };
 
-    const saveCustomerDetails = () => {
-        const customerId = document.getElementById('modalCustomerId').value;
-        const customerName = document.getElementById('modalCustomerName').value;
-        const customerEmail = document.getElementById('modalCustomerEmail').value;
-        const customerPhone = document.getElementById('modalCustomerPhone').value;
-        const customerDate = document.getElementById('modalCustomerDate').value;
+    const saveCustomerDetails = async () => {
+        const userId = document.getElementById('modalCustomerId').value;
+        const firstName = document.getElementById('modalCustomerFirstName').value;
+        const lastName = document.getElementById('modalCustomerLastName').value;
+        const username = document.getElementById('modalCustomerEmail').value;
+        const phoneNumber = document.getElementById('modalCustomerPhone').value;
 
-        // Implement logic to save updated customer details (send data to backend, etc.)
-        console.log(`Saving changes for Customer ID: \${customerId}, Name: \${customerName}, Email: \${customerEmail}, Phone: \${customerPhone}, Date: \${customerDate}`);
+        const res = await updateCustomerAPI(userId, {
+            firstName,
+            lastName,
+            username,
+            phoneNumber
+        });
+
+        if (res.success) {
+            const row = document.querySelector(`tr[data-user-id="\${userId}"]`);
+            if (row) {
+                row.cells[1].textContent = firstName + lastName;
+                row.cells[2].textContent = username;
+                row.cells[3].textContent = phoneNumber;
+            }
+            showAlert('更新成功');
+        } else {
+            showAlert('更新成功','error');
+        }
 
         // Close the modal after saving changes
         const modal = bootstrap.Modal.getInstance(document.getElementById('customerDetailModal'));

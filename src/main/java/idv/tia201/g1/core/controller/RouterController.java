@@ -42,13 +42,13 @@ public class RouterController {
         return "/layout";
     }
 
-    @RequestMapping("/settings")
-    public String settings(Model model) {
-        // 設定
-        model.addAttribute("content", "views/settings.jsp");
-        model.addAttribute("pageTitle", "設定");
-        return "/layout";
-    }
+//    @RequestMapping("/settings")
+//    public String settings(Model model) {
+//        // 設定
+//        model.addAttribute("content", "views/settings.jsp");
+//        model.addAttribute("pageTitle", "設定");
+//        return "/layout";
+//    }
 
     @RequestMapping("/reservations/list")
     public String currentReservations(Model model) {
@@ -58,13 +58,13 @@ public class RouterController {
         return "/layout";
     }
 
-    @RequestMapping("/reservations/disputes")
-    public String disputesReservations(Model model) {
-        // 歷史訂單
-        model.addAttribute("content", "views/reservations/disputes.jsp");
-        model.addAttribute("pageTitle", "爭議處理");
-        return "/layout";
-    }
+//    @RequestMapping("/reservations/disputes")
+//    public String disputesReservations(Model model) {
+//        // 歷史訂單
+//        model.addAttribute("content", "views/reservations/disputes.jsp");
+//        model.addAttribute("pageTitle", "爭議處理");
+//        return "/layout";
+//    }
 
     @RequestMapping("/customers/list")
     public String customersList(Model model) {
@@ -74,13 +74,13 @@ public class RouterController {
         return "/layout";
     }
 
-    @RequestMapping("/customers/feedback")
-    public String customersFeedback(Model model) {
-        // 客戶反饋
-        model.addAttribute("content", "views/customers/feedback.jsp");
-        model.addAttribute("pageTitle", "客戶反饋");
-        return "/layout";
-    }
+//    @RequestMapping("/customers/feedback")
+//    public String customersFeedback(Model model) {
+//        // 客戶反饋
+//        model.addAttribute("content", "views/customers/feedback.jsp");
+//        model.addAttribute("pageTitle", "客戶反饋");
+//        return "/layout";
+//    }
 
     @RequestMapping("/companies/list")
     public String companiesList(Model model) {
@@ -90,13 +90,13 @@ public class RouterController {
         return "/layout";
     }
 
-    @RequestMapping("/companies/verification")
-    public String companyVerification(Model model) {
-        // 商家審核
-        model.addAttribute("content", "views/companies/verification.jsp");
-        model.addAttribute("pageTitle", "商家驗證");
-        return "/layout";
-    }
+//    @RequestMapping("/companies/verification")
+//    public String companyVerification(Model model) {
+//        // 商家審核
+//        model.addAttribute("content", "views/companies/verification.jsp");
+//        model.addAttribute("pageTitle", "商家驗證");
+//        return "/layout";
+//    }
 
 
 }

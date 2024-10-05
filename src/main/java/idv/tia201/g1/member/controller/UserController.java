@@ -147,7 +147,7 @@ public class UserController {
      * @return a Result object containing the updated User object
      */
     @PutMapping("/users/{userId}")
-    public Result updateUser(@RequestHeader("Authorization") String authorizationHeader,@PathVariable Integer userId, @RequestBody @Valid UserUpdateRequest userUpdateRequest) {
+    public Result updateUser(@RequestHeader(value = "Authorization", required = false) String authorizationHeader,@PathVariable Integer userId, @RequestBody @Valid UserUpdateRequest userUpdateRequest) {
         String token = null;
         if(authorizationHeader != null && authorizationHeader.startsWith("Bearer")){
             token = authorizationHeader.substring(7);
