@@ -107,6 +107,8 @@
 <%@ include file="/components/alert.jsp" %>
 
 <script>
+    const pageSize = 20;
+
     const filterTable = () => {
         const searchQuery = document.getElementById('search').value.toLowerCase();
         const statusFilter = document.getElementById('statusFilter').value;
@@ -195,14 +197,13 @@
             const row = `
             <tr>
                 <th scope="row">\${order.orderId}</th>
-                <td>\${order.customerName}</td>
+                <td>\${order.subscriber}</td>
                 <td>\${order.hotelName}</td>
-                <td>\${order.date}</td>
-                <td>\${order.amount}</td>
-                <td>\${order.status}</td>
+                <td>\${order.createdDate}</td>
+                <td>\${order.actualPrice}</td>
+                <td>\${order.payStatus}</td>
                 <td>
                     <button class="btn btn-sm btn-warning">編輯</button>
-                    <button class="btn btn-sm btn-danger">刪除</button>
                 </td>
             </tr>`;
             tableBody.insertAdjacentHTML('beforeend', row);
@@ -210,24 +211,21 @@
     };
 
     const getOrdersListAPI = (offset = 0) => {
-        // 範例靜態數據
-        const mockData = {
-            data: {
-                result: [
-                    { orderId: 'O001', customerName: '張三', hotelName: '假日酒店', date: '2024-07-01', amount: '3000', status: '已完成' },
-                    { orderId: 'O002', customerName: '李四', hotelName: '豪華旅館', date: '2024-07-15', amount: '4500', status: '未完成' },
-                    { orderId: 'O003', customerName: '王五', hotelName: '經典飯店', date: '2024-08-05', amount: '2500', status: '爭議處理' }
-                    // 可以添加更多範例數據
-                ],
-                total: 3,
-                limit: 10,
-                offset: offset
-            }
-        };
+        const page = Math.floor(offset / pageSize);
 
-        // 返回模擬數據的 Promise
-        return new Promise((resolve) => {
-            setTimeout(() => resolve(mockData), 500); // 模擬網絡延遲
+        let url = '/api/orders?size=' + pageSize + '&page=' + page;
+        return fetch(url, {
+            method: 'GET'
+        }).then(response => {
+            if (!response.ok) {
+                return Promise.reject(new Error(`HTTP error! Status: \${response.status}`));
+            }
+            return response.json();
+        }).then(data => {
+            return data;
+        }).catch(error => {
+            showAlert('取得使用者列表失敗', 'warning');
+            throw error;
         });
     };
 
@@ -246,9 +244,8 @@
         try {
             const res = await getOrdersListAPI(offset);
             const data = res.data;
-            console.log(data);
-            renderOrders(data.result);
-            renderPagination(data.total, data.limit, data.offset, loadOrders);
+            renderOrders(data);
+            renderPagination(res.total, pageSize, res.page * pageSize, loadOrders);
         } catch (error) {
             console.error('加載訂單時出錯:', error);
         }

@@ -237,7 +237,6 @@
         try {
             const res = await getCustomersListAPI(offset);
             const data = res.data;
-            console.log(data)
             renderCustomers(data.result);
             renderPagination(data.total, data.limit, data.offset, loadCustomers);
         } catch (error) {
