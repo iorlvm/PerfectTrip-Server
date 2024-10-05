@@ -34,6 +34,23 @@
         });
     };
 
+    const getChatRoomsByChatIdAPI = (chatId) => {
+        let url= '/api/chat/rooms/' + chatId;
+        return fetch(url, {
+            method: 'GET'
+        }).then(response => {
+            if (!response.ok) {
+                return Promise.reject(new Error(`HTTP error! Status: \${response.status}`));
+            }
+            return response.json();
+        }).then(data => {
+            return data;
+        }).catch(error => {
+            showAlert('取得聊天室失敗' + chatId, 'warning');
+            throw error;
+        });
+    }
+
     const getUidAPI = () => {
         return fetch('/api/chat/uid', {
             method: 'GET'
@@ -145,6 +162,12 @@
         const res = await getUidAPI();
         unreads = Number(res.data[1]);
         return res.data[0];
+    }
+
+    actionHandlers.getChatRoomDataByChatId = async (chatId) => {
+        // TODO: 取得單間聊天室的API
+        const res = await getChatRoomsByChatIdAPI(chatId);
+        return res.data;
     }
 
 
@@ -295,5 +318,13 @@
     const chat = new WeienChat();
     document.addEventListener('DOMContentLoaded', async () => {
         await chat.init();
+        webSocket = new WebSocket('ws://localhost:8080/chat?admin');
+        webSocket.addEventListener('open', onChatRoomConnected);
+
+        webSocket.addEventListener('message', onMessageReceived);
+
+        webSocket.addEventListener('close', onChatRoomClosed);
+
+        webSocket.addEventListener('error', onChatRoomError);
     });
 </script>
