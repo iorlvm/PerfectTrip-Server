@@ -205,7 +205,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public OrderDTO getOrder(Integer orderId) {
-        if (!ROLE_USER.equals(UserHolder.getRole())) {
+        if (ROLE_COMPANY.equals(UserHolder.getRole())) {
             throw new IllegalStateException("權限異常!!");
         }
         Order order = orderDao.findByOrderId(orderId);
@@ -214,7 +214,7 @@ public class OrderServiceImpl implements OrderService {
         }
         Integer userId = order.getUserId();
 
-        if (!Objects.equals(UserHolder.getId(), userId)) {
+        if (ROLE_USER.equals(UserHolder.getRole()) && !Objects.equals(UserHolder.getId(), userId)) {
             throw new IllegalStateException("該訂單不屬於你!!!");
         }
         OrderDTO orderDTO = new OrderDTO();
@@ -223,7 +223,10 @@ public class OrderServiceImpl implements OrderService {
         List<OrderProductDTO> details = orderDetailDao.getOrderProductByOrderId(order.getOrderId());
         orderDTO.setProducts(details);
 
+        User user = userDao.findByUserId(userId);
+
         Company company = companyDao.findByOrderId(orderId);
+        orderDTO.setSubscriber(user.getFirstName()+user.getLastName());
         orderDTO.setCompanyId(company.getCompanyId());
         orderDTO.setHotelName(company.getCompanyName());
         orderDTO.setHotelAddress(company.getAddress());
