@@ -45,6 +45,7 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addInterceptor(new LoginInterceptor())
                 .addPathPatterns(
                         "/api/users/**",
+                        "/api/store/**",
                         "/api/chat/**",
                         "/api/orders/**",
                         "/api/pay/**",
@@ -59,7 +60,7 @@ public class WebConfig implements WebMvcConfigurer {
 
         registry.addInterceptor(new CompanyLoginInterceptor())
                 .addPathPatterns("/api/store/**")
-                .excludePathPatterns("/api/store/login", "/api/store/register");    // TODO: 討論後修改
+                .excludePathPatterns("/api/store/login", "/api/store/register","/api/store/companies");    // TODO: 討論後修改
 
         registry.addInterceptor(new AdminLoginInterceptor())
                 .addPathPatterns("/admin/**")  // TODO: 討論後修改

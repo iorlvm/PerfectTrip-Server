@@ -2,6 +2,7 @@ package idv.tia201.g1.member.controller;
 
 import idv.tia201.g1.core.dto.Result;
 import idv.tia201.g1.core.service.TokenService;
+import idv.tia201.g1.core.utils.Page;
 import idv.tia201.g1.member.dto.CompanyLoginRequest;
 import idv.tia201.g1.member.dto.CompanyQueryParams;
 import idv.tia201.g1.member.dto.CompanyRegisterRequest;
@@ -9,10 +10,14 @@ import idv.tia201.g1.member.dto.CompanyUpdateRequest;
 import idv.tia201.g1.member.service.CompanyService;
 import idv.tia201.g1.member.entity.Company;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
+//import org.springframework.data.domain.Page;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 
 @Validated
@@ -58,12 +63,40 @@ public class CompanyController {
         return Result.ok(company);
     }
 
-    @GetMapping("/all")
-    public Result getAllCompany(CompanyQueryParams companyQueryParams) {
+//    @GetMapping("/companies")
+//    public Result getAllCompany(CompanyQueryParams companyQueryParams) {
+//
+//        Page<Company> companyPage = companyService.findAll(companyQueryParams);
+//
+//        return Result.ok(companyPage);
+//
+//    }
 
-        Page<Company> companyPage = companyService.findAll(companyQueryParams);
 
-        return Result.ok(companyPage);
+    @GetMapping("/companies")
+    public Result getAllCompany(
+            @RequestParam(defaultValue = "createdDate") String orderBy,
+            @RequestParam(defaultValue = "desc") String sort,
+            @RequestParam(defaultValue = "10") @Max(1000) @Min(0) Integer limit,
+            @RequestParam(defaultValue = "0") @Min(0) Integer offset
+    ) {
+        CompanyQueryParams params = new CompanyQueryParams();
+        params.setOrderBy(orderBy);
+        params.setSort(sort);
+        params.setLimit(limit);
+        params.setOffset(offset);
+
+        List<Company> companies = companyService.findCompaniesList(params);
+        Long total =  companyService.count();
+
+//        Page<Company> companyPage = companyService.findAll(companyQueryParams);
+        Page<Company> page = new Page<>();
+        page.setLimit(limit);
+        page.setOffset(offset);
+        page.setResult(companies);
+        page.setTotal(total);
+
+        return Result.ok(page);
 
     }
 

@@ -1,11 +1,9 @@
 package idv.tia201.g1.member.service.Impl;
 import idv.tia201.g1.chat.service.ChatService;
-import idv.tia201.g1.member.dto.CompanyLoginRequest;
+import idv.tia201.g1.member.dto.*;
 import idv.tia201.g1.member.dao.CompanyDao;
+import idv.tia201.g1.member.entity.User;
 import idv.tia201.g1.member.service.CompanyService;
-import idv.tia201.g1.member.dto.CompanyQueryParams;
-import idv.tia201.g1.member.dto.CompanyRegisterRequest;
-import idv.tia201.g1.member.dto.CompanyUpdateRequest;
 import idv.tia201.g1.member.entity.Company;
 import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.beans.BeanUtils;
@@ -19,6 +17,7 @@ import org.springframework.util.DigestUtils;
 
 
 import java.util.Date;
+import java.util.List;
 
 @CommonsLog
 @Service
@@ -160,5 +159,38 @@ public class CompanyServiceImpl implements CompanyService {
         return companyDao.findByCompanyId(companyId);
     }
 
+    @Override
+    public List<Company> findCompaniesList(CompanyQueryParams companyQueryParams) {
+        int offset = companyQueryParams.getOffset();
+        int limit = companyQueryParams.getLimit();
+        int page = offset / limit ;
+        int pageOffest = offset % limit ;
 
+        Sort sort = null;
+        if("desc".equals(companyQueryParams.getSort())) {
+            sort = sort.by(companyQueryParams.getOrderBy()).descending();
+        }else {
+            sort = sort.by(companyQueryParams.getOrderBy()).ascending();
+        }
+
+        Pageable pageable = PageRequest.of(
+                page,
+                limit,
+                sort
+        );
+
+        List<Company> companies = companyDao.findAll(pageable).getContent();
+
+        if(pageOffest >0){
+            companies =companies.subList(pageOffest, Math.min(companies.size(), limit));
+        }
+        return companies;
+    }
+
+    @Override
+    public Long count() {
+
+        return companyDao.count();
+
+    }
 }
