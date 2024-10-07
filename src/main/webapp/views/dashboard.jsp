@@ -42,44 +42,44 @@
         </a>
     </div>
 
-    <!-- 商家待審核通知卡片 -->
-    <div class="col-md-4">
-        <a href="pendingMerchants.jsp" class="text-decoration-none">
-            <div class="card custom-card bg-warning-light text-dark mb-3 shadow-sm rounded">
-                <div class="card-body text-center">
-                    <h5 class="card-title"><i class="bi bi-file-earmark-person"></i> 商家待審核</h5>
-                    <p class="h3 fw-bold mb-1">3</p>
-                    <p class="card-text"><small>需立即處理</small></p>
-                </div>
-            </div>
-        </a>
-    </div>
+<%--    <!-- 商家待審核通知卡片 -->--%>
+<%--    <div class="col-md-4">--%>
+<%--        <a href="pendingMerchants.jsp" class="text-decoration-none">--%>
+<%--            <div class="card custom-card bg-warning-light text-dark mb-3 shadow-sm rounded">--%>
+<%--                <div class="card-body text-center">--%>
+<%--                    <h5 class="card-title"><i class="bi bi-file-earmark-person"></i> 商家待審核</h5>--%>
+<%--                    <p class="h3 fw-bold mb-1">3</p>--%>
+<%--                    <p class="card-text"><small>需立即處理</small></p>--%>
+<%--                </div>--%>
+<%--            </div>--%>
+<%--        </a>--%>
+<%--    </div>--%>
 
-    <!-- 未讀訊息卡片 -->
-    <div class="col-md-4">
-        <a href="unreadMessages.jsp" class="text-decoration-none">
-            <div class="card custom-card bg-secondary-light text-dark mb-3 shadow-sm rounded">
-                <div class="card-body text-center">
-                    <h5 class="card-title"><i class="bi bi-envelope"></i> 未讀訊息</h5>
-                    <p class="h3 fw-bold mb-1">8</p>
-                    <p class="card-text"><small>最近一小時新增 3 條</small></p>
-                </div>
-            </div>
-        </a>
-    </div>
+<%--    <!-- 未讀訊息卡片 -->--%>
+<%--    <div class="col-md-4">--%>
+<%--        <a href="unreadMessages.jsp" class="text-decoration-none">--%>
+<%--            <div class="card custom-card bg-secondary-light text-dark mb-3 shadow-sm rounded">--%>
+<%--                <div class="card-body text-center">--%>
+<%--                    <h5 class="card-title"><i class="bi bi-envelope"></i> 未讀訊息</h5>--%>
+<%--                    <p class="h3 fw-bold mb-1">8</p>--%>
+<%--                    <p class="card-text"><small>最近一小時新增 3 條</small></p>--%>
+<%--                </div>--%>
+<%--            </div>--%>
+<%--        </a>--%>
+<%--    </div>--%>
 
-    <!-- 訂單爭議卡片 -->
-    <div class="col-md-4">
-        <a href="orderDisputes.jsp" class="text-decoration-none">
-            <div class="card custom-card bg-danger-light text-dark mb-3 shadow-sm rounded">
-                <div class="card-body text-center">
-                    <h5 class="card-title"><i class="bi bi-exclamation-triangle"></i> 訂單爭議</h5>
-                    <p class="h3 fw-bold mb-1">2</p>
-                    <p class="card-text"><small>需立即跟進</small></p>
-                </div>
-            </div>
-        </a>
-    </div>
+<%--    <!-- 訂單爭議卡片 -->--%>
+<%--    <div class="col-md-4">--%>
+<%--        <a href="orderDisputes.jsp" class="text-decoration-none">--%>
+<%--            <div class="card custom-card bg-danger-light text-dark mb-3 shadow-sm rounded">--%>
+<%--                <div class="card-body text-center">--%>
+<%--                    <h5 class="card-title"><i class="bi bi-exclamation-triangle"></i> 訂單爭議</h5>--%>
+<%--                    <p class="h3 fw-bold mb-1">2</p>--%>
+<%--                    <p class="card-text"><small>需立即跟進</small></p>--%>
+<%--                </div>--%>
+<%--            </div>--%>
+<%--        </a>--%>
+<%--    </div>--%>
 </div>
 
 <h4 class="my-1">統計圖表</h4>

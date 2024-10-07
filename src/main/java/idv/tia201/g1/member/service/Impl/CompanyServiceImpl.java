@@ -66,6 +66,7 @@ public class CompanyServiceImpl implements CompanyService {
             //使用MD5生成加密
             String hashedPassword = DigestUtils.md5DigestAsHex(companyRegisterRequest.getPassword().getBytes());
             newcompany.setPassword(hashedPassword);
+            newcompany.setScore(7); // 給預設值
             // 創建帳號
             companyDao.save(newcompany);
 

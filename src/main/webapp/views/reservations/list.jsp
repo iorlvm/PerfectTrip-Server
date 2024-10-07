@@ -87,16 +87,10 @@
                         <p id="modalStatus" class="text-muted"></p>
                     </div>
                 </div>
-                <div class="row mb-3">
-                    <div class="col-md-12">
-                        <strong>詳細說明:</strong>
-                        <textarea id="modalDetails" class="form-control" rows="3" placeholder="請輸入詳細說明" style="resize: none;"></textarea>
-                    </div>
-                </div>
             </div>
             <div class="modal-footer justify-content-between">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
-                <button type="button" class="btn btn-primary" id="saveButton">儲存變更</button>
+                <button type="button" class="btn btn-primary" id="saveButton">退款</button>
             </div>
         </div>
     </div>
@@ -107,6 +101,8 @@
 <%@ include file="/components/alert.jsp" %>
 
 <script>
+    const pageSize = 20;
+
     const filterTable = () => {
         const searchQuery = document.getElementById('search').value.toLowerCase();
         const statusFilter = document.getElementById('statusFilter').value;
@@ -195,14 +191,13 @@
             const row = `
             <tr>
                 <th scope="row">\${order.orderId}</th>
-                <td>\${order.customerName}</td>
+                <td>\${order.subscriber}</td>
                 <td>\${order.hotelName}</td>
-                <td>\${order.date}</td>
-                <td>\${order.amount}</td>
-                <td>\${order.status}</td>
+                <td>\${order.createdDate}</td>
+                <td>\${order.actualPrice}</td>
+                <td>\${order.payStatus}</td>
                 <td>
-                    <button class="btn btn-sm btn-warning">編輯</button>
-                    <button class="btn btn-sm btn-danger">刪除</button>
+                    <button class="btn btn-sm btn-warning">處理退款</button>
                 </td>
             </tr>`;
             tableBody.insertAdjacentHTML('beforeend', row);
@@ -210,45 +205,47 @@
     };
 
     const getOrdersListAPI = (offset = 0) => {
-        // 範例靜態數據
-        const mockData = {
-            data: {
-                result: [
-                    { orderId: 'O001', customerName: '張三', hotelName: '假日酒店', date: '2024-07-01', amount: '3000', status: '已完成' },
-                    { orderId: 'O002', customerName: '李四', hotelName: '豪華旅館', date: '2024-07-15', amount: '4500', status: '未完成' },
-                    { orderId: 'O003', customerName: '王五', hotelName: '經典飯店', date: '2024-08-05', amount: '2500', status: '爭議處理' }
-                    // 可以添加更多範例數據
-                ],
-                total: 3,
-                limit: 10,
-                offset: offset
-            }
-        };
+        const page = Math.floor(offset / pageSize);
 
-        // 返回模擬數據的 Promise
-        return new Promise((resolve) => {
-            setTimeout(() => resolve(mockData), 500); // 模擬網絡延遲
+        let url = '/api/orders?size=' + pageSize + '&page=' + page;
+        return fetch(url, {
+            method: 'GET'
+        }).then(response => {
+            if (!response.ok) {
+                return Promise.reject(new Error(`HTTP error! Status: \${response.status}`));
+            }
+            return response.json();
+        }).then(data => {
+            return data;
+        }).catch(error => {
+            showAlert('取得訂單列表失敗', 'warning');
+            throw error;
         });
     };
 
     const getOrderDetailsAPI = (orderId) => {
-        // Simulated data for demonstration purposes
-        const mockData = {
-            'O001': { orderId: 'O001', customerName: '張三', hotelName: '假日酒店', date: '2024-07-01', amount: '3000', status: '已完成', details: '此訂單已完成。' },
-            'O002': { orderId: 'O002', customerName: '李四', hotelName: '豪華旅館', date: '2024-07-15', amount: '4500', status: '未完成', details: '此訂單尚未完成，等待付款。' },
-            'O003': { orderId: 'O003', customerName: '王五', hotelName: '經典飯店', date: '2024-08-05', amount: '2500', status: '爭議處理', details: '此訂單目前處於爭議處理狀態。' }
-        };
-
-        return mockData[orderId] || {};
+        let url = '/api/orders/' + orderId;
+        return fetch(url, {
+            method: 'GET'
+        }).then(response => {
+            if (!response.ok) {
+                return Promise.reject(new Error(`HTTP error! Status: \${response.status}`));
+            }
+            return response.json();
+        }).then(data => {
+            return data;
+        }).catch(error => {
+            showAlert('取得訂單資料失敗', 'warning');
+            throw error;
+        });
     };
 
     const loadOrders = async (offset = 0) => {
         try {
             const res = await getOrdersListAPI(offset);
             const data = res.data;
-            console.log(data);
-            renderOrders(data.result);
-            renderPagination(data.total, data.limit, data.offset, loadOrders);
+            renderOrders(data);
+            renderPagination(res.total, pageSize, res.page * pageSize, loadOrders);
         } catch (error) {
             console.error('加載訂單時出錯:', error);
         }
@@ -268,10 +265,9 @@
 
         document.getElementById('saveButton').addEventListener('click', () => {
             const orderId = document.getElementById('modalOrderId').innerText;
-            const updatedDetails = document.getElementById('modalDetails').value;
 
             // Implement logic to save updated details (send data to backend, etc.)
-            console.log(`Saving changes for Order ID: \${orderId}, Updated Details: \${updatedDetails}`);
+            console.log(`Saving changes for Order ID: \${orderId}`);
 
             // Close the modal after saving changes
             const modal = bootstrap.Modal.getInstance(document.getElementById('orderDetailModal'));
@@ -279,20 +275,18 @@
         });
     });
 
-    const showModal = (row) => {
-        const orderId = row.children[0].innerText; // Retrieve order ID from the row
+    const showModal = async (row) => {
+        const orderId = row.children[0].innerText;
 
-        // Fetch order details using orderId (for now, we use mock data)
-        const orderDetails = getOrderDetailsAPI(orderId);
+        const res = await getOrderDetailsAPI(orderId);
+        console.log(res)
 
-        // Populate the modal with order details
-        document.getElementById('modalOrderId').innerText = orderDetails.orderId;
-        document.getElementById('modalCustomerName').innerText = orderDetails.customerName;
-        document.getElementById('modalHotelName').innerText = orderDetails.hotelName;
-        document.getElementById('modalDate').innerText = orderDetails.date;
-        document.getElementById('modalAmount').innerText = orderDetails.amount;
-        document.getElementById('modalStatus').innerText = orderDetails.status;
-        document.getElementById('modalDetails').value = orderDetails.details;
+        document.getElementById('modalOrderId').innerText = res.data.orderId;
+        document.getElementById('modalCustomerName').innerText = res.data.subscriber;
+        document.getElementById('modalHotelName').innerText = res.data.hotelName;
+        document.getElementById('modalDate').innerText = res.data.createdDate;
+        document.getElementById('modalAmount').innerText = res.data.actualPrice;
+        document.getElementById('modalStatus').innerText = res.data.payStatus;
 
         // Show the modal
         const modal = new bootstrap.Modal(document.getElementById('orderDetailModal'));
