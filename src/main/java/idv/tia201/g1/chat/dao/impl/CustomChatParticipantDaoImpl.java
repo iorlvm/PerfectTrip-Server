@@ -28,7 +28,7 @@ public class CustomChatParticipantDaoImpl implements CustomChatParticipantDao {
                 "    CASE " +
                 "        WHEN m.user_type = '" + ROLE_USER + "' THEN u.nickname " +
                 "        WHEN m.user_type = '" + ROLE_COMPANY + "' THEN c.company_name " +
-                "        WHEN m.user_type = '" + ROLE_ADMIN + "' THEN '平台管理員' " +
+                "        WHEN m.user_type = '" + ROLE_ADMIN + "' THEN '系統訊息' " +
                 "    END AS name, " +
                 "    CASE " +
                 "        WHEN m.user_type = '" + ROLE_USER + "' THEN u.avatar " +
