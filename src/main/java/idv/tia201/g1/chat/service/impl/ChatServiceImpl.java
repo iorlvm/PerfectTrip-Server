@@ -136,6 +136,59 @@ public class ChatServiceImpl implements ChatService {
         Long loginUserId = getOrCreateMappingUserId(userAuth.getRole(), userAuth.getId());
         addParticipantToChatRoom(chatId, loginUserId);
         addParticipantToChatRoom(chatId,1L);
+
+        List<MessageDTO> messageDTOS = null;
+        if (ROLE_USER.equals(userAuth.getRole())) {
+            MessageDTO messageDTO = new MessageDTO();
+            messageDTO.setSenderId(1L);
+            messageDTO.setContent("歡迎加入我們, 我們會盡可能的堤供您便捷的服務。");
+            messageDTO.setTimestamp(new Timestamp(System.currentTimeMillis()).toString());
+
+            messageDTOS = Collections.singletonList(messageDTO);
+        } else if (ROLE_COMPANY.equals(userAuth.getRole())) {
+            messageDTOS = new ArrayList<>(5);
+
+            // 歡迎訊息
+            MessageDTO welcomeMessage = new MessageDTO();
+            welcomeMessage.setSenderId(1L);
+            welcomeMessage.setContent("歡迎成為我們的合作商家！請依照以下步驟完成上架流程：");
+            welcomeMessage.setTimestamp(new Timestamp(System.currentTimeMillis()).toString());
+            messageDTOS.add(welcomeMessage);
+
+            // 步驟 1: 上傳商家照片與介紹
+            MessageDTO step1Message = new MessageDTO();
+            step1Message.setSenderId(1L);
+            step1Message.setContent("1. 上傳商家照片與商家介紹，讓顧客了解您的品牌與特色。");
+            step1Message.setTimestamp(new Timestamp(System.currentTimeMillis()).toString());
+            messageDTOS.add(step1Message);
+
+            // 步驟 2: 上架房間
+            MessageDTO step2Message = new MessageDTO();
+            step2Message.setSenderId(1L);
+            step2Message.setContent("2. 上架房間，請填寫詳細的房型資訊、價格與房間照片。");
+            step2Message.setTimestamp(new Timestamp(System.currentTimeMillis()).toString());
+            messageDTOS.add(step2Message);
+
+            // 步驟 3: （可選）設定優惠折扣
+            MessageDTO step3Message = new MessageDTO();
+            step3Message.setSenderId(1L);
+            step3Message.setContent("3. （可選）設定優惠折扣，吸引更多顧客預訂您的房間。");
+            step3Message.setTimestamp(new Timestamp(System.currentTimeMillis()).toString());
+            messageDTOS.add(step3Message);
+
+            // 結尾訊息
+            MessageDTO endMessage = new MessageDTO();
+            endMessage.setSenderId(1L);
+            endMessage.setContent("如有任何問題，請隨時聯繫我們的客服團隊，我們會盡力協助您！");
+            endMessage.setTimestamp(new Timestamp(System.currentTimeMillis()).toString());
+            messageDTOS.add(endMessage);
+        } else {
+            messageDTOS = Collections.emptyList();
+        }
+
+        for (MessageDTO messageDTO : messageDTOS) {
+            cacheService.saveMessage(1L, chatId, messageDTO);
+        }
     }
 
     @Override
