@@ -23,4 +23,6 @@ public interface CompanyDao extends JpaRepository<Company, Integer> {
             "JOIN OrderDetail od ON od.productId = p.productId " +
             "WHERE  od.orderId = :orderId")
     Company findByOrderId(@Param("orderId") Integer orderId);
+
+    public long count();
 }

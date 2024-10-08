@@ -23,10 +23,10 @@
                 <a href="#" class="sort" data-sort="manager">負責人 <i class="bi bi-sort"></i></a>
             </th>
             <th scope="col">
-                <a href="#" class="sort" data-sort="phone">電話 <i class="bi bi-sort"></i></a>
+                <a href="#" class="sort" data-sort="telephone">電話 <i class="bi bi-sort"></i></a>
             </th>
             <th scope="col">
-                <a href="#" class="sort" data-sort="email">電子郵件 <i class="bi bi-sort"></i></a>
+                <a href="#" class="sort" data-sort="username">電子郵件 <i class="bi bi-sort"></i></a>
             </th>
             <th scope="col">
                 <a href="#" class="sort" data-sort="date">註冊日期 <i class="bi bi-sort"></i></a>
@@ -60,16 +60,16 @@
                     <input type="text" class="form-control" id="modalManager">
                 </div>
                 <div class="mb-3">
-                    <label for="modalPhone" class="form-label">電話</label>
-                    <input type="text" class="form-control" id="modalPhone">
+                    <label for="modalTelephone" class="form-label">電話</label>
+                    <input type="text" class="form-control" id="modalTelephone">
                 </div>
                 <div class="mb-3">
-                    <label for="modalEmail" class="form-label">電子郵件</label>
-                    <input type="email" class="form-control" id="modalEmail">
+                    <label for="modalUsername" class="form-label">電子郵件</label>
+                    <input type="email" class="form-control" id="modalUsername">
                 </div>
                 <div class="mb-3">
-                    <label for="modalRegistrationDate" class="form-label">註冊日期</label>
-                    <input type="date" class="form-control" id="modalRegistrationDate">
+                    <label for="modalCreatedDate" class="form-label">註冊日期</label>
+                    <input type="date" class="form-control" id="modalCreatedDate">
                 </div>
             </div>
             <div class="modal-footer">
@@ -117,9 +117,9 @@
                 return 2;
             case 'manager':
                 return 3;
-            case 'phone':
+            case 'telephone':
                 return 4;
-            case 'email':
+            case 'username':
                 return 5;
             case 'date':
                 return 6;
@@ -174,12 +174,12 @@
                 <th scope="row">\${company.companyId}</th>
                 <td>\${company.companyName}</td>
                 <td>\${company.manager}</td>
-                <td>\${company.phone}</td>
-                <td>\${company.email}</td>
-                <td>\${company.registrationDate}</td>
+                <td>\${company.telephone}</td>
+                <td>\${company.username}</td>
+                <td>\${company.createdDate}</td>
                 <td>
                     <button class="btn btn-sm btn-warning">修改</button>
-                    <button class="btn btn-sm btn-danger">刪除</button>
+<!--                    <button class="btn btn-sm btn-danger">刪除</button>-->
                 </td>
             </tr>
         `;
@@ -188,54 +188,59 @@
     };
 
 
-    const getCompaniesListAPI = (offset = 0) => {
-        // Example static data
-        const mockData = {
-            data: {
-                result: [
-                    { companyId: 'C001', companyName: 'Company A', manager: 'Alice Smith', phone: '123-456-7890', email: 'alice@example.com', registrationDate: '2024-01-15' },
-                    { companyId: 'C002', companyName: 'Company B', manager: 'Bob Jones', phone: '987-654-3210', email: 'bob@example.com', registrationDate: '2024-02-20' },
-                    { companyId: 'C003', companyName: 'Company C', manager: 'Charlie Brown', phone: '555-555-5555', email: 'charlie@example.com', registrationDate: '2024-03-30' }
-                    // Add more mock data as needed
-                ],
-                total: 3,
-                limit: 10,
-                offset: offset
-            }
-        };
+    // const getCompaniesListAPI = (offset = 0) => {
+    //     // Example static data
+    //     const mockData = {
+    //         data: {
+    //             result: [
+    //                 { companyId: 'C001', companyName: 'Company A', manager: 'Alice Smith', telephone: '123-456-7890', username: 'alice@example.com', createdDate: '2024-01-15' },
+    //                 { companyId: 'C002', companyName: 'Company B', manager: 'Bob Jones', telephone: '987-654-3210', username: 'bob@example.com', createdDate: '2024-02-20' },
+    //                 { companyId: 'C003', companyName: 'Company C', manager: 'Charlie Brown', telephone: '555-555-5555', username: 'charlie@example.com', createdDate: '2024-03-30' }
+    //                 // Add more mock data as needed
+    //             ],
+    //             total: 3,
+    //             limit: 10,
+    //             offset: offset
+    //         }
+    //     };
+    //
+    //     // Return a promise that resolves with the mock data
+    //     return new Promise((resolve) => {
+    //         setTimeout(() => resolve(mockData), 100); // Simulate network delay
+    //     });
+    // };
 
-        // Return a promise that resolves with the mock data
-        return new Promise((resolve) => {
-            setTimeout(() => resolve(mockData), 100); // Simulate network delay
+    const getCompaniesListAPI = (offset = 0) => {
+
+        let url = '/api/store/companies?orderBy=companyId&sort=asc&limit=' + 10 + '&offset=' + offset;
+        return fetch(url, {
+            method: 'GET'
+        }).then(response => {
+            if (!response.ok) {
+                return Promise.reject(new Error(`HTTP error! Status: \${response.status}`));
+            }
+            return response.json();
+        }).then(data => {
+            return data;
+        }).catch(error => {
+            showAlert('Failed to retrieve company list', 'warning');
+            throw error;
         });
     };
+
 
     const getCompanyDetailsAPI = (companyId) => {
         // Simulated data for demonstration purposes
         const mockData = {
-            'C001': { companyId: 'C001', companyName: 'Company A', manager: 'Alice Smith', phone: '123-456-7890', email: 'alice@example.com', registrationDate: '2024-01-15' },
-            'C002': { companyId: 'C002', companyName: 'Company B', manager: 'Bob Jones', phone: '987-654-3210', email: 'bob@example.com', registrationDate: '2024-02-20' },
-            'C003': { companyId: 'C003', companyName: 'Company C', manager: 'Charlie Brown', phone: '555-555-5555', email: 'charlie@example.com', registrationDate: '2024-03-30' }
+            'C001': { companyId: 'C001', companyName: 'Company A', manager: 'Alice Smith', telephone: '123-456-7890', username: 'alice@example.com', createdDate: '2024-01-15' },
+            'C002': { companyId: 'C002', companyName: 'Company B', manager: 'Bob Jones', telephone: '987-654-3210', username: 'bob@example.com', createdDate: '2024-02-20' },
+            'C003': { companyId: 'C003', companyName: 'Company C', manager: 'Charlie Brown', telephone: '555-555-5555', username: 'charlie@example.com', createdDate: '2024-03-30' }
         };
 
         return mockData[companyId] || {};
     };
-    // const getCompaniesListAPI = (offset = 0) => {
-    //     let url = '/companies?limit=' + 10 + '&offset=' + offset;
-    //     return fetch(url, {
-    //         method: 'GET'
-    //     }).then(response => {
-    //         if (!response.ok) {
-    //             return Promise.reject(new Error(`HTTP error! Status: \${response.status}`));
-    //         }
-    //         return response.json();
-    //     }).then(data => {
-    //         return data;
-    //     }).catch(error => {
-    //         showAlert('Failed to retrieve company list', 'warning');
-    //         throw error;
-    //     });
-    // };
+
+
 
     const loadCompanies = async (offset = 0) => {
         try {
@@ -274,9 +279,9 @@
         document.getElementById('modalCompanyId').value = companyDetails.companyId;
         document.getElementById('modalCompanyName').value = companyDetails.companyName;
         document.getElementById('modalManager').value = companyDetails.manager;
-        document.getElementById('modalPhone').value = companyDetails.phone;
-        document.getElementById('modalEmail').value = companyDetails.email;
-        document.getElementById('modalRegistrationDate').value = companyDetails.registrationDate;
+        document.getElementById('modalTelephone').value = companyDetails.telephone;
+        document.getElementById('modalUsername').value = companyDetails.username;
+        document.getElementById('modalCreatedDate').value = companyDetails.createdDate;
 
         // Show the modal
         const modal = new bootstrap.Modal(document.getElementById('companyDetailModal'));
@@ -287,12 +292,12 @@
         const companyId = document.getElementById('modalCompanyId').value;
         const companyName = document.getElementById('modalCompanyName').value;
         const manager = document.getElementById('modalManager').value;
-        const phone = document.getElementById('modalPhone').value;
-        const email = document.getElementById('modalEmail').value;
-        const registrationDate = document.getElementById('modalRegistrationDate').value;
+        const telephone = document.getElementById('modalTelephone').value;
+        const username = document.getElementById('modalUsername').value;
+        const createdDate = document.getElementById('modalCreatedDate').value;
 
         // Implement logic to save updated company details (send data to backend, etc.)
-        console.log(`Saving changes for Company ID: \${companyId}, Name: \${companyName}, Manager: \${manager}, Phone: \${phone}, Email: \${email}, Date: \${registrationDate}`);
+        console.log(`Saving changes for Company ID: \${companyId}, Name: \${companyName}, Manager: \${manager}, Telephone: \${telephone}, Username: \${username}, Date: \${createdDate}`);
 
         // Close the modal after saving changes
         const modal = bootstrap.Modal.getInstance(document.getElementById('companyDetailModal'));

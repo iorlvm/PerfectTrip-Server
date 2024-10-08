@@ -1,11 +1,11 @@
 package idv.tia201.g1.member.service;
 
-import idv.tia201.g1.member.dto.CompanyLoginRequest;
-import idv.tia201.g1.member.dto.CompanyQueryParams;
-import idv.tia201.g1.member.dto.CompanyRegisterRequest;
-import idv.tia201.g1.member.dto.CompanyUpdateRequest;
+import idv.tia201.g1.member.dto.*;
 import idv.tia201.g1.member.entity.Company;
+import idv.tia201.g1.member.entity.User;
 import org.springframework.data.domain.Page;
+
+import java.util.List;
 
 public interface CompanyService {
 
@@ -24,4 +24,8 @@ public interface CompanyService {
    public Page<Company> findAll(CompanyQueryParams companyQueryParams);
 
    public Company deleteCompany(Integer companyId);
+
+   public List<Company> findCompaniesList(CompanyQueryParams companyQueryParams);
+
+   public Long count();
 }
