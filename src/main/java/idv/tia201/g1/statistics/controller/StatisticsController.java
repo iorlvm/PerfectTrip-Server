@@ -3,6 +3,7 @@ package idv.tia201.g1.statistics.controller;
 import idv.tia201.g1.core.dto.Result;
 import idv.tia201.g1.statistics.dto.CustomerSourceData;
 import idv.tia201.g1.statistics.dto.OrderStats;
+import idv.tia201.g1.statistics.dto.RevenueData;
 import idv.tia201.g1.statistics.dto.RoomTypeSalesData;
 import idv.tia201.g1.statistics.service.StatisticsService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/statistics")
@@ -35,5 +37,17 @@ public class StatisticsController {
     public Result getRoomTypeSales() {
         List<RoomTypeSalesData> roomTypeSalesData = statisticsService.getRoomTypeSalesData();
         return Result.ok(roomTypeSalesData);
+    }
+
+    @GetMapping("/revenue")
+    public Result getRevenueData() {
+        RevenueData revenueData = statisticsService.getRevenueData();
+        return Result.ok(revenueData);
+    }
+
+    @GetMapping("/new-customers")
+    public Result getNewCustomers() {
+        Map<String, Long> newCustomersStatistics = statisticsService.getNewCustomersStatistics();
+        return Result.ok(newCustomersStatistics);
     }
 }

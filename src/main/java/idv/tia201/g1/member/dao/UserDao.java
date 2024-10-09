@@ -2,11 +2,14 @@ package idv.tia201.g1.member.dao;
 
 import idv.tia201.g1.member.dto.UserQueryParams;
 import idv.tia201.g1.member.entity.User;
+import idv.tia201.g1.statistics.dto.CustomerSourceData;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
@@ -51,4 +54,13 @@ public interface UserDao extends JpaRepository<User, Integer> {
      */
     public long count();
 
+
+    @Query("SELECT u.gender, COUNT(u) FROM User u GROUP BY u.gender")
+    List<Object[]> findGenderStatistics();
+
+    @Query("SELECT COUNT(u) FROM User u WHERE DATE(u.createdDate) = CURRENT_DATE")
+    Long countNewCustomersToday();
+
+    @Query("SELECT COUNT(u) FROM User u WHERE u.createdDate >= :startDate")
+    Long countNewCustomersInLast30Days(@Param("startDate") LocalDateTime startDate);
 }

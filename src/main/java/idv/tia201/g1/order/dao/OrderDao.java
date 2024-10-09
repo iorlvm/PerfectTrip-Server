@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.sql.Date;
+import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -66,4 +67,8 @@ public interface OrderDao extends JpaRepository<Order, Integer> {
             "WHERE o.created_date >= :startDate AND o.pay_status <> '未付款' " +
             "GROUP BY DATE(o.created_date)", nativeQuery = true)
     List<Object[]> findLast7DaysOrderStats(@Param("startDate") LocalDate startDate);
+
+    @Query("SELECT SUM(o.actualPrice) FROM Order o " +
+            "WHERE o.payStatus <> '未付款' AND o.createdDate BETWEEN :startDate AND :endDate")
+    Long findRevenueBetweenDates(@Param("startDate") Timestamp startDate, @Param("endDate") Timestamp endDate);
 }

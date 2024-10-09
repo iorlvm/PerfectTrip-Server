@@ -1,16 +1,21 @@
 package idv.tia201.g1.statistics.service.impl;
 
+import idv.tia201.g1.member.constant.Gender;
+import idv.tia201.g1.member.dao.UserDao;
 import idv.tia201.g1.order.dao.OrderDao;
 import idv.tia201.g1.order.dao.OrderDetailDao;
 import idv.tia201.g1.statistics.dto.CustomerSourceData;
 import idv.tia201.g1.statistics.dto.OrderStats;
+import idv.tia201.g1.statistics.dto.RevenueData;
 import idv.tia201.g1.statistics.dto.RoomTypeSalesData;
 import idv.tia201.g1.statistics.service.StatisticsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.sql.Timestamp;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Service
@@ -19,6 +24,8 @@ public class StatisticsServiceImpl implements StatisticsService {
     private OrderDao orderDao;
     @Autowired
     private OrderDetailDao orderDetailDao;
+    @Autowired
+    private UserDao userDao;
 
     @Override
     public List<OrderStats> getDailyOrderData() {
@@ -53,13 +60,11 @@ public class StatisticsServiceImpl implements StatisticsService {
 
     @Override
     public List<CustomerSourceData> getCustomerSourceData() {
-        // 資料庫中無相關資料進行統計 => 顯示假資料
-        return Arrays.asList(
-                new CustomerSourceData("Google廣告", 45),
-                new CustomerSourceData("社交媒體", 30),
-                new CustomerSourceData("推薦", 15),
-                new CustomerSourceData("直接訪問", 10)
-        );
+        List<Object[]> genderStatistics = userDao.findGenderStatistics();
+
+        return genderStatistics.stream()
+                .map(stat -> new CustomerSourceData(((Gender) stat[0]).name(), ((Long) stat[1]).intValue()))
+                .toList();
     }
 
     @Override
@@ -94,5 +99,43 @@ public class StatisticsServiceImpl implements StatisticsService {
         }
 
         return RoomTypeSalesDataList; // 返回結果
+    }
+
+    @Override
+    public RevenueData getRevenueData() {
+        LocalDate today = LocalDate.now();
+        LocalDate startLast30Days = today.minusDays(30);
+        LocalDate start30To60DaysAgo = today.minusDays(60);
+        LocalDate end30To60DaysAgo = today.minusDays(31);
+
+        // 將 LocalDate 轉換為 Timestamp
+        Timestamp startLast30DaysTs = Timestamp.valueOf(startLast30Days.atStartOfDay());
+        Timestamp todayTs = Timestamp.valueOf(today.atStartOfDay());
+        Timestamp start30To60DaysAgoTs = Timestamp.valueOf(start30To60DaysAgo.atStartOfDay());
+        Timestamp end30To60DaysAgoTs = Timestamp.valueOf(end30To60DaysAgo.atStartOfDay());
+
+        // 查詢收入
+        Long revenueLast30Days = orderDao.findRevenueBetweenDates(startLast30DaysTs, todayTs);
+        Long revenue30To60Days = orderDao.findRevenueBetweenDates(start30To60DaysAgoTs, end30To60DaysAgoTs);
+
+        // 處理可能為 null 的情況
+        revenueLast30Days = (revenueLast30Days != null) ? revenueLast30Days : 0L;
+        revenue30To60Days = (revenue30To60Days != null) ? revenue30To60Days : 0L;
+
+        // 計算收入差額
+        Long revenueDifference = revenueLast30Days - revenue30To60Days;
+
+        return new RevenueData(revenueLast30Days, revenueDifference);
+    }
+
+    @Override
+    public Map<String, Long> getNewCustomersStatistics() {
+        Long newCustomersToday = userDao.countNewCustomersToday();
+        Long newCustomersLast30Days = userDao.countNewCustomersInLast30Days(LocalDateTime.now().minusDays(30));
+
+        Map<String, Long> stats = new HashMap<>();
+        stats.put("totalNewCustomers", newCustomersLast30Days);
+        stats.put("newCustomersToday", newCustomersToday);
+        return stats;
     }
 }
