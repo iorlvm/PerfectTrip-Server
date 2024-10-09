@@ -39,7 +39,8 @@
 </div>
 
 <!-- Company Detail Modal -->
-<div class="modal fade" id="companyDetailModal" tabindex="-1" aria-labelledby="companyDetailModalLabel" aria-hidden="true">
+<div class="modal fade" id="companyDetailModal" tabindex="-1" aria-labelledby="companyDetailModalLabel"
+     aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header bg-primary text-white">
@@ -226,20 +227,54 @@
             showAlert('Failed to retrieve company list', 'warning');
             throw error;
         });
-    };
-
-
+    }
     const getCompanyDetailsAPI = (companyId) => {
-        // Simulated data for demonstration purposes
-        const mockData = {
-            'C001': { companyId: 'C001', companyName: 'Company A', manager: 'Alice Smith', telephone: '123-456-7890', username: 'alice@example.com', createdDate: '2024-01-15' },
-            'C002': { companyId: 'C002', companyName: 'Company B', manager: 'Bob Jones', telephone: '987-654-3210', username: 'bob@example.com', createdDate: '2024-02-20' },
-            'C003': { companyId: 'C003', companyName: 'Company C', manager: 'Charlie Brown', telephone: '555-555-5555', username: 'charlie@example.com', createdDate: '2024-03-30' }
-        };
+        let url = '/api/store/'+companyId;
+        return fetch(url, {
+            method: 'GET',
+        }).then(response => {
+            if (!response.ok) {
+                return Promise.reject(new Error(`HTTP error! Status:\${response.status}`));
+            }
+            return response.json();
+        }).then(res => {
+            console.log(res.data)
+            return res.data;
+        }).catch(error => {
+            showAlert('取得商家失敗', 'warning');
+            throw error;
+        });
 
-        return mockData[companyId] || {};
+        // Simulated data for demonstration purposes
+        // const mockData = {
+        //     'C001': { companyId: 'C001', companyName: 'Company A', manager: 'Alice Smith', telephone: '123-456-7890', username: 'alice@example.com', createdDate: '2024-01-15' },
+        //     'C002': { companyId: 'C002', companyName: 'Company B', manager: 'Bob Jones', telephone: '987-654-3210', username: 'bob@example.com', createdDate: '2024-02-20' },
+        //     'C003': { companyId: 'C003', companyName: 'Company C', manager: 'Charlie Brown', telephone: '555-555-5555', username: 'charlie@example.com', createdDate: '2024-03-30' }
+        // };
+        //
+        // return mockData[companyId] || {};
     };
 
+    const updateCompanyAPI = (companyId, CompanyUpdateRequest) => {
+        let url = '/api/store/'+companyId;
+        return fetch(url, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(CompanyUpdateRequest)
+        }).then(response => {
+            if (!response.ok) {
+                return Promise.reject(new Error(`HTTP error! Status: \${response.status}`));
+            }
+            return response.json();
+        }).then(res => {
+            return res;
+        }).catch(error => {
+            showAlert('更新商家資訊失敗', 'warning');
+            throw error;
+        });
+    };
 
 
     const loadCompanies = async (offset = 0) => {
@@ -269,11 +304,11 @@
         document.getElementById('saveCompanyButton').addEventListener('click', saveCompanyDetails)
     });
 
-    const showCompanyModal = (row) => {
+    const showCompanyModal = async (row) => {
         const companyId = row.children[0].innerText; // Retrieve company ID from the row
 
         // Fetch company details using companyId (for now, we use mock data)
-        const companyDetails = getCompanyDetailsAPI(companyId);
+        const companyDetails = await getCompanyDetailsAPI(companyId);
 
         // Populate the modal with company details
         document.getElementById('modalCompanyId').value = companyDetails.companyId;
@@ -281,7 +316,11 @@
         document.getElementById('modalManager').value = companyDetails.manager;
         document.getElementById('modalTelephone').value = companyDetails.telephone;
         document.getElementById('modalUsername').value = companyDetails.username;
-        document.getElementById('modalCreatedDate').value = companyDetails.createdDate;
+        // document.getElementById('modalCreatedDate').value = companyDetails.createdDate;
+        // 格式化日期
+        const createdDate = new Date(companyDetails.createdDate);
+        const formattedDate = createdDate.toISOString().split('T')[0]; // 轉換為 YYYY-MM-DD 格式
+        document.getElementById('modalCreatedDate').value = formattedDate;
 
         // Show the modal
         const modal = new bootstrap.Modal(document.getElementById('companyDetailModal'));
