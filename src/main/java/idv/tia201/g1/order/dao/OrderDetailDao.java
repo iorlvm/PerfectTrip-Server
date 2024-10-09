@@ -22,4 +22,12 @@ public interface OrderDetailDao extends JpaRepository<OrderDetail, Integer>{
     @Query("SELECT DISTINCT new idv.tia201.g1.order.dto.OrderProductDTO(od.productId, od.productName, od.quantity) FROM OrderDetail od " +
             "WHERE od.orderId = :orderId ")
     List<OrderProductDTO> getOrderProductByOrderId(@Param("orderId") Integer orderId);
+
+    @Query(value = "SELECT pm.max_occupancy, SUM(od.quantity) " +
+            "FROM order_detail od " +
+            "JOIN order_master om ON od.order_id = om.order_id " +
+            "JOIN product_master pm ON od.product_id = pm.product_id " +
+            "WHERE om.pay_status <> '未付款' " +
+            "GROUP BY pm.max_occupancy", nativeQuery = true)
+    List<Object[]> findRoomTypeStats();
 }

@@ -1,6 +1,7 @@
 package idv.tia201.g1.order.dao;
 
 import idv.tia201.g1.order.entity.Order;
+import idv.tia201.g1.statistics.dto.OrderStats;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -9,6 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.sql.Date;
+import java.time.LocalDate;
 import java.util.List;
 
 public interface OrderDao extends JpaRepository<Order, Integer> {
@@ -57,4 +59,11 @@ public interface OrderDao extends JpaRepository<Order, Integer> {
     Double getDiscountByCompanyIdAndDate(
             @Param("companyId") Integer companyId,
             @Param("date") Date date);
+
+
+    @Query(value = "SELECT DATE(o.created_date) as orderDate, COUNT(o.order_id), SUM(o.actual_price) " +
+            "FROM order_master o " +
+            "WHERE o.created_date >= :startDate AND o.pay_status <> '未付款' " +
+            "GROUP BY DATE(o.created_date)", nativeQuery = true)
+    List<Object[]> findLast7DaysOrderStats(@Param("startDate") LocalDate startDate);
 }
