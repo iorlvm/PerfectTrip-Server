@@ -1,12 +1,19 @@
 package idv.tia201.g1.order.service.impl;
 
+import idv.tia201.g1.chat.dao.ChatParticipantDao;
+import idv.tia201.g1.chat.dto.MessageDTO;
+import idv.tia201.g1.chat.service.CacheService;
+import idv.tia201.g1.chat.service.ChatService;
 import idv.tia201.g1.core.entity.UserAuth;
 import idv.tia201.g1.core.utils.UserHolder;
 import idv.tia201.g1.order.dao.OrderDao;
 import idv.tia201.g1.order.dao.OrderDetailDao;
+import idv.tia201.g1.order.dto.OrderDTO;
+import idv.tia201.g1.order.dto.OrderProductDTO;
 import idv.tia201.g1.order.dto.PaymentRequest;
 import idv.tia201.g1.order.dto.PaymentResponse;
 import idv.tia201.g1.order.entity.Order;
+import idv.tia201.g1.order.service.OrderService;
 import idv.tia201.g1.order.service.PaymentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,6 +26,8 @@ import org.springframework.web.client.RestTemplate;
 
 import java.sql.Date;
 import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
+import java.util.List;
 import java.util.Objects;
 
 import static idv.tia201.g1.core.utils.Constants.ROLE_USER;
@@ -37,6 +46,14 @@ public class PaymentServiceImpl implements PaymentService {
     private OrderDao orderDao;
     @Autowired
     private OrderDetailDao orderDetailDao;
+    @Autowired
+    private ChatService chatService;
+    @Autowired
+    private ChatParticipantDao chatParticipantDao;
+    @Autowired
+    private CacheService cacheService;
+    @Autowired
+    private OrderService orderService;
 
     @Override
     public PaymentResponse processPayment(Integer orderId, PaymentRequest paymentRequest) {
@@ -109,8 +126,6 @@ public class PaymentServiceImpl implements PaymentService {
             throw new IllegalStateException("支付異常: 支付網站服務異常，如已扣款請聯繫客服或支付平台處理。");
         }
 
-        System.out.println(paymentResponse);
-
         if (paymentResponse.getStatus() != PAY_STATE_SUCCESS) {
             // 付款不成功, 不進行後續操作
             throw new IllegalStateException("支付失敗: 請稍後重試。");
@@ -120,9 +135,66 @@ public class PaymentServiceImpl implements PaymentService {
         Timestamp endTimestamp = new Timestamp(endDate.getTime());
         order.setPayStatus(paymentResponse.getRec_trade_id());
         orderDetailDao.updateExpiredTimeByOrderId(order.getOrderId(),endTimestamp);
-        orderDao.save(order);
+        Order saved = orderDao.save(order);
+
+        // 付款完成: 發送系統提示訊息
+        sendOrderSysMessage(saved.getOrderId());
     }
 
+    private void sendOrderSysMessage(Integer orderId) {
+        OrderDTO orderDTO = orderService.getOrder(orderId);
+
+        Date startDate = orderDTO.getStartDate();
+        Date endDate = orderDTO.getEndDate();
+        String hotelName = orderDTO.getHotelName();
+
+        List<OrderProductDTO> products = orderDTO.getProducts();
+
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd");
+
+        // 創建訊息
+        StringBuilder messageBuilder = new StringBuilder();
+        messageBuilder.append("您已成功預定")
+                .append(sdf.format(startDate))
+                .append("至")
+                .append(sdf.format(endDate))
+                .append(hotelName)
+                .append("：\n");
+
+        // 拼接房間名稱和數量，使用「、」分隔
+        messageBuilder.append("{");
+        for (int i = 0; i < products.size(); i++) {
+            OrderProductDTO product = products.get(i);
+            String productName = product.getProductName();
+            Integer quantity = product.getQuantity();
+
+            messageBuilder.append(productName).append(" ").append(quantity).append(" 間");
+
+            // 在非最後一個產品後添加 "、"
+            if (i < products.size() - 1) {
+                messageBuilder.append("、");
+            }
+        }
+        messageBuilder.append("}\n");
+
+        messageBuilder.append("期待讓您有場愉快放鬆的美妙旅程，")
+                .append("若有問題歡迎回覆此訊息，我們將在2小時內提供回覆。\n")
+                .append("期待您的入住！");
+
+        // 封裝為聊天室的系統訊息
+        MessageDTO messageDTO = new MessageDTO();
+        messageDTO.setSenderId(1L);
+        messageDTO.setContent( messageBuilder.toString());
+        messageDTO.setTimestamp(new Timestamp(System.currentTimeMillis()).toString());
+
+        // 取得登入者編號
+        Long loginUserId = chatService.getOrCreateMappingUserId(UserHolder.getRole(), UserHolder.getId());
+        // 取得登入者與系統訊息的聊天室編號
+        Long chatId = chatParticipantDao.findChatIdByTwoUserIds(loginUserId, 1L);
+
+        // 假設你要將這個訊息保存
+        cacheService.saveMessage(1L, chatId, messageDTO);
+    }
 
     /**
      * 檢查支付請求物件是否符合格式
