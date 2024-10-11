@@ -148,6 +148,23 @@
         });
     }
 
+    const imageUpdateAPI = (formData) => {
+        return fetch('/api/image', {
+            method: 'POST',
+            body: formData
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json(); // 假設你期望回傳 JSON 資料
+            })
+            .catch(error => {
+                console.error('There was a problem with the fetch operation:', error);
+                throw error;
+            });
+    };
+
     let unreads = 0;
 
     let webSocket;
@@ -168,6 +185,36 @@
         // TODO: 取得單間聊天室的API
         const res = await getChatRoomsByChatIdAPI(chatId);
         return res.data;
+    }
+
+    actionHandlers.updateFile = async (selectedFile) => {
+        console.log(selectedFile);
+
+        const formData = new FormData();
+
+        formData.append('file', selectedFile);
+        formData.append('cacheEnabled', false);
+
+        const res = await imageUpdateAPI(formData);
+        let message = {
+            chatId: chat.getActiveChatId(),
+            senderId: chat.chatUserId,
+            img: {
+                src: res.data
+            }
+        }
+
+        if (webSocket.readyState === WebSocket.OPEN) {
+            webSocket.send(JSON.stringify({
+                chatId: message.chatId,
+                action: 'send-message',
+                content: JSON.stringify(message)
+            }));
+        } else {
+            webSocket.addEventListener('open', () => {
+                actionHandlers.sendMessage(message);
+            }, { once: true });
+        }
     }
 
 

@@ -51,10 +51,11 @@ public class SearchDaoImpl implements SearchDao {
                 "                FROM ( " +
                 "                         SELECT SUM(od.quantity) AS booked " +
                 "                         FROM order_detail od " +
+                "                         JOIN order_master om ON od.order_id = om.order_id " +
                 "                         WHERE od.product_id = p.product_id " +
                 "                           AND od.booked_date >= :startDate " +    // 訂單的開始日期
                 "                           AND od.booked_date < :endDate " +       //訂單的結束日期
-                "                           AND od.expired_time > NOW() " +
+                "                           AND (om.pay_status <> '未付款' OR od.expired_time > NOW()) " +
                 "                         GROUP BY od.booked_date " +               // 按日期分組計算每天的訂單數量
                 "                     ) AS daily " +
                 "            ), 0 " +

@@ -81,7 +81,7 @@ const formatMessagesDate = (dateStr) => {
  * options: 選項陣列 輸入後會對應產出相應的選項於下拉選單中
  *     text: 選項文字
  *     click: 對應的click方法 (如需跨域執行需在actionHandlers設定對應的佔位符, 於主程式中進行函式覆寫)
- *            預設傳遞兩個參數 binder物件, 事件物件 
+ *            預設傳遞兩個參數 binder物件, 事件物件
  *     bind: 根據值切換text的顯示內容 (成功設定時text的屬性會失效)
  *         text: [] 字串陣列, 長度為2
  *         property: 根據具體哪個property進行切換
@@ -380,7 +380,7 @@ export const actionHandlers = {
 export class WeienChat {
     /**
      * 建構子 (未來可以新增其他屬性做參數化調整)
-     * @param {string} activeChatId 初始化生效的聊天室id (如需要預設開啟某個聊天室時進行傳遞) 
+     * @param {string} activeChatId 初始化生效的聊天室id (如需要預設開啟某個聊天室時進行傳遞)
      * @param {string} chatContainer 初始化html聊天容器的id (如做調整 也需要去scss檔進行相應的修改)
      */
     constructor(activeChatId = '', chatContainerId = 'weien-chat') {
@@ -538,9 +538,9 @@ export class WeienChat {
     }
 
     /**
-    * 將聊天室新增到聊天列表頂端
-    * @param {object} chatRoom
-    */
+     * 將聊天室新增到聊天列表頂端
+     * @param {object} chatRoom
+     */
     prependChat(chatRoom) {
         if (typeof chatRoom !== 'object' || chatRoom === null) return;
         let listContainer = this.chatContainerElement.querySelector('.chat-room-list');
