@@ -213,7 +213,7 @@
 
     const getCompaniesListAPI = (offset = 0) => {
 
-        let url = '/api/store/companies?orderBy=companyId&sort=asc&limit=' + 10 + '&offset=' + offset;
+        let url = '/api/store/companies?orderBy=companyId&sort=asc&limit=' + 20 + '&offset=' + offset;
         return fetch(url, {
             method: 'GET'
         }).then(response => {
