@@ -2,7 +2,7 @@ package idv.tia201.g1.core.utils;
 
 public class Constants {
 
-    public static final String BASE_URL = "http://localhost:8080/";
+    public static final String BASE_URL = "http://iorlvm.i234.me:8080/";
     public static final String WEB_ORDER_PREFIX = "PTrip:";
     public static final String ROLE_USER = "user";
     public static final String ROLE_COMPANY = "company";

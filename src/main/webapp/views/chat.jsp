@@ -365,7 +365,7 @@
     const chat = new WeienChat();
     document.addEventListener('DOMContentLoaded', async () => {
         await chat.init();
-        webSocket = new WebSocket('ws://localhost:8080/chat?admin');
+        webSocket = new WebSocket('ws://iorlvm.i234.me:8080/chat?admin');
         webSocket.addEventListener('open', onChatRoomConnected);
 
         webSocket.addEventListener('message', onMessageReceived);

@@ -20,7 +20,7 @@ public class WebConfig implements WebMvcConfigurer {
         // 跨域請求設定 未來確定規格後要修正
         CorsConfiguration corsConfiguration = new CorsConfiguration();
 
-        corsConfiguration.addAllowedOrigin("http://localhost:5173");  // TODO: 上線後要修改
+        corsConfiguration.addAllowedOrigin("http://iolrvm.i234.me:5173");  // TODO: 上線後要修改
         corsConfiguration.addAllowedHeader("*");
         corsConfiguration.addAllowedMethod("*");
         corsConfiguration.setAllowCredentials(true);
